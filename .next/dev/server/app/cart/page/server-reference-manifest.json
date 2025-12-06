@@ -1,0 +1,50 @@
+{
+  "node": {
+    "60b091d9f710ba9b0f7f973a940c99eb8a716ebea2": {
+      "workers": {
+        "app/cart/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateCartQuantity",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+        }
+      },
+      "layer": {
+        "app/cart/page": "action-browser"
+      },
+      "exportedName": "updateCartQuantity",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+    },
+    "40bb1d85284fb5f637a2a2aca7608670a2aa0d8055": {
+      "workers": {
+        "app/cart/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "removeFromCart",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+        }
+      },
+      "layer": {
+        "app/cart/page": "action-browser"
+      },
+      "exportedName": "removeFromCart",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+    },
+    "40dfc0674ebdf15f4d1a63c3a77936d77b03f45b3b": {
+      "workers": {
+        "app/cart/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "moveToWishlist",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/cart/page": "action-browser"
+      },
+      "exportedName": "moveToWishlist",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+    }
+  },
+  "edge": {}
+}

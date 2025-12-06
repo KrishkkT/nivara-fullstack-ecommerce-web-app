@@ -1,0 +1,65 @@
+{
+  "node": {
+    "40782982aec62fbf296a0e16e0e4f49d5bb3544db2": {
+      "workers": {
+        "app/shop/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+        }
+      },
+      "layer": {
+        "app/shop/page": "action-browser"
+      },
+      "exportedName": "addToCart",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+    },
+    "40a5d7e1db75da22337bc312a529209a979df7abef": {
+      "workers": {
+        "app/shop/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addToWishlist",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/shop/page": "action-browser"
+      },
+      "exportedName": "addToWishlist",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+    },
+    "408a01e5e0c7feac8aaeaf388f9a3e64957cb61ea5": {
+      "workers": {
+        "app/shop/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/shop/page": "action-browser"
+      },
+      "exportedName": "removeFromWishlist",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+    },
+    "40c73a80c1abab106ecced40a81c8cd906e651416a": {
+      "workers": {
+        "app/shop/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "isInWishlist",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/shop/page": "action-browser"
+      },
+      "exportedName": "isInWishlist",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+    }
+  },
+  "edge": {}
+}

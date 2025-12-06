@@ -1,0 +1,50 @@
+{
+  "node": {
+    "4060341e8fb86eaa534ba7b2c6d2caa286f43aecc6": {
+      "workers": {
+        "app/admin/products/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/admin/products/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteProduct",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/products/page": "action-browser"
+      },
+      "exportedName": "deleteProduct",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/admin.ts"
+    },
+    "40ac758d7b9b60c8fe4efa36c30aebee9697a02d1c": {
+      "workers": {
+        "app/admin/products/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/admin/products/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addProduct",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/products/page": "action-browser"
+      },
+      "exportedName": "addProduct",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/admin.ts"
+    },
+    "60ca19813d809fb2375cbaab7c12b77ea0f7bef30c": {
+      "workers": {
+        "app/admin/products/page": {
+          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/admin/products/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateProduct",
+          "filename": "Downloads/nivara-e-commerce-website/app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/products/page": "action-browser"
+      },
+      "exportedName": "updateProduct",
+      "filename": "Downloads/nivara-e-commerce-website/app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

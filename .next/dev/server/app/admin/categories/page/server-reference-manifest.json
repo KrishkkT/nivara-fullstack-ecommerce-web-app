@@ -1,0 +1,50 @@
+{
+  "node": {
+    "401af00458668821159ce83d20fb6efe1fa1990eeb": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/admin/categories/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addCategory",
+          "filename": "Downloads/nivarasilverjewels/app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "exportedName": "addCategory",
+      "filename": "Downloads/nivarasilverjewels/app/actions/admin.ts"
+    },
+    "601bba83073285f4640e291c92ff5c39392c34bb05": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/admin/categories/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateCategory",
+          "filename": "Downloads/nivarasilverjewels/app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "exportedName": "updateCategory",
+      "filename": "Downloads/nivarasilverjewels/app/actions/admin.ts"
+    },
+    "403b9b633e848ed75ec8b22897970b99a1776b66e1": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/admin/categories/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteCategory",
+          "filename": "Downloads/nivarasilverjewels/app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "exportedName": "deleteCategory",
+      "filename": "Downloads/nivarasilverjewels/app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

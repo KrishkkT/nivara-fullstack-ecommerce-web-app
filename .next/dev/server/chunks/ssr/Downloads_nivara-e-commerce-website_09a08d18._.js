@@ -1,0 +1,715 @@
+module.exports = [
+"[project]/Downloads/nivara-e-commerce-website/lib/db.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "sql",
+    ()=>sql
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f40$neondatabase$2f$serverless$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/@neondatabase/serverless/index.mjs [app-rsc] (ecmascript)");
+;
+if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set");
+}
+const sql = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f40$neondatabase$2f$serverless$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["neon"])(process.env.DATABASE_URL);
+}),
+"[project]/Downloads/nivara-e-commerce-website/lib/email.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/**
+ * Simple email utility for sending notifications
+ * This is a placeholder implementation that can be expanded to use
+ * services like SendGrid, Nodemailer, or other email providers
+ */ __turbopack_context__.s([
+    "generateOrderNotificationEmail",
+    ()=>generateOrderNotificationEmail,
+    "sendEmail",
+    ()=>sendEmail
+]);
+async function sendEmail(options) {
+    try {
+        // In a real implementation, you would integrate with an email service here
+        // For example, with SendGrid:
+        /*
+    const sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    await sgMail.send({
+      to: options.to,
+      from: process.env.FROM_EMAIL || 'noreply@nivara.com',
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    });
+    */ // For now, we'll just log the email content
+        console.log("=== EMAIL NOTIFICATION ===");
+        console.log("To:", options.to);
+        console.log("Subject:", options.subject);
+        console.log("Body:", options.html);
+        console.log("=========================");
+        // Return true to indicate success
+        return true;
+    } catch (error) {
+        console.error("[v0] Email sending error:", error);
+        return false;
+    }
+}
+function generateOrderNotificationEmail(order, customer, items, shippingAddress) {
+    const itemsHtml = items.map((item)=>`
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd;">
+        ${item.product_name}
+        ${item.quantity > 1 ? `<br/><small>Quantity: ${item.quantity}</small>` : ''}
+      </td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${(Number(item.product_price) * item.quantity).toFixed(2)}</td>
+    </tr>
+  `).join('');
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New Order Notification</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">New Order Received</h1>
+        
+        <p><strong>Order Number:</strong> ${order.order_number}</p>
+        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}</p>
+        <p><strong>Payment Method:</strong> ${order.payment_type === 'razorpay' ? 'Razorpay' : 'Cash on Delivery'}</p>
+        
+        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Customer Information</h2>
+        <p><strong>Name:</strong> ${customer.full_name}</p>
+        <p><strong>Email:</strong> ${customer.email}</p>
+        ${customer.phone ? `<p><strong>Phone:</strong> ${customer.phone}</p>` : ''}
+        
+        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
+        <p>
+          ${shippingAddress.address_line1}<br>
+          ${shippingAddress.address_line2 ? `${shippingAddress.address_line2}<br>` : ''}
+          ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}<br>
+          ${shippingAddress.country}
+        </p>
+        
+        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+          <thead>
+            <tr style="background-color: #f8f8f8;">
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td>
+              <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹${Number(order.total_amount).toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <p style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-site.com'}/admin/orders/${order.id}" 
+             style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
+            View Order Details
+          </a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+}),
+"[project]/Downloads/nivara-e-commerce-website/app/actions/orders.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/* __next_internal_action_entry_do_not_use__ [{"404adf650000cf05c7eab0820bd5de2adb8cf1f2c9":"cancelOrder","40ee59ef0844ea18e550e0d2a01c43a0e857794915":"createOrder"},"",""] */ __turbopack_context__.s([
+    "cancelOrder",
+    ()=>cancelOrder,
+    "createOrder",
+    ()=>createOrder
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/lib/db.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/lib/session.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/cache.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$email$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/lib/email.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+async function createOrder(data) {
+    try {
+        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSession"])();
+        if (!session) {
+            return {
+                error: "Please sign in to place an order"
+            };
+        }
+        // Generate order number
+        const orderNumber = `NIVARA-${Date.now()}`;
+        const order = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      INSERT INTO orders (
+        user_id, 
+        order_number, 
+        total_amount, 
+        status, 
+        payment_status,
+        payment_type,
+        shipping_address,
+        shipping_address_id
+      )
+      VALUES (
+        ${session.userId},
+        ${orderNumber},
+        ${data.totalAmount},
+        'pending',
+        ${data.paymentMethod === "cod" ? "pending" : "awaiting_payment"},
+        ${data.paymentMethod},
+        ${data.shippingAddressId ? null : JSON.stringify(data.shippingAddress)},
+        ${data.shippingAddressId || null}
+      )
+      RETURNING id
+    `;
+        const orderId = order[0].id;
+        // Insert order items
+        for (const item of data.items){
+            const product = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+        SELECT name, price FROM products WHERE id = ${item.productId}
+      `;
+            await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+        INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity)
+        VALUES (${orderId}, ${item.productId}, ${product[0].name}, ${item.price}, ${item.quantity})
+      `;
+        }
+        // Clear cart
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      DELETE FROM cart_items WHERE user_id = ${session.userId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/cart");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/orders");
+        // Send email notifications to admin emails
+        try {
+            // Get active admin emails
+            const adminEmailsResult = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+        SELECT email FROM admin_emails WHERE is_active = true
+      `;
+            const adminEmails = adminEmailsResult.map((row)=>row.email);
+            if (adminEmails.length > 0) {
+                // Get order details for email
+                const orderDetails = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+          SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
+          FROM orders o
+          JOIN users u ON o.user_id = u.id
+          WHERE o.id = ${orderId}
+        `;
+                const orderItems = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+          SELECT * FROM order_items WHERE order_id = ${orderId}
+        `;
+                if (orderDetails.length > 0) {
+                    const order = orderDetails[0];
+                    const customer = {
+                        full_name: order.full_name,
+                        email: order.customer_email,
+                        phone: order.customer_phone
+                    };
+                    // Get shipping address
+                    let shippingAddress = null;
+                    if (order.shipping_address_id) {
+                        const addressResult = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+              SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
+            `;
+                        if (addressResult.length > 0) {
+                            shippingAddress = addressResult[0];
+                        }
+                    } else if (order.shipping_address) {
+                        try {
+                            shippingAddress = JSON.parse(order.shipping_address);
+                        } catch (e) {
+                            shippingAddress = {};
+                        }
+                    }
+                    if (shippingAddress) {
+                        const emailHtml = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$email$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["generateOrderNotificationEmail"])(order, customer, orderItems, shippingAddress);
+                        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$email$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sendEmail"])({
+                            to: adminEmails,
+                            subject: `New Order #${order.order_number} Received`,
+                            html: emailHtml
+                        });
+                    }
+                }
+            }
+        } catch (emailError) {
+            console.error("[v0] Failed to send order notification email:", emailError);
+        // Don't fail the order creation if email sending fails
+        }
+        return {
+            success: true,
+            orderId,
+            orderNumber
+        };
+    } catch (error) {
+        console.error("[v0] Create order error:", error);
+        return {
+            error: "Failed to create order"
+        };
+    }
+}
+async function cancelOrder(orderId) {
+    try {
+        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSession"])();
+        if (!session) {
+            return {
+                error: "Please sign in to cancel order"
+            };
+        }
+        // Check if order belongs to user
+        const order = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      SELECT * FROM orders WHERE id = ${orderId} AND user_id = ${session.userId}
+    `;
+        if (order.length === 0) {
+            return {
+                error: "Order not found"
+            };
+        }
+        // Only allow cancellation for pending or processing orders
+        if (![
+            "pending",
+            "processing"
+        ].includes(order[0].status)) {
+            return {
+                error: "Cannot cancel order in current status"
+            };
+        }
+        // Update order status
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      UPDATE orders
+      SET status = 'cancelled'
+      WHERE id = ${orderId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/account");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/orders");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/orders/${orderId}`);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error("[v0] Cancel order error:", error);
+        return {
+            error: "Failed to cancel order"
+        };
+    }
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    createOrder,
+    cancelOrder
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(createOrder, "40ee59ef0844ea18e550e0d2a01c43a0e857794915", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(cancelOrder, "404adf650000cf05c7eab0820bd5de2adb8cf1f2c9", null);
+}),
+"[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/* __next_internal_action_entry_do_not_use__ [{"4060341e8fb86eaa534ba7b2c6d2caa286f43aecc6":"deleteProduct","409fe04682e251b7f2fe541dd097f87a8e45302aa5":"addCategory","40ac758d7b9b60c8fe4efa36c30aebee9697a02d1c":"addProduct","40d73886d2cf5e63e6259fad36b266b9c1c3b22640":"cancelOrder","40e63d5f4b6df681ed5e027db9b23bc058e6596baf":"deleteCategory","604a8c0ecab1dde3be6870cba01bc8c677f7ac6e19":"updateOrderStatus","60aee27bae477a26eb3e55d1996e3cdbb8960cbfbd":"updateCategory","60ca19813d809fb2375cbaab7c12b77ea0f7bef30c":"updateProduct"},"",""] */ __turbopack_context__.s([
+    "addCategory",
+    ()=>addCategory,
+    "addProduct",
+    ()=>addProduct,
+    "cancelOrder",
+    ()=>cancelOrder,
+    "deleteCategory",
+    ()=>deleteCategory,
+    "deleteProduct",
+    ()=>deleteProduct,
+    "updateCategory",
+    ()=>updateCategory,
+    "updateOrderStatus",
+    ()=>updateOrderStatus,
+    "updateProduct",
+    ()=>updateProduct
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/headers.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/cache.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/lib/session.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/lib/db.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+async function updateOrderStatus(orderId, status) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      UPDATE orders
+      SET status = ${status}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${orderId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/orders");
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to update order"
+        };
+    }
+}
+async function deleteProduct(productId) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      DELETE FROM products
+      WHERE id = ${productId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/products");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/shop");
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to delete product"
+        };
+    }
+}
+async function addProduct(data) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const imagesJson = JSON.stringify(Array.isArray(data.images) ? data.images : [
+            data.image_url
+        ]);
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      INSERT INTO products (
+        name, slug, description, price, category_id, image_url, images, metal_purity, design_number
+      )
+      VALUES (
+        ${data.name}, ${slug}, ${data.description}, ${data.price}, 
+        ${data.category_id}, ${data.image_url},
+        ${imagesJson}, ${data.metal_purity || null}, ${data.design_number || null}
+      )
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/products");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/shop");
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to add product"
+        };
+    }
+}
+async function updateProduct(productId, data) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        const imagesJson = JSON.stringify(Array.isArray(data.images) ? data.images : [
+            data.image_url
+        ]);
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      UPDATE products
+      SET 
+        name = ${data.name},
+        description = ${data.description},
+        price = ${data.price},
+        category_id = ${data.category_id},
+        image_url = ${data.image_url},
+        images = ${imagesJson},
+        metal_purity = ${data.metal_purity || null},
+        design_number = ${data.design_number || null},
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${productId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/products");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/shop");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/products/${productId}`);
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to update product"
+        };
+    }
+}
+async function addCategory(data) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const seoTitle = data.seo_title || `${data.name} | NIVARA Jewellery`;
+        const seoDescription = data.seo_description || data.description;
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      INSERT INTO categories (name, slug, description, image_url, meta_title, meta_description)
+      VALUES (${data.name}, ${slug}, ${data.description}, ${data.image_url}, ${seoTitle}, ${seoDescription})
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/categories");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/shop");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/categories");
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to add category"
+        };
+    }
+}
+async function updateCategory(categoryId, data) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const seoTitle = data.seo_title || `${data.name} | NIVARA Jewellery`;
+        const seoDescription = data.seo_description || data.description;
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      UPDATE categories
+      SET 
+        name = ${data.name},
+        slug = ${slug},
+        description = ${data.description},
+        image_url = ${data.image_url},
+        meta_title = ${seoTitle},
+        meta_description = ${seoDescription}
+      WHERE id = ${categoryId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/categories");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/shop");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/categories/${slug}`);
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to update category"
+        };
+    }
+}
+async function deleteCategory(categoryId) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      DELETE FROM categories
+      WHERE id = ${categoryId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/categories");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/shop");
+        return {
+            success: true
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: "Failed to delete category"
+        };
+    }
+}
+async function cancelOrder(orderId) {
+    const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const token = cookieStore.get("session")?.value;
+    if (!token) {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    const user = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["verifyAuth"])(token);
+    if (!user || user.role !== "admin") {
+        return {
+            success: false,
+            error: "Unauthorized"
+        };
+    }
+    try {
+        // Check if order exists
+        const order = await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      SELECT * FROM orders WHERE id = ${orderId}
+    `;
+        if (order.length === 0) {
+            return {
+                success: false,
+                error: "Order not found"
+            };
+        }
+        // Only allow cancellation for pending or processing orders
+        if (![
+            "pending",
+            "processing"
+        ].includes(order[0].status)) {
+            return {
+                success: false,
+                error: "Cannot cancel order in current status"
+            };
+        }
+        // Update order status
+        await __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$lib$2f$db$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`
+      UPDATE orders
+      SET status = 'cancelled'
+      WHERE id = ${orderId}
+    `;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])("/admin/orders");
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/admin/orders/${orderId}`);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error("[v0] Cancel order error:", error);
+        return {
+            success: false,
+            error: "Failed to cancel order"
+        };
+    }
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    updateOrderStatus,
+    deleteProduct,
+    addProduct,
+    updateProduct,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    cancelOrder
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateOrderStatus, "604a8c0ecab1dde3be6870cba01bc8c677f7ac6e19", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(deleteProduct, "4060341e8fb86eaa534ba7b2c6d2caa286f43aecc6", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(addProduct, "40ac758d7b9b60c8fe4efa36c30aebee9697a02d1c", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateProduct, "60ca19813d809fb2375cbaab7c12b77ea0f7bef30c", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(addCategory, "409fe04682e251b7f2fe541dd097f87a8e45302aa5", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateCategory, "60aee27bae477a26eb3e55d1996e3cdbb8960cbfbd", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(deleteCategory, "40e63d5f4b6df681ed5e027db9b23bc058e6596baf", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(cancelOrder, "40d73886d2cf5e63e6259fad36b266b9c1c3b22640", null);
+}),
+"[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/admin/orders/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/orders.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$orders$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/app/actions/orders.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)");
+;
+;
+}),
+"[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/admin/orders/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/orders.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "404adf650000cf05c7eab0820bd5de2adb8cf1f2c9",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$orders$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cancelOrder"],
+    "40d73886d2cf5e63e6259fad36b266b9c1c3b22640",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cancelOrder"]
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f2e$next$2d$internal$2f$server$2f$app$2f$admin$2f$orders$2f5b$id$5d2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$orders$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/admin/orders/[id]/page/actions.js { ACTIONS_MODULE0 => "[project]/Downloads/nivara-e-commerce-website/app/actions/orders.ts [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$orders$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/app/actions/orders.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivara$2d$e$2d$commerce$2d$website$2f$app$2f$actions$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Downloads/nivara-e-commerce-website/app/actions/admin.ts [app-rsc] (ecmascript)");
+}),
+];
+
+//# sourceMappingURL=Downloads_nivara-e-commerce-website_09a08d18._.js.map
