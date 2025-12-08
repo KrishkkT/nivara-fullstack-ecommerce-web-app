@@ -30,7 +30,7 @@ export async function createOrder(data: OrderData) {
     // Generate order number
     const orderNumber = `NIVARA-${Date.now()}`
 
-    const order = await sql`
+    const order: any = await sql`
       INSERT INTO orders (
         user_id, 
         order_number, 
@@ -58,7 +58,7 @@ export async function createOrder(data: OrderData) {
 
     // Insert order items
     for (const item of data.items) {
-      const product = await sql`
+      const product: any = await sql`
         SELECT name, price FROM products WHERE id = ${item.productId}
       `
 
@@ -83,7 +83,7 @@ export async function createOrder(data: OrderData) {
       // Only save if it's a new address (not from existing saved addresses)
       if (!data.shippingAddressId && data.shippingAddress) {
         // Check if this address already exists for this user
-        const existingAddresses = await sql`
+        const existingAddresses: any = await sql`
           SELECT id FROM addresses 
           WHERE user_id = ${session.userId}
           AND address_line1 = ${data.shippingAddress.address_line1}
@@ -158,21 +158,21 @@ export async function createOrder(data: OrderData) {
     // Send email notifications to admin emails and customer
     try {
       // Get active admin emails
-      const adminEmailsResult = await sql`
+      const adminEmailsResult: any = await sql`
         SELECT email FROM admin_emails WHERE is_active = true
       `
       
       const adminEmails = adminEmailsResult.map((row: any) => row.email)
       
       // Get order details for email
-      const orderDetails = await sql`
+      const orderDetails: any = await sql`
         SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
         FROM orders o
         JOIN users u ON o.user_id = u.id
         WHERE o.id = ${orderId}
       `
       
-      const orderItems = await sql`
+      const orderItems: any = await sql`
         SELECT * FROM order_items WHERE order_id = ${orderId}
       `
       
@@ -187,7 +187,7 @@ export async function createOrder(data: OrderData) {
         // Get shipping address
         let shippingAddress = null
         if (order.shipping_address_id) {
-          const addressResult = await sql`
+          const addressResult: any = await sql`
             SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
           `
           if (addressResult.length > 0) {
@@ -224,6 +224,8 @@ export async function createOrder(data: OrderData) {
     } catch (emailError) {
       console.error("[v0] Failed to send order notification email:", emailError)
       // Don't fail the order creation if email sending fails
+      // But log this as a critical issue that needs attention
+      console.error("[v0] CRITICAL: Email notification failed - this needs immediate attention!")
     }
 
     return { success: true, orderId, orderNumber }
@@ -242,7 +244,7 @@ export async function cancelOrder(orderId: number) {
     }
 
     // Check if order belongs to user
-    const order = await sql`
+    const order: any = await sql`
       SELECT * FROM orders WHERE id = ${orderId} AND user_id = ${session.userId}
     `
 

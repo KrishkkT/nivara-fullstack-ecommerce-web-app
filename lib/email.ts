@@ -61,6 +61,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     if (!transporter) {
       console.log("=== EMAIL NOTIFICATION (FALLBACK MODE) ===");
       console.log("Subject:", options.subject);
+      console.log("To:", options.to);
       console.log("=========================");
       return true;
     }
@@ -74,12 +75,19 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       text: options.text,
     };
     
+    console.log('[v0] Attempting to send email with options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject
+    });
+    
     // Send email
     const info = await transporter.sendMail(mailOptions);
-    console.log('[v0] Email sent successfully');
+    console.log('[v0] Email sent successfully. Message ID:', info.messageId);
     return true;
-  } catch (error) {
-    console.error("[v0] Email sending error occurred");
+  } catch (error: any) {
+    console.error("[v0] Email sending error occurred:", error.message);
+    console.error("[v0] Error details:", error);
     return false;
   }
 }
