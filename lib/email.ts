@@ -9,47 +9,59 @@ interface EmailOptions {
 
 // Create a transporter using SMTP
 const createTransporter = () => {
-  // For Gmail SMTP
-  if (process.env.EMAIL_PROVIDER === 'gmail' && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-    return nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
+  try {
+    // For Gmail SMTP
+    if (process.env.EMAIL_PROVIDER === 'gmail' && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      console.log('[v0] Using Gmail SMTP configuration');
+      return nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
+    }
+    
+    // For Outlook/Hotmail SMTP
+    if (process.env.EMAIL_PROVIDER === 'outlook' && process.env.OUTLOOK_USER && process.env.OUTLOOK_PASSWORD) {
+      console.log('[v0] Using Outlook SMTP configuration');
+      return nodemailer.createTransport({
+        host: 'smtp-mail.outlook.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.OUTLOOK_USER,
+          pass: process.env.OUTLOOK_PASSWORD,
+        },
+      });
+    }
+    
+    // For custom SMTP (like SendGrid, Mailgun, etc.)
+    if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+      console.log('[v0] Using custom SMTP configuration');
+      return nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      });
+    }
+    
+    console.log('[v0] No email provider configured');
+    // Fallback to console logging if no email configuration is provided
+    return null;
+  } catch (error) {
+    console.error('[v0] Error creating email transporter:', error);
+    return null;
   }
-  
-  // For Outlook/Hotmail SMTP
-  if (process.env.EMAIL_PROVIDER === 'outlook' && process.env.OUTLOOK_USER && process.env.OUTLOOK_PASSWORD) {
-    return nodemailer.createTransport({
-      host: 'smtp-mail.outlook.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.OUTLOOK_USER,
-        pass: process.env.OUTLOOK_PASSWORD,
-      },
-    });
-  }
-  
-  // For custom SMTP (like SendGrid, Mailgun, etc.)
-  if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
-  }
-  
-  // Fallback to console logging if no email configuration is provided
-  return null;
 };
 
 // Send email function using nodemailer
@@ -81,6 +93,10 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       subject: mailOptions.subject
     });
     
+    // Verify connection configuration
+    await transporter.verify();
+    console.log('[v0] Server is ready to take our messages');
+    
     // Send email
     const info = await transporter.sendMail(mailOptions);
     console.log('[v0] Email sent successfully. Message ID:', info.messageId);
@@ -88,6 +104,14 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   } catch (error: any) {
     console.error("[v0] Email sending error occurred:", error.message);
     console.error("[v0] Error details:", error);
+    // Log environment variables (without sensitive data)
+    console.log('[v0] Email config:', {
+      EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
+      GMAIL_USER: process.env.GMAIL_USER,
+      FROM_EMAIL: process.env.FROM_EMAIL,
+      SMTP_HOST: process.env.SMTP_HOST,
+      SMTP_PORT: process.env.SMTP_PORT
+    });
     return false;
   }
 }
