@@ -296,44 +296,56 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjew
 ;
 // Create a transporter using SMTP
 const createTransporter = ()=>{
-    // For Gmail SMTP
-    if (process.env.EMAIL_PROVIDER === 'gmail' && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-        return __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjewels$2f$node_modules$2f$nodemailer$2f$lib$2f$nodemailer$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
-            }
-        });
+    try {
+        // For Gmail SMTP
+        if (process.env.EMAIL_PROVIDER === 'gmail' && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+            console.log('[v0] Using Gmail SMTP configuration');
+            return __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjewels$2f$node_modules$2f$nodemailer$2f$lib$2f$nodemailer$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].createTransport({
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_APP_PASSWORD
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+        }
+        // For Outlook/Hotmail SMTP
+        if (process.env.EMAIL_PROVIDER === 'outlook' && process.env.OUTLOOK_USER && process.env.OUTLOOK_PASSWORD) {
+            console.log('[v0] Using Outlook SMTP configuration');
+            return __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjewels$2f$node_modules$2f$nodemailer$2f$lib$2f$nodemailer$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].createTransport({
+                host: 'smtp-mail.outlook.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.OUTLOOK_USER,
+                    pass: process.env.OUTLOOK_PASSWORD
+                }
+            });
+        }
+        // For custom SMTP (like SendGrid, Mailgun, etc.)
+        if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            console.log('[v0] Using custom SMTP configuration');
+            return __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjewels$2f$node_modules$2f$nodemailer$2f$lib$2f$nodemailer$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].createTransport({
+                host: process.env.SMTP_HOST,
+                port: parseInt(process.env.SMTP_PORT),
+                secure: process.env.SMTP_SECURE === 'true',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD
+                }
+            });
+        }
+        console.log('[v0] No email provider configured');
+        // Fallback to console logging if no email configuration is provided
+        return null;
+    } catch (error) {
+        console.error('[v0] Error creating email transporter:', error);
+        return null;
     }
-    // For Outlook/Hotmail SMTP
-    if (process.env.EMAIL_PROVIDER === 'outlook' && process.env.OUTLOOK_USER && process.env.OUTLOOK_PASSWORD) {
-        return __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjewels$2f$node_modules$2f$nodemailer$2f$lib$2f$nodemailer$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].createTransport({
-            host: 'smtp-mail.outlook.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.OUTLOOK_USER,
-                pass: process.env.OUTLOOK_PASSWORD
-            }
-        });
-    }
-    // For custom SMTP (like SendGrid, Mailgun, etc.)
-    if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-        return __TURBOPACK__imported__module__$5b$project$5d2f$Downloads$2f$nivarasilverjewels$2f$node_modules$2f$nodemailer$2f$lib$2f$nodemailer$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"].createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT),
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD
-            }
-        });
-    }
-    // Fallback to console logging if no email configuration is provided
-    return null;
 };
 async function sendEmail(options) {
     try {
@@ -342,6 +354,7 @@ async function sendEmail(options) {
         if (!transporter) {
             console.log("=== EMAIL NOTIFICATION (FALLBACK MODE) ===");
             console.log("Subject:", options.subject);
+            console.log("To:", options.to);
             console.log("=========================");
             return true;
         }
@@ -353,12 +366,29 @@ async function sendEmail(options) {
             html: options.html,
             text: options.text
         };
+        console.log('[v0] Attempting to send email with options:', {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject
+        });
+        // Verify connection configuration
+        await transporter.verify();
+        console.log('[v0] Server is ready to take our messages');
         // Send email
         const info = await transporter.sendMail(mailOptions);
-        console.log('[v0] Email sent successfully');
+        console.log('[v0] Email sent successfully. Message ID:', info.messageId);
         return true;
     } catch (error) {
-        console.error("[v0] Email sending error occurred");
+        console.error("[v0] Email sending error occurred:", error.message);
+        console.error("[v0] Error details:", error);
+        // Log environment variables (without sensitive data)
+        console.log('[v0] Email config:', {
+            EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
+            GMAIL_USER: process.env.GMAIL_USER,
+            FROM_EMAIL: process.env.FROM_EMAIL,
+            SMTP_HOST: process.env.SMTP_HOST,
+            SMTP_PORT: process.env.SMTP_PORT
+        });
         return false;
     }
 }
@@ -418,7 +448,7 @@ function generateOrderNotificationEmail(order, customer, items, shippingAddress)
         </table>
         
         <p style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
-          <a href="${("TURBOPACK compile-time value", "https://nivarajewels.vercel.app") || 'https://your-site.com'}/admin/orders/${order.id}" 
+          <a href="${("TURBOPACK compile-time value", "https://nivarasilver.in") || 'https://your-site.com'}/admin/orders/${order.id}" 
              style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
             View Order Details
           </a>
@@ -489,7 +519,7 @@ function generateCustomerOrderConfirmationEmail(order, customer, items, shipping
         <p>Thank you for shopping with NIVARA!</p>
         
         <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee;">
-          <a href="${("TURBOPACK compile-time value", "https://nivarajewels.vercel.app") || 'https://your-site.com'}/orders/${order.id}" 
+          <a href="${("TURBOPACK compile-time value", "https://nivarasilver.in") || 'https://your-site.com'}/orders/${order.id}" 
              style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
             View Order Details
           </a>
@@ -706,7 +736,9 @@ async function createOrder(data) {
             }
         } catch (emailError) {
             console.error("[v0] Failed to send order notification email:", emailError);
-        // Don't fail the order creation if email sending fails
+            // Don't fail the order creation if email sending fails
+            // But log this as a critical issue that needs attention
+            console.error("[v0] CRITICAL: Email notification failed - this needs immediate attention!");
         }
         return {
             success: true,
@@ -827,7 +859,7 @@ function generateCustomerOrderConfirmationEmail(order, customer, items, shipping
         <p>Thank you for shopping with NIVARA!</p>
         
         <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee;">
-          <a href="${("TURBOPACK compile-time value", "https://nivarajewels.vercel.app") || 'https://your-site.com'}/orders/${order.id}" 
+          <a href="${("TURBOPACK compile-time value", "https://nivarasilver.in") || 'https://your-site.com'}/orders/${order.id}" 
              style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
             View Order Details
           </a>

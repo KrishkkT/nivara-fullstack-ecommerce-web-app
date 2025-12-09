@@ -1,64 +1,64 @@
 {
   "node": {
-    "40782982aec62fbf296a0e16e0e4f49d5bb3544db2": {
+    "4027dbd32b45c9f31078b31630c0c3b32e9cb97b1a": {
       "workers": {
         "app/shop/page": {
-          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivarasilverjewels/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "addToCart",
-          "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+          "filename": "Downloads/nivarasilverjewels/app/actions/cart.ts"
         }
       },
       "layer": {
         "app/shop/page": "action-browser"
       },
       "exportedName": "addToCart",
-      "filename": "Downloads/nivara-e-commerce-website/app/actions/cart.ts"
+      "filename": "Downloads/nivarasilverjewels/app/actions/cart.ts"
     },
-    "40a5d7e1db75da22337bc312a529209a979df7abef": {
+    "40b5eb2f535c818b867e2c7ae14ed472e7bf648ec6": {
       "workers": {
         "app/shop/page": {
-          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivarasilverjewels/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "addToWishlist",
-          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+          "filename": "Downloads/nivarasilverjewels/app/actions/wishlist.ts"
         }
       },
       "layer": {
         "app/shop/page": "action-browser"
       },
       "exportedName": "addToWishlist",
-      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+      "filename": "Downloads/nivarasilverjewels/app/actions/wishlist.ts"
     },
-    "408a01e5e0c7feac8aaeaf388f9a3e64957cb61ea5": {
+    "4021a5f94a15b8af93241afc494c392ef4e425c558": {
       "workers": {
         "app/shop/page": {
-          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivarasilverjewels/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "removeFromWishlist",
-          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+          "filename": "Downloads/nivarasilverjewels/app/actions/wishlist.ts"
         }
       },
       "layer": {
         "app/shop/page": "action-browser"
       },
       "exportedName": "removeFromWishlist",
-      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+      "filename": "Downloads/nivarasilverjewels/app/actions/wishlist.ts"
     },
-    "40c73a80c1abab106ecced40a81c8cd906e651416a": {
+    "4069245aa2b4b66f6860a896efb76343d1a42de944": {
       "workers": {
         "app/shop/page": {
-          "moduleId": "[project]/Downloads/nivara-e-commerce-website/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivara-e-commerce-website/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/Downloads/nivarasilverjewels/.next-internal/server/app/shop/page/actions.js { ACTIONS_MODULE0 => \"[project]/Downloads/nivarasilverjewels/app/actions/cart.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Downloads/nivarasilverjewels/app/actions/wishlist.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "isInWishlist",
-          "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+          "filename": "Downloads/nivarasilverjewels/app/actions/wishlist.ts"
         }
       },
       "layer": {
         "app/shop/page": "action-browser"
       },
       "exportedName": "isInWishlist",
-      "filename": "Downloads/nivara-e-commerce-website/app/actions/wishlist.ts"
+      "filename": "Downloads/nivarasilverjewels/app/actions/wishlist.ts"
     }
   },
   "edge": {}

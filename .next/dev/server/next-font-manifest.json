@@ -1,6 +1,31 @@
 {
-  "app": {},
-  "appUsingSizeAdjust": false,
+  "app": {
+    "[project]/Downloads/nivarasilverjewels/app/account/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2"
+    ],
+    "[project]/Downloads/nivarasilverjewels/app/cart/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2"
+    ],
+    "[project]/Downloads/nivarasilverjewels/app/checkout/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2"
+    ],
+    "[project]/Downloads/nivarasilverjewels/app/orders/[id]/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2"
+    ],
+    "[project]/Downloads/nivarasilverjewels/app/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2"
+    ],
+    "[project]/Downloads/nivarasilverjewels/app/shop/page": [
+      "static/media/caa3a2e1cccd8315-s.p.853070df.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
   "pages": {},
   "pagesUsingSizeAdjust": false
 }
