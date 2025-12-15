@@ -94,7 +94,6 @@ export default function TermsPage() {
           <p className="mb-4">If you have any questions about these Terms of Service, please contact us at:</p>
           <p className="mb-2"><strong>Email:</strong> <a href="mailto:nivarajewel@gmail.com" className="text-primary hover:underline">nivarajewel@gmail.com</a></p>
           <p className="mb-2"><strong>Phone:</strong> <a href="tel:+916352192939" className="text-primary hover:underline">+91 63521 92939</a></p>
-          <p><strong>Address:</strong> [Company Address]</p>
         </section>
       </div>
     </div>
