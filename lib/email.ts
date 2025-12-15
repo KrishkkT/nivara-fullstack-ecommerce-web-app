@@ -3,26 +3,35 @@ import nodemailer from 'nodemailer';
 // Create transporter only if email configuration is provided
 let transporter: nodemailer.Transporter | null = null;
 
-// Check if required environment variables are present
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined;
-const smtpUser = process.env.SMTP_USER;
-const smtpPassword = process.env.SMTP_PASSWORD;
-const fromEmail = process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>";
+// Function to initialize transporter with current environment variables
+function initializeTransporter() {
+  // Check if required environment variables are present
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPassword = process.env.SMTP_PASSWORD;
+  const fromEmail = process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>";
 
-if (smtpHost && smtpPort && smtpUser && smtpPassword) {
-  transporter = nodemailer.createTransporter({
-    host: smtpHost,
-    port: smtpPort,
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: smtpUser,
-      pass: smtpPassword,
-    },
-  });
-} else {
-  console.warn("[v0] SMTP configuration not complete. Email sending will be disabled.");
+  if (smtpHost && smtpPort && smtpUser && smtpPassword) {
+    transporter = nodemailer.createTransporter({
+      host: smtpHost,
+      port: smtpPort,
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword,
+      },
+    });
+    console.log("[v0] Email transporter initialized successfully");
+  } else {
+    transporter = null;
+    console.warn("[v0] SMTP configuration not complete. Email sending will be disabled.");
+    console.warn("[v0] Required variables: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD");
+  }
 }
+
+// Initialize transporter at module load
+initializeTransporter();
 
 // Email template for order notifications to admins
 export function generateOrderNotificationEmail(
@@ -68,10 +77,10 @@ export function generateOrderNotificationEmail(
         
         <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
         <p>
-          ${shippingAddress.address_line1}<br>
-          ${shippingAddress.address_line2 ? `${shippingAddress.address_line2}<br>` : ""}
-          ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}<br>
-          ${shippingAddress.country}
+          ${shippingAddress?.address_line1 || ''}<br>
+          ${shippingAddress?.address_line2 ? `${shippingAddress.address_line2}<br>` : ''}
+          ${(shippingAddress?.city || '') + (shippingAddress?.state ? `, ${shippingAddress.state}` : '') + (shippingAddress?.postal_code ? ` ${shippingAddress.postal_code}` : '')}<br>
+          ${shippingAddress?.country || ''}
         </p>
         
         <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
@@ -117,21 +126,28 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
+  // Re-initialize transporter to ensure we have latest environment variables
+  initializeTransporter();
+  
   // If transporter is not configured, silently return
   if (!transporter) {
+    console.warn("[v0] SMTP configuration not complete. Email sending will be disabled.");
+    console.warn("[v0] Please set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD environment variables");
     return { success: true, message: "Email service not configured" }
   }
 
   try {
     const result = await transporter.sendMail({
-      from: fromEmail,
+      from: process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>",
       to: Array.isArray(to) ? to.join(', ') : to,
       subject,
       html,
     })
     
+    console.log("[v0] Email sent successfully");
     return result
   } catch (error) {
+    console.error("[v0] Email sending failed:", error);
     throw error
   }
 }
@@ -292,46 +308,6 @@ export function generateShippingConfirmationEmail(order: any, customer: any, ite
   `;
 }
 
-// Generate HTML email template for welcome email
-export function generateWelcomeEmail(customer: any): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Welcome to NIVARA</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #B29789;">Welcome to NIVARA!</h1>
-        
-        <p>Dear ${customer.full_name || 'Customer'},</p>
-        
-        <p>Welcome to NIVARA! We're thrilled to have you join our community of jewelry enthusiasts.</p>
-        
-        <p>Your account has been successfully created, and you can now:</p>
-        <ul style="margin: 20px 0; padding-left: 20px;">
-          <li>Browse our exquisite collection of silver jewelry</li>
-          <li>Save your favorite items to your wishlist</li>
-          <li>Track your orders and view order history</li>
-          <li>Save multiple shipping addresses for faster checkout</li>
-        </ul>
-        
-        <p>If you have any questions, our customer support team is here to help. Simply reply to this email or contact us at <a href="mailto:nivarajewel@gmail.com" style="color: #B29789; text-decoration: none;">nivarajewel@gmail.com</a>.</p>
-        
-        <p>Happy shopping!</p>
-        
-        <p style="margin-top: 30px;">Warm regards,<br/>The NIVARA Team</p>
-        
-        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #999;">
-          © ${new Date().getFullYear()} NIVARA. All rights reserved.
-        </p>
-      </div>
-    </body>
-    </html>
-  `;
-}
-
 // Generate HTML email template for order cancellation
 export function generateOrderCancellationEmail(order: any, customer: any, items: any[], shippingAddress: any): string {
   const itemsHtml = items.map(item => `
@@ -392,6 +368,46 @@ export function generateOrderCancellationEmail(order: any, customer: any, items:
              style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
             View Order Details
           </a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// Generate HTML email template for welcome email
+export function generateWelcomeEmail(customer: any): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Welcome to NIVARA</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Welcome to NIVARA!</h1>
+        
+        <p>Dear ${customer.full_name || 'Customer'},</p>
+        
+        <p>Welcome to NIVARA! We're thrilled to have you join our community of jewelry enthusiasts.</p>
+        
+        <p>Your account has been successfully created, and you can now:</p>
+        <ul style="margin: 20px 0; padding-left: 20px;">
+          <li>Browse our exquisite collection of silver jewelry</li>
+          <li>Save your favorite items to your wishlist</li>
+          <li>Track your orders and view order history</li>
+          <li>Save multiple shipping addresses for faster checkout</li>
+        </ul>
+        
+        <p>If you have any questions, our customer support team is here to help. Simply reply to this email or contact us at <a href="mailto:nivarajewel@gmail.com" style="color: #B29789; text-decoration: none;">nivarajewel@gmail.com</a>.</p>
+        
+        <p>Happy shopping!</p>
+        
+        <p style="margin-top: 30px;">Warm regards,<br/>The NIVARA Team</p>
+        
+        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #999;">
+          © ${new Date().getFullYear()} NIVARA. All rights reserved.
         </p>
       </div>
     </body>

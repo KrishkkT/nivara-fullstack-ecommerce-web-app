@@ -165,6 +165,8 @@ export async function createOrder(data: OrderData) {
 
 export async function cancelOrder(orderId: number) {
   try {
+    console.log(`[v0] User attempting to cancel order ${orderId}`);
+    
     const session = await getSession()
 
     if (!session) {
@@ -203,6 +205,8 @@ export async function cancelOrder(orderId: number) {
       SET status = 'cancelled'
       WHERE id = ${orderId}
     `
+    
+    console.log(`[v0] Order ${orderId} cancelled successfully by user`);
 
     // Send cancellation email to customer
     if (orderDetails.length > 0) {
@@ -232,15 +236,19 @@ export async function cancelOrder(orderId: number) {
 
       if (shippingAddress) {
         try {
+          console.log(`[v0] Sending cancellation email to ${customer.email}`);
           const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
           await sendEmail({
             to: customer.email,
             subject: `Order #${order.order_number} Cancelled`,
             html: emailHtml
           })
+          console.log(`[v0] Cancellation email sent successfully to ${customer.email}`);
         } catch (emailError) {
           console.error("[v0] Failed to send cancellation email:", emailError)
         }
+      } else {
+        console.warn("[v0] No shipping address found for order, skipping cancellation email");
       }
     }
 
@@ -250,6 +258,7 @@ export async function cancelOrder(orderId: number) {
 
     return { success: true }
   } catch (error) {
+    console.error("[v0] Failed to cancel order:", error);
     return { error: "Failed to cancel order" }
   }
 }

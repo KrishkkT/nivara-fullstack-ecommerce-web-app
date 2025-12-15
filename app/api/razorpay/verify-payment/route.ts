@@ -50,13 +50,21 @@ export async function POST(request: NextRequest) {
 
     // Send email notifications to admin emails and customer after successful payment
     try {
+      console.log("[v0] Preparing to send email notifications...");
+      
       // Get active admin emails
       const adminEmailsResult: any = await sql`
         SELECT email FROM admin_emails WHERE is_active = true
       `
       
       const adminEmails = adminEmailsResult.map((row: any) => row.email)
+      console.log("[v0] Admin emails found:", adminEmails);
       
+      // If no admin emails found, log a warning
+      if (adminEmails.length === 0) {
+        console.warn("[v0] No active admin emails found in database. Please add email addresses to the admin_emails table.");
+      }
+
       // Get order details for email
       const orderDetails: any = await sql`
         SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
@@ -77,6 +85,8 @@ export async function POST(request: NextRequest) {
           phone: order.customer_phone
         }
         
+        console.log("[v0] Order details retrieved for email notification");
+        
         // Get shipping address
         let shippingAddress = null
         if (order.shipping_address_id) {
@@ -94,28 +104,48 @@ export async function POST(request: NextRequest) {
           }
         }
         
+        console.log("[v0] Shipping address retrieved:", shippingAddress);
+        
         if (shippingAddress) {
           // Send email to admins
           if (adminEmails.length > 0) {
+            console.log("[v0] Sending admin notification email to:", adminEmails);
             const emailHtml = generateOrderNotificationEmail(order, customer, orderItems, shippingAddress)
-            await sendEmail({
-              to: adminEmails,
-              subject: `New Order #${order.order_number} Received`,
-              html: emailHtml
-            })
+            try {
+              const emailResult = await sendEmail({
+                to: adminEmails,
+                subject: `New Order #${order.order_number} Received`,
+                html: emailHtml
+              })
+              console.log("[v0] Admin notification email sent:", emailResult)
+            } catch (adminEmailError) {
+              console.error("[v0] Failed to send admin notification email:", adminEmailError)
+            }
+          } else {
+            console.log("[v0] No active admin emails found, skipping admin notification");
           }
           
           // Send confirmation email to customer
+          console.log("[v0] Sending customer confirmation email to:", customer.email);
           const customerEmailHtml = generateCustomerOrderConfirmationEmail(order, customer, orderItems, shippingAddress)
-          await sendEmail({
-            to: customer.email,
-            subject: `Order Confirmation #${order.order_number}`,
-            html: customerEmailHtml
-          })
+          try {
+            const emailResult = await sendEmail({
+              to: customer.email,
+              subject: `Order Confirmation #${order.order_number}`,
+              html: customerEmailHtml
+            })
+            console.log("[v0] Customer confirmation email sent:", emailResult)
+          } catch (customerEmailError) {
+            console.error("[v0] Failed to send customer confirmation email:", customerEmailError)
+          }
+        } else {
+          console.warn("[v0] Shipping address not found for order, skipping email notifications")
         }
+      } else {
+        console.warn("[v0] Order details not found, skipping email notifications")
       }
     } catch (emailError) {
-      console.error("[v0] Failed to send order notification email after payment:", emailError)
+      console.error("[v0] Failed to prepare/send order notification emails:", emailError)
       // Don't fail the payment verification if email sending fails
       // But log this as a critical issue that needs attention
       console.error("[v0] CRITICAL: Email notification failed after payment - this needs immediate attention!")
