@@ -156,7 +156,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
 
   const StatusIcon = statusIcon
 
-  const paymentMethod = order.payment_type === "razorpay" ? "Razorpay" : "COD"
+  const paymentMethod = "Online Payment"
   const isCancelled = order.status === "cancelled"
   const showPayNow = !isCancelled && order.payment_type === "razorpay" && order.payment_status === "awaiting_payment"
 

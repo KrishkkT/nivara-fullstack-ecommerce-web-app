@@ -30,7 +30,7 @@ export async function Header() {
                 NIVARA
               </span>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-light">
-                The Art of Subtle Luxury
+                YUG DIAMONDS AND JEWELS
               </span>
             </div>
           </Link>

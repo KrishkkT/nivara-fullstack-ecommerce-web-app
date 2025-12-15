@@ -46,7 +46,7 @@ export async function createOrder(data: OrderData) {
         ${orderNumber},
         ${data.totalAmount},
         'pending',
-        ${data.paymentMethod === "cod" ? "pending" : "awaiting_payment"},
+        'awaiting_payment',
         ${data.paymentMethod},
         ${data.shippingAddressId ? null : JSON.stringify(data.shippingAddress)},
         ${data.shippingAddressId || null}
@@ -304,7 +304,7 @@ function generateCustomerOrderConfirmationEmail(order: any, customer: any, items
         
         <p><strong>Order Number:</strong> ${order.order_number}</p>
         <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}</p>
-        <p><strong>Payment Method:</strong> ${order.payment_type === 'razorpay' ? 'Razorpay' : 'Cash on Delivery'}</p>
+        <p><strong>Payment Method:</strong> Online Payment</p>
         
         <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
         <p>

@@ -21,7 +21,7 @@ export function Footer() {
               <div className="flex flex-col">
                 <h3 className="text-lg font-serif font-bold leading-none">NIVARA</h3>
                 <span className="text-[8px] uppercase tracking-widest text-muted-foreground font-light">
-                  The Art of Subtle Luxury
+                  YUG DIAMONDS AND JEWELS
                 </span>
               </div>
             </div>

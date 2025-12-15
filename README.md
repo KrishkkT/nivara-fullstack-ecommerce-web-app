@@ -1,85 +1,38 @@
-# NIVARA E-Commerce Website
+# NIVARA - The Art of Subtle Luxury
 
-A premium silver jewellery e-commerce platform built with Next.js 16, TypeScript, and Tailwind CSS.
+A premium e-commerce platform for sterling silver jewellery, built with Next.js 14, TypeScript, and PostgreSQL.
 
 ## Features
 
-- **Customer Portal**
-  - Product browsing and search
-  - Shopping cart and wishlist
-  - Secure checkout with Razorpay and COD options
-  - Order tracking and history
-  - Saved addresses management
-
-- **Admin Dashboard**
-  - Order management with status tracking
-  - Product and category management
-  - Email notification system
-  - Real-time statistics
-
-- **Technical Highlights**
-  - Responsive design for all devices
-  - Server Actions for backend operations
-  - PostgreSQL database with Neon
-  - JWT-based authentication
-  - SEO-friendly architecture
+- **Modern UI/UX**: Clean, elegant design with a focus on showcasing jewellery
+- **Full E-commerce Functionality**: Product catalog, shopping cart, wishlist, and checkout
+- **User Accounts**: Registration, login, and profile management
+- **Admin Dashboard**: Complete backend for managing products, orders, and content
+- **Secure Payments**: Integration with Razorpay for online payments
+- **Responsive Design**: Mobile-first approach for all device sizes
+- **SEO Optimized**: Proper metadata and structured data for search engines
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Server Actions, PostgreSQL (Neon DB)
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Backend**: PostgreSQL, Next.js Server Actions, Next.js API Routes
+- **UI Components**: shadcn/ui, Radix UI
+- **Authentication**: Custom session-based auth
 - **Payments**: Razorpay
-- **Authentication**: JWT with HTTP-only cookies
+- **Email**: Resend
 - **Deployment**: Vercel
 
 ## Getting Started
 
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Environment Setup**
-   Create a `.env` file with the following variables:
-   ```
-   DATABASE_URL=your_neon_db_connection_string
-   JWT_SECRET=your_jwt_secret_key
-   RAZORPAY_KEY_ID=your_razorpay_key_id
-   RAZORPAY_KEY_SECRET=your_razorpay_key_secret
-   NEXT_PUBLIC_RAZORPAY_KEY_ID=your_public_razorpay_key_id
-   
-   # Email Configuration (Choose one option below)
-   
-   # Option 1: Gmail (Recommended for most users)
-   EMAIL_PROVIDER=gmail
-   GMAIL_USER=your_gmail_address@gmail.com
-   GMAIL_APP_PASSWORD=your_gmail_app_password
-   FROM_EMAIL="Your Store Name <your_gmail_address@gmail.com>"
-   
-   # Option 2: Custom SMTP (For custom domains)
-   # EMAIL_PROVIDER=smtp
-   # SMTP_HOST=your_smtp_host
-   # SMTP_PORT=587
-   # SMTP_USER=your_smtp_username
-   # SMTP_PASSWORD=your_smtp_password
-   # SMTP_SECURE=false
-   # FROM_EMAIL="Your Store Name <noreply@yourdomain.com>"
-   
-   # Site URL
-   NEXT_PUBLIC_SITE_URL=https://yourdomain.com
-   ```
-
-3. **Database Setup**
-   Run the SQL scripts in the `scripts/` directory in order to set up your database.
-
-4. **Run Development Server**
-   ```bash
-   npm run dev
-   ```
+1. Clone the repository
+2. Install dependencies with `pnpm install`
+3. Set up environment variables (see `.env.example`)
+4. Run database migrations
+5. Start the development server with `pnpm dev`
 
 ## Deployment
 
-Deploy to Vercel or any compatible hosting platform. Ensure environment variables are properly configured.
+Deployed on Vercel with PostgreSQL database and Resend for email services.
 
 ## Security
 

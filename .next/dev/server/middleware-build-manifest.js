@@ -4,20 +4,20 @@ globalThis.__BUILD_MANIFEST = {
   },
   "devFiles": [],
   "polyfillFiles": [
-    "static/chunks/608c6_next_dist_build_polyfills_polyfill-nomodule.js"
+    "static/chunks/node_modules_next_dist_build_polyfills_polyfill-nomodule.js"
   ],
   "lowPriorityFiles": [],
   "rootMainFiles": [
-    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_8a5ee34f._.js",
-    "static/chunks/608c6_next_dist_compiled_react-dom_17c20afc._.js",
-    "static/chunks/608c6_next_dist_compiled_react-server-dom-turbopack_59d392a3._.js",
-    "static/chunks/608c6_next_dist_compiled_next-devtools_index_b3a95cd9.js",
-    "static/chunks/608c6_next_dist_compiled_7f1c3c8f._.js",
-    "static/chunks/608c6_next_dist_client_933a93f2._.js",
-    "static/chunks/608c6_next_dist_c393ef04._.js",
-    "static/chunks/608c6_@swc_helpers_cjs_16c7b91c._.js",
-    "static/chunks/Downloads_nivarasilverjewels_a0ff3932._.js",
-    "static/chunks/turbopack-Downloads_nivarasilverjewels_1e43f36f._.js"
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_bae88007._.js",
+    "static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js",
+    "static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js",
+    "static/chunks/node_modules_next_dist_compiled_next-devtools_index_1dd7fb59.js",
+    "static/chunks/node_modules_next_dist_compiled_a0e4c7b4._.js",
+    "static/chunks/node_modules_next_dist_client_aaee43fe._.js",
+    "static/chunks/node_modules_next_dist_7a8122d0._.js",
+    "static/chunks/node_modules_@swc_helpers_cjs_d80fb378._.js",
+    "static/chunks/_a0ff3932._.js",
+    "static/chunks/turbopack-_45210fd5._.js"
   ]
 };
 globalThis.__BUILD_MANIFEST.lowPriorityFiles = [

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function ShippingPage() {
   return (
-    <div className="container px-4 py-16 max-w-4xl">
+    <div className="mx-auto w-full max-w-5xl px-4 py-12 animate-fadeIn">
       <div className="text-center space-y-4 mb-12 animate-fade-in">
         <div className="inline-block px-4 py-2 bg-primary/10 rounded-full text-sm font-medium text-primary mb-4">
           Shipping Information

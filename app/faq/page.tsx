@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function FAQPage() {
   return (
-    <div className="container px-4 py-12 max-w-4xl animate-fadeIn">
+    <div className="mx-auto w-full max-w-5xl px-4 py-12 animate-fadeIn">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-serif tracking-tight mb-4">Frequently Asked Questions</h1>
         <p className="text-muted-foreground text-lg">Find answers to common questions about NIVARA jewellery</p>
@@ -64,7 +64,7 @@ export default function FAQPage() {
             <span className="font-medium">Can I return or exchange my jewellery?</span>
           </AccordionTrigger>
           <AccordionContent className="text-muted-foreground">
-            Yes, we offer a 30-day return and exchange policy. Items must be unworn, in original condition with all tags
+            Yes, we offer a 7 day return and exchange policy. Items must be unworn, in original condition with all tags
             attached, and in the original packaging. Personalized or engraved items cannot be returned. Please refer to
             our Returns page for detailed information.
           </AccordionContent>
@@ -119,9 +119,8 @@ export default function FAQPage() {
             <span className="font-medium">Do you have a warranty?</span>
           </AccordionTrigger>
           <AccordionContent className="text-muted-foreground">
-            Yes, all NIVARA jewellery comes with a 1-year warranty against manufacturing defects. This covers issues
-            like stone falling, clasp breaking, or plating wearing off under normal use. The warranty does not cover
-            damage from misuse, accidents, or normal wear and tear. Contact us if you need to make a warranty claim.
+            Replacement is provided only for products that are damaged during transit, and no refund will be issued for the original amount. Any complaints must be raised within 2 days of receiving the product by emailing nivarajewel@gmail.com
+            , along with clear photos or videos and a complete unboxing video. If the product is incomplete or damaged, such as missing earrings or an incomplete set, the unboxing video is mandatory to process the complaint. Complaints submitted without a proper unboxing video will not be accepted.
           </AccordionContent>
         </AccordionItem>
       </Accordion>

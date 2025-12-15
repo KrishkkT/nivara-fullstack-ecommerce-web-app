@@ -180,16 +180,8 @@ export function CheckoutForm({
           <div className="flex items-center space-x-2 border rounded p-3">
             <RadioGroupItem value="razorpay" id="payment-razorpay" />
             <Label htmlFor="payment-razorpay" className="flex-1 cursor-pointer">
-              <div className="font-medium">Razorpay</div>
-              <div className="text-sm text-muted-foreground">Pay securely with card, UPI, or net banking</div>
-            </Label>
-          </div>
-
-          <div className="flex items-center space-x-2 border rounded p-3">
-            <RadioGroupItem value="cod" id="payment-cod" />
-            <Label htmlFor="payment-cod" className="flex-1 cursor-pointer">
-              <div className="font-medium">Cash on Delivery</div>
-              <div className="text-sm text-muted-foreground">Pay when you receive your order</div>
+              <div className="font-medium">Online</div>
+              <div className="text-sm text-muted-foreground">Secure online payment via Razorpay</div>
             </Label>
           </div>
         </RadioGroup>

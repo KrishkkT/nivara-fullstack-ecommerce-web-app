@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CarePage() {
   return (
-    <div className="container px-4 py-12 max-w-5xl animate-fadeIn">
+    <div className="mx-auto w-full max-w-5xl px-4 py-12 animate-fadeIn">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-serif tracking-tight mb-4">Jewellery Care Guide</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
