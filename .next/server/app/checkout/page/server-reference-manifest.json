@@ -1,0 +1,35 @@
+{
+  "node": {
+    "4092236c67afa3346a320374b8c3df1fa7187b9005": {
+      "workers": {
+        "app/checkout/page": {
+          "moduleId": 27001,
+          "async": false,
+          "exportedName": "createOrder",
+          "filename": "app/actions/orders.ts"
+        }
+      },
+      "layer": {
+        "app/checkout/page": "action-browser"
+      },
+      "exportedName": "createOrder",
+      "filename": "app/actions/orders.ts"
+    },
+    "00418ce438cb53ce0d5731b9ed91863489d3d34d38": {
+      "workers": {
+        "app/checkout/page": {
+          "moduleId": 27001,
+          "async": false,
+          "exportedName": "getRazorpayPublicKey",
+          "filename": "app/actions/payment.ts"
+        }
+      },
+      "layer": {
+        "app/checkout/page": "action-browser"
+      },
+      "exportedName": "getRazorpayPublicKey",
+      "filename": "app/actions/payment.ts"
+    }
+  },
+  "edge": {}
+}

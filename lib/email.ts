@@ -12,7 +12,7 @@ function initializeTransporter() {
   
   if (gmailUser && gmailAppPassword) {
     // Gmail configuration
-    transporter = nodemailer.createTransporter({
+    transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
       secure: false, // true for 465, false for other ports
@@ -32,7 +32,7 @@ function initializeTransporter() {
   const smtpPassword = process.env.SMTP_PASSWORD;
   
   if (smtpHost && smtpPort && smtpUser && smtpPassword) {
-    transporter = nodemailer.createTransporter({
+    transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
       secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports

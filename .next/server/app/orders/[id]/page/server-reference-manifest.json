@@ -1,0 +1,50 @@
+{
+  "node": {
+    "00418ce438cb53ce0d5731b9ed91863489d3d34d38": {
+      "workers": {
+        "app/orders/[id]/page": {
+          "moduleId": 53348,
+          "async": false,
+          "exportedName": "getRazorpayPublicKey",
+          "filename": "app/actions/payment.ts"
+        }
+      },
+      "layer": {
+        "app/orders/[id]/page": "action-browser"
+      },
+      "exportedName": "getRazorpayPublicKey",
+      "filename": "app/actions/payment.ts"
+    },
+    "4068bf0181f24a199e2d852075c25992cf1639aea9": {
+      "workers": {
+        "app/orders/[id]/page": {
+          "moduleId": 53348,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/orders.ts"
+        }
+      },
+      "layer": {
+        "app/orders/[id]/page": "action-browser"
+      },
+      "exportedName": "cancelOrder",
+      "filename": "app/actions/orders.ts"
+    },
+    "401afdf693e644ce4f0761bfd0af817d46732dc380": {
+      "workers": {
+        "app/orders/[id]/page": {
+          "moduleId": 53348,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/orders/[id]/page": "action-browser"
+      },
+      "exportedName": "cancelOrder",
+      "filename": "app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

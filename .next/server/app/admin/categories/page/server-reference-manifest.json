@@ -1,0 +1,50 @@
+{
+  "node": {
+    "40546c0d0ed19fe599a9bf96609198a17fcfea7ea8": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": 13837,
+          "async": false,
+          "exportedName": "addCategory",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "exportedName": "addCategory",
+      "filename": "app/actions/admin.ts"
+    },
+    "602f5d9aba6c8d68770a3738dec114ba973b4b8b41": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": 13837,
+          "async": false,
+          "exportedName": "updateCategory",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "exportedName": "updateCategory",
+      "filename": "app/actions/admin.ts"
+    },
+    "406d5c05b6e978c92ff3a258d71fc686829a50e5ce": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": 13837,
+          "async": false,
+          "exportedName": "deleteCategory",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "exportedName": "deleteCategory",
+      "filename": "app/actions/admin.ts"
+    }
+  },
+  "edge": {}
+}

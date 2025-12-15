@@ -1,0 +1,503 @@
+{
+  "node": {
+    "4000a98622c3bd7838534c238d4593ca798a69456e": {
+      "workers": {
+        "app/categories/[slug]/page": {
+          "moduleId": 68758,
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "app/actions/cart.ts"
+        },
+        "app/page": {
+          "moduleId": 42626,
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "app/actions/cart.ts"
+        },
+        "app/products/[slug]/page": {
+          "moduleId": 89715,
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "app/actions/cart.ts"
+        },
+        "app/search/page": {
+          "moduleId": 35000,
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "app/actions/cart.ts"
+        },
+        "app/shop/page": {
+          "moduleId": 10433,
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "app/actions/cart.ts"
+        },
+        "app/wishlist/page": {
+          "moduleId": 73881,
+          "async": false,
+          "exportedName": "addToCart",
+          "filename": "app/actions/cart.ts"
+        }
+      },
+      "layer": {
+        "app/categories/[slug]/page": "action-browser",
+        "app/page": "action-browser",
+        "app/products/[slug]/page": "action-browser",
+        "app/search/page": "action-browser",
+        "app/shop/page": "action-browser",
+        "app/wishlist/page": "action-browser"
+      },
+      "filename": "app/actions/cart.ts",
+      "exportedName": "addToCart"
+    },
+    "408f14e84e2d921f7b530266bb9076850d808182ad": {
+      "workers": {
+        "app/categories/[slug]/page": {
+          "moduleId": 68758,
+          "async": false,
+          "exportedName": "addToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/page": {
+          "moduleId": 42626,
+          "async": false,
+          "exportedName": "addToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/products/[slug]/page": {
+          "moduleId": 89715,
+          "async": false,
+          "exportedName": "addToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/search/page": {
+          "moduleId": 35000,
+          "async": false,
+          "exportedName": "addToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/shop/page": {
+          "moduleId": 10433,
+          "async": false,
+          "exportedName": "addToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/categories/[slug]/page": "action-browser",
+        "app/page": "action-browser",
+        "app/products/[slug]/page": "rsc",
+        "app/search/page": "action-browser",
+        "app/shop/page": "action-browser"
+      },
+      "filename": "app/actions/wishlist.ts",
+      "exportedName": "addToWishlist"
+    },
+    "4038eb4d09ebc23cb5773f940e0512a07e99923015": {
+      "workers": {
+        "app/categories/[slug]/page": {
+          "moduleId": 68758,
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/page": {
+          "moduleId": 42626,
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/products/[slug]/page": {
+          "moduleId": 89715,
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/search/page": {
+          "moduleId": 35000,
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/shop/page": {
+          "moduleId": 10433,
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/wishlist/page": {
+          "moduleId": 73881,
+          "async": false,
+          "exportedName": "removeFromWishlist",
+          "filename": "app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/categories/[slug]/page": "action-browser",
+        "app/page": "action-browser",
+        "app/products/[slug]/page": "rsc",
+        "app/search/page": "action-browser",
+        "app/shop/page": "action-browser",
+        "app/wishlist/page": "action-browser"
+      },
+      "filename": "app/actions/wishlist.ts",
+      "exportedName": "removeFromWishlist"
+    },
+    "40083dab82c37eeb0a0fd825fc41793aa11806b167": {
+      "workers": {
+        "app/categories/[slug]/page": {
+          "moduleId": 68758,
+          "async": false,
+          "exportedName": "isInWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/page": {
+          "moduleId": 42626,
+          "async": false,
+          "exportedName": "isInWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/products/[slug]/page": {
+          "moduleId": 89715,
+          "async": false,
+          "exportedName": "isInWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/search/page": {
+          "moduleId": 35000,
+          "async": false,
+          "exportedName": "isInWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/shop/page": {
+          "moduleId": 10433,
+          "async": false,
+          "exportedName": "isInWishlist",
+          "filename": "app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/categories/[slug]/page": "action-browser",
+        "app/page": "action-browser",
+        "app/products/[slug]/page": "rsc",
+        "app/search/page": "action-browser",
+        "app/shop/page": "action-browser"
+      },
+      "filename": "app/actions/wishlist.ts",
+      "exportedName": "isInWishlist"
+    },
+    "00ea135415424fe593d7ab8d104e99d0d977d8fb51": {
+      "workers": {
+        "app/account/page": {
+          "moduleId": 21206,
+          "async": false,
+          "exportedName": "signOut",
+          "filename": "app/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/account/page": "rsc"
+      },
+      "filename": "app/actions/auth.ts",
+      "exportedName": "signOut"
+    },
+    "404fa6d56cb475768172a71cf77c29fae1b2d0dd5d": {
+      "workers": {
+        "app/account/page": {
+          "moduleId": 21206,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/register/page": {
+          "moduleId": 15719,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/account/page": "rsc",
+        "app/register/page": "action-browser"
+      },
+      "filename": "app/actions/auth.ts",
+      "exportedName": "signUp"
+    },
+    "40a8f14b4cf5954a89f2d1493008c224f51fe37c1f": {
+      "workers": {
+        "app/account/page": {
+          "moduleId": 21206,
+          "async": false,
+          "exportedName": "signIn",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/login/page": {
+          "moduleId": 51661,
+          "async": false,
+          "exportedName": "signIn",
+          "filename": "app/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/account/page": "rsc",
+        "app/login/page": "action-browser"
+      },
+      "filename": "app/actions/auth.ts",
+      "exportedName": "signIn"
+    },
+    "4068bf0181f24a199e2d852075c25992cf1639aea9": {
+      "workers": {
+        "app/account/page": {
+          "moduleId": 21206,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/orders.ts"
+        },
+        "app/admin/orders/[id]/page": {
+          "moduleId": 11979,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/orders.ts"
+        },
+        "app/orders/[id]/page": {
+          "moduleId": 53348,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/orders.ts"
+        }
+      },
+      "layer": {
+        "app/account/page": "action-browser",
+        "app/admin/orders/[id]/page": "action-browser",
+        "app/orders/[id]/page": "action-browser"
+      },
+      "filename": "app/actions/orders.ts",
+      "exportedName": "cancelOrder"
+    },
+    "401afdf693e644ce4f0761bfd0af817d46732dc380": {
+      "workers": {
+        "app/account/page": {
+          "moduleId": 21206,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/admin.ts"
+        },
+        "app/admin/orders/[id]/page": {
+          "moduleId": 11979,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/admin.ts"
+        },
+        "app/orders/[id]/page": {
+          "moduleId": 53348,
+          "async": false,
+          "exportedName": "cancelOrder",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/account/page": "action-browser",
+        "app/admin/orders/[id]/page": "action-browser",
+        "app/orders/[id]/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "cancelOrder"
+    },
+    "40546c0d0ed19fe599a9bf96609198a17fcfea7ea8": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": 13837,
+          "async": false,
+          "exportedName": "addCategory",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "addCategory"
+    },
+    "602f5d9aba6c8d68770a3738dec114ba973b4b8b41": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": 13837,
+          "async": false,
+          "exportedName": "updateCategory",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "updateCategory"
+    },
+    "406d5c05b6e978c92ff3a258d71fc686829a50e5ce": {
+      "workers": {
+        "app/admin/categories/page": {
+          "moduleId": 13837,
+          "async": false,
+          "exportedName": "deleteCategory",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/categories/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "deleteCategory"
+    },
+    "607aa12dcca34b8ecb9ba93bf72eca644316457d40": {
+      "workers": {
+        "app/admin/orders/[id]/page": {
+          "moduleId": 11979,
+          "async": false,
+          "exportedName": "updateOrderStatus",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/orders/[id]/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "updateOrderStatus"
+    },
+    "409cddbb14d4b70d5a89d75fa26bb4540776c05fcc": {
+      "workers": {
+        "app/admin/products/page": {
+          "moduleId": 49156,
+          "async": false,
+          "exportedName": "deleteProduct",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/products/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "deleteProduct"
+    },
+    "40c75e47406cb1f4a7be600a05451db9035e5c428c": {
+      "workers": {
+        "app/admin/products/page": {
+          "moduleId": 49156,
+          "async": false,
+          "exportedName": "addProduct",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/products/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "addProduct"
+    },
+    "609bdeec0dbdb6e062313dcb5efafb104904b81202": {
+      "workers": {
+        "app/admin/products/page": {
+          "moduleId": 49156,
+          "async": false,
+          "exportedName": "updateProduct",
+          "filename": "app/actions/admin.ts"
+        }
+      },
+      "layer": {
+        "app/admin/products/page": "action-browser"
+      },
+      "filename": "app/actions/admin.ts",
+      "exportedName": "updateProduct"
+    },
+    "60974de0de8fd1da886c1466542bb1d0855a797d4e": {
+      "workers": {
+        "app/cart/page": {
+          "moduleId": 17605,
+          "async": false,
+          "exportedName": "updateCartQuantity",
+          "filename": "app/actions/cart.ts"
+        }
+      },
+      "layer": {
+        "app/cart/page": "action-browser"
+      },
+      "filename": "app/actions/cart.ts",
+      "exportedName": "updateCartQuantity"
+    },
+    "4088877ecb15aa4273161f24e95db40cdf9ac2d587": {
+      "workers": {
+        "app/cart/page": {
+          "moduleId": 17605,
+          "async": false,
+          "exportedName": "removeFromCart",
+          "filename": "app/actions/cart.ts"
+        }
+      },
+      "layer": {
+        "app/cart/page": "action-browser"
+      },
+      "filename": "app/actions/cart.ts",
+      "exportedName": "removeFromCart"
+    },
+    "40933ce6382771838bde69a5e387becc99c34e2150": {
+      "workers": {
+        "app/cart/page": {
+          "moduleId": 17605,
+          "async": false,
+          "exportedName": "moveToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        },
+        "app/products/[slug]/page": {
+          "moduleId": 89715,
+          "async": false,
+          "exportedName": "moveToWishlist",
+          "filename": "app/actions/wishlist.ts"
+        }
+      },
+      "layer": {
+        "app/cart/page": "action-browser",
+        "app/products/[slug]/page": "rsc"
+      },
+      "filename": "app/actions/wishlist.ts",
+      "exportedName": "moveToWishlist"
+    },
+    "4092236c67afa3346a320374b8c3df1fa7187b9005": {
+      "workers": {
+        "app/checkout/page": {
+          "moduleId": 27001,
+          "async": false,
+          "exportedName": "createOrder",
+          "filename": "app/actions/orders.ts"
+        }
+      },
+      "layer": {
+        "app/checkout/page": "action-browser"
+      },
+      "filename": "app/actions/orders.ts",
+      "exportedName": "createOrder"
+    },
+    "00418ce438cb53ce0d5731b9ed91863489d3d34d38": {
+      "workers": {
+        "app/checkout/page": {
+          "moduleId": 27001,
+          "async": false,
+          "exportedName": "getRazorpayPublicKey",
+          "filename": "app/actions/payment.ts"
+        },
+        "app/orders/[id]/page": {
+          "moduleId": 53348,
+          "async": false,
+          "exportedName": "getRazorpayPublicKey",
+          "filename": "app/actions/payment.ts"
+        }
+      },
+      "layer": {
+        "app/checkout/page": "action-browser",
+        "app/orders/[id]/page": "action-browser"
+      },
+      "filename": "app/actions/payment.ts",
+      "exportedName": "getRazorpayPublicKey"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "EXqOT9QGovm6+QN77iWLZTrXUrjwaWiCCLqQawxEGyA="
+}
