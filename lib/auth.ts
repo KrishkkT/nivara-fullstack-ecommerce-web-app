@@ -1,4 +1,5 @@
 import { sql } from "./db"
+import bcrypt from "bcryptjs"
 
 export interface User {
   id: number
@@ -9,19 +10,13 @@ export interface User {
   created_at: Date
 }
 
-// Use Web Crypto API instead of bcryptjs for better compatibility in edge environments
 export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-  return hashHex
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password)
-  return passwordHash === hash
+  return await bcrypt.compare(password, hash)
 }
 
 export async function createUser(email: string, password: string, fullName: string, phone?: string): Promise<User> {

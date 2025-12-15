@@ -176,14 +176,16 @@ export async function sendEmail({
 export function generateCustomerOrderConfirmationEmail(order: any, customer: any, items: any[], shippingAddress: any): string {
   const itemsHtml = items.map(item => `
     <tr>
-      <td style="padding: 8px; border: 1px solid #ddd;">
-        ${item.product_name}
-        ${item.quantity > 1 ? `<br/><small>Quantity: ${item.quantity}</small>` : ''}
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="font-weight: bold;">${item.product_name}</div>
+        <div>Quantity: ${item.quantity}</div>
       </td>
-      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${(Number(item.product_price) * item.quantity).toFixed(2)}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${(item.product_price * item.quantity).toFixed(2)}
+      </td>
     </tr>
-  `).join('');
-
+  `).join('')
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -195,69 +197,61 @@ export function generateCustomerOrderConfirmationEmail(order: any, customer: any
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #B29789;">Order Confirmation</h1>
         
-        <p>Dear ${customer.full_name || 'Customer'},</p>
+        <p>Dear ${customer.full_name},</p>
         
-        <p>Thank you for your order! We've received your order and are processing it.</p>
+        <p>Thank you for your order! We're preparing your items for shipment.</p>
         
-        <p><strong>Order Number:</strong> ${order.order_number}</p>
-        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}</p>
-        <p><strong>Payment Method:</strong> Online Payment</p>
+        <p><strong>Order Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+        </ul>
         
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
-        <p>
-          ${shippingAddress?.address_line1 || ''}<br>
-          ${shippingAddress?.address_line2 ? `${shippingAddress.address_line2}<br>` : ''}
-          ${(shippingAddress?.city || '') + (shippingAddress?.state ? `, ${shippingAddress.state}` : '') + (shippingAddress?.postal_code ? ` ${shippingAddress.postal_code}` : '')}<br>
-          ${shippingAddress?.country || ''}
-        </p>
-        
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+        <p><strong>Items Ordered:</strong></p>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
           <thead>
             <tr style="background-color: #f8f8f8;">
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
+              <th style="padding: 10px; text-align: left;">Item</th>
+              <th style="padding: 10px; text-align: right;">Price</th>
             </tr>
           </thead>
           <tbody>
             ${itemsHtml}
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td>
-              <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹${Number(order.total_amount).toFixed(2)}</td>
-            </tr>
           </tbody>
         </table>
         
-        <p style="margin-top: 20px;">
-          We'll notify you when your order has been shipped. If you have any questions, please contact us.
-        </p>
+        <p><strong>Shipping Address:</strong></p>
+        <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
+          <div>${shippingAddress.address_line1}</div>
+          ${shippingAddress.address_line2 ? `<div>${shippingAddress.address_line2}</div>` : ''}
+          <div>${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}</div>
+          <div>${shippingAddress.country}</div>
+        </div>
         
-        <p>Thank you for shopping with NIVARA!</p>
+        <p>We'll notify you when your order has been shipped.</p>
         
-        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-site.com'}/orders/${order.id}" 
-             style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
-            View Order Details
-          </a>
-        </p>
+        <p>Thank you for shopping with us!</p>
       </div>
     </body>
     </html>
-  `;
+  `
 }
 
 // Generate HTML email template for shipping confirmation
-export function generateShippingConfirmationEmail(order: any, customer: any, items: any[], shippingAddress: any, trackingInfo: any): string {
+export function generateShippingConfirmationEmail(order: any, customer: any, items: any[], shippingAddress: any): string {
   const itemsHtml = items.map(item => `
     <tr>
-      <td style="padding: 8px; border: 1px solid #ddd;">
-        ${item.product_name}
-        ${item.quantity > 1 ? `<br/><small>Quantity: ${item.quantity}</small>` : ''}
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="font-weight: bold;">${item.product_name}</div>
+        <div>Quantity: ${item.quantity}</div>
       </td>
-      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${(Number(item.product_price) * item.quantity).toFixed(2)}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${(item.product_price * item.quantity).toFixed(2)}
+      </td>
     </tr>
-  `).join('');
-
+  `).join('')
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -269,77 +263,114 @@ export function generateShippingConfirmationEmail(order: any, customer: any, ite
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #B29789;">Your Order Has Been Shipped!</h1>
         
-        <p>Dear ${customer.full_name || 'Customer'},</p>
+        <p>Dear ${customer.full_name},</p>
         
-        <p>Great news! Your order #${order.order_number} has been shipped and is on its way to you.</p>
+        <p>Great news! Your order has been shipped and is on its way to you.</p>
         
-        <p><strong>Order Number:</strong> ${order.order_number}</p>
-        <p><strong>Shipped Date:</strong> ${new Date().toLocaleString('en-IN')}</p>
+        <p><strong>Order Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+        </ul>
         
-        ${trackingInfo?.tracking_number ? `
-        <div style="background-color: #f8f8f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #B29789;">Tracking Information</h3>
-          <p><strong>Tracking Number:</strong> ${trackingInfo.tracking_number}</p>
-          ${trackingInfo.courier_name ? `<p><strong>Courier:</strong> ${trackingInfo.courier_name}</p>` : ''}
-          ${trackingInfo.tracking_url ? `<p><a href="${trackingInfo.tracking_url}" style="color: #B29789; text-decoration: none;">Track Your Package</a></p>` : ''}
-        </div>
-        ` : ''}
-        
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
-        <p>
-          ${shippingAddress?.address_line1 || ''}<br>
-          ${shippingAddress?.address_line2 ? `${shippingAddress.address_line2}<br>` : ''}
-          ${(shippingAddress?.city || '') + (shippingAddress?.state ? `, ${shippingAddress.state}` : '') + (shippingAddress?.postal_code ? ` ${shippingAddress.postal_code}` : '')}<br>
-          ${shippingAddress?.country || ''}
-        </p>
-        
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+        <p><strong>Items Shipped:</strong></p>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
           <thead>
             <tr style="background-color: #f8f8f8;">
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
+              <th style="padding: 10px; text-align: left;">Item</th>
+              <th style="padding: 10px; text-align: right;">Price</th>
             </tr>
           </thead>
           <tbody>
             ${itemsHtml}
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td>
-              <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹${Number(order.total_amount).toFixed(2)}</td>
-            </tr>
           </tbody>
         </table>
         
-        <p style="margin-top: 20px;">
-          If you have any questions about your shipment, please contact us.
-        </p>
+        <p><strong>Shipping Address:</strong></p>
+        <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
+          <div>${shippingAddress.address_line1}</div>
+          ${shippingAddress.address_line2 ? `<div>${shippingAddress.address_line2}</div>` : ''}
+          <div>${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}</div>
+          <div>${shippingAddress.country}</div>
+        </div>
         
-        <p>Thank you for shopping with NIVARA!</p>
-        
-        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-site.com'}/orders/${order.id}" 
-             style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
-            View Order Details
-          </a>
-        </p>
+        <p>You should receive your order soon. Thank you for shopping with us!</p>
       </div>
     </body>
     </html>
-  `;
+  `
 }
 
-// Generate HTML email template for order cancellation
-export function generateOrderCancellationEmail(order: any, customer: any, items: any[], shippingAddress: any): string {
+// Generate HTML email template for admin shipping notification
+export function generateAdminShippingNotificationEmail(order: any, customer: any, items: any[]): string {
   const itemsHtml = items.map(item => `
     <tr>
-      <td style="padding: 8px; border: 1px solid #ddd;">
-        ${item.product_name}
-        ${item.quantity > 1 ? `<br/><small>Quantity: ${item.quantity}</small>` : ''}
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="font-weight: bold;">${item.product_name}</div>
+        <div>Quantity: ${item.quantity}</div>
       </td>
-      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${(Number(item.product_price) * item.quantity).toFixed(2)}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${(item.product_price * item.quantity).toFixed(2)}
+      </td>
     </tr>
-  `).join('');
+  `).join('')
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Shipped Notification</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Order Marked as Shipped</h1>
+        
+        <p>An order has been marked as shipped in the admin panel.</p>
+        
+        <p><strong>Order Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+        </ul>
+        
+        <p><strong>Items:</strong></p>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+          <thead>
+            <tr style="background-color: #f8f8f8;">
+              <th style="padding: 10px; text-align: left;">Item</th>
+              <th style="padding: 10px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        
+        <p>You can view and manage this order in the admin panel.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
 
+// Generate HTML email template for cancellation confirmation
+export function generateCancellationConfirmationEmail(order: any, customer: any, items: any[]): string {
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="font-weight: bold;">${item.product_name}</div>
+        <div>Quantity: ${item.quantity}</div>
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${(item.product_price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `).join('')
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -351,52 +382,128 @@ export function generateOrderCancellationEmail(order: any, customer: any, items:
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #B29789;">Order Cancelled</h1>
         
-        <p>Dear ${customer.full_name || 'Customer'},</p>
+        <p>Dear ${customer.full_name},</p>
         
-        <p>We're sorry to inform you that your order #${order.order_number} has been cancelled.</p>
+        <p>Your order #${order.order_number} has been cancelled.</p>
         
-        <p><strong>Order Number:</strong> ${order.order_number}</p>
-        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}</p>
+        <p><strong>Order Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+        </ul>
         
-        <div style="background-color: #fff3f3; padding: 15px; border-radius: 4px; margin: 20px 0; border: 1px solid #fcc;">
-          <h3 style="margin-top: 0; color: #dc3545;">Cancellation Details</h3>
-          <p>Your order has been successfully cancelled. A refund will be processed within 5-7 working days.</p>
-          <p>If you have any questions or concerns, please contact our customer support team.</p>
-        </div>
-        
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+        <p><strong>Cancelled Items:</strong></p>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
           <thead>
             <tr style="background-color: #f8f8f8;">
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
+              <th style="padding: 10px; text-align: left;">Item</th>
+              <th style="padding: 10px; text-align: right;">Price</th>
             </tr>
           </thead>
           <tbody>
             ${itemsHtml}
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td>
-              <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹${Number(order.total_amount).toFixed(2)}</td>
-            </tr>
           </tbody>
         </table>
         
-        <p>Thank you for shopping with NIVARA!</p>
+        <p>A refund will be processed according to our refund policy. Please allow 5-7 business days for the refund to appear in your account.</p>
         
-        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-site.com'}/orders/${order.id}" 
-             style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
-            View Order Details
-          </a>
-        </p>
+        <p>If you have any questions, please contact our customer support team.</p>
+        
+        <p>Thank you for considering our store.</p>
       </div>
     </body>
     </html>
-  `;
+  `
+}
+
+// Generate HTML email template for admin cancellation notification
+export function generateAdminCancellationNotificationEmail(order: any, customer: any, items: any[]): string {
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="font-weight: bold;">${item.product_name}</div>
+        <div>Quantity: ${item.quantity}</div>
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${(item.product_price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `).join('')
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Cancelled Notification</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Order Cancelled by Admin</h1>
+        
+        <p>An order has been cancelled by an administrator.</p>
+        
+        <p><strong>Order Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+        </ul>
+        
+        <p><strong>Cancelled Items:</strong></p>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+          <thead>
+            <tr style="background-color: #f8f8f8;">
+              <th style="padding: 10px; text-align: left;">Item</th>
+              <th style="padding: 10px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        
+        <p>You can view this order in the admin panel.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate HTML email template for admin notification about new user registration
+export function generateNewUserNotificationEmail(user: any): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New User Registration</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">New User Registration</h1>
+        
+        <p>A new user has registered on your website.</p>
+        
+        <p><strong>User Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Name:</strong> ${user.full_name}</li>
+          <li><strong>Email:</strong> ${user.email}</li>
+          ${user.phone ? `<li><strong>Phone:</strong> ${user.phone}</li>` : ''}
+          <li><strong>Registration Date:</strong> ${new Date().toLocaleString('en-IN')}</li>
+        </ul>
+        
+        <p>You can view and manage user accounts in the admin panel.</p>
+      </div>
+    </body>
+    </html>
+  `
 }
 
 // Generate HTML email template for welcome email
-export function generateWelcomeEmail(customer: any): string {
+export function generateWelcomeEmail(user: any): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -408,205 +515,25 @@ export function generateWelcomeEmail(customer: any): string {
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #B29789;">Welcome to NIVARA!</h1>
         
-        <p>Dear ${customer.full_name || 'Customer'},</p>
+        <p>Dear ${user.full_name},</p>
         
         <p>Welcome to NIVARA! We're thrilled to have you join our community of jewelry enthusiasts.</p>
         
-        <p>Your account has been successfully created, and you can now:</p>
-        <ul style="margin: 20px 0; padding-left: 20px;">
-          <li>Browse our exquisite collection of silver jewelry</li>
+        <p>Your account has been successfully created. You can now:</p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li>Browse our exquisite collection of jewelry</li>
           <li>Save your favorite items to your wishlist</li>
-          <li>Track your orders and view order history</li>
-          <li>Save multiple shipping addresses for faster checkout</li>
+          <li>Track your orders</li>
+          <li>Manage your shipping addresses</li>
         </ul>
         
-        <p>If you have any questions, our customer support team is here to help. Simply reply to this email or contact us at <a href="mailto:nivarajewel@gmail.com" style="color: #B29789; text-decoration: none;">nivarajewel@gmail.com</a>.</p>
+        <p>If you have any questions or need assistance, please don't hesitate to contact our customer support team.</p>
         
         <p>Happy shopping!</p>
         
-        <p style="margin-top: 30px;">Warm regards,<br/>The NIVARA Team</p>
-        
-        <p style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #999;">
-          © ${new Date().getFullYear()} NIVARA. All rights reserved.
-        </p>
-      </div>
-    </body>
-    </html>
-  `;
-}import nodemailer from 'nodemailer';
-
-// Create transporter only if email configuration is provided
-let transporter: nodemailer.Transporter | null = null;
-
-// Function to initialize transporter with current environment variables
-function initializeTransporter() {
-  // Check if we're using Gmail (preferred method)
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-  const fromEmail = process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>";
-  
-  if (gmailUser && gmailAppPassword) {
-    // Gmail configuration
-    transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: gmailUser,
-        pass: gmailAppPassword,
-      },
-    });
-    console.log("[v0] Gmail transporter initialized successfully");
-    return;
-  }
-  
-  // Fallback to generic SMTP configuration
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPassword = process.env.SMTP_PASSWORD;
-  
-  if (smtpHost && smtpPort && smtpUser && smtpPassword) {
-    transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-      auth: {
-        user: smtpUser,
-        pass: smtpPassword,
-      },
-    });
-    console.log("[v0] Generic SMTP transporter initialized successfully");
-  } else {
-    transporter = null;
-    console.warn("[v0] Email configuration not complete. Email sending will be disabled.");
-    console.warn("[v0] For Gmail: Set GMAIL_USER and GMAIL_APP_PASSWORD");
-    console.warn("[v0] For generic SMTP: Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD");
-  }
-}
-
-// Initialize transporter at module load
-initializeTransporter();
-
-// Email template for order notifications to admins
-export function generateOrderNotificationEmail(
-  order: any,
-  customer: any,
-  items: any[],
-  shippingAddress: any
-): string {
-  const itemsHtml = items
-    .map(
-      (item: any) => `
-    <tr>
-      <td style="padding: 8px; border: 1px solid #ddd;">
-        ${item.product_name}
-        ${item.quantity > 1 ? `<br/><small>Quantity: ${item.quantity}</small>` : ""}
-      </td>
-      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${(
-        Number(item.product_price) * item.quantity
-      ).toFixed(2)}</td>
-    </tr>
-  `
-    )
-    .join("")
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>New Order Notification</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #B29789;">New Order Received</h1>
-        
-        <p>A new order has been placed on your website.</p>
-        
-        <p><strong>Order Number:</strong> ${order.order_number}</p>
-        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleString("en-IN")}</p>
-        <p><strong>Customer:</strong> ${customer.full_name} (${customer.email})</p>
-        <p><strong>Phone:</strong> ${customer.phone || "Not provided"}</p>
-        <p><strong>Payment Method:</strong> Online Payment</p>
-        
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
-        <p>
-          ${shippingAddress?.address_line1 || ''}<br>
-          ${shippingAddress?.address_line2 ? `${shippingAddress.address_line2}<br>` : ''}
-          ${(shippingAddress?.city || '') + (shippingAddress?.state ? `, ${shippingAddress.state}` : '') + (shippingAddress?.postal_code ? ` ${shippingAddress.postal_code}` : '')}<br>
-          ${shippingAddress?.country || ''}
-        </p>
-        
-        <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
-          <thead>
-            <tr style="background-color: #f8f8f8;">
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total Amount</td>
-              <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">₹${Number(
-                order.total_amount
-              ).toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <p style="margin-top: 20px;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://your-site.com"}/admin/orders/${
-    order.id
-  }" 
-             style="display: inline-block; padding: 10px 20px; background-color: #B29789; color: white; text-decoration: none; border-radius: 4px;">
-            View Order Details
-          </a>
-        </p>
+        <p>Warm regards,<br>The NIVARA Team</p>
       </div>
     </body>
     </html>
   `
 }
-
-// Email utility function to send emails
-export async function sendEmail({
-  to,
-  subject,
-  html,
-}: {
-  to: string | string[]
-  subject: string
-  html: string
-}) {
-  // Re-initialize transporter to ensure we have latest environment variables
-  initializeTransporter();
-  
-  // If transporter is not configured, silently return
-  if (!transporter) {
-    console.warn("[v0] SMTP configuration not complete. Email sending will be disabled.");
-    console.warn("[v0] Please set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD environment variables");
-    return { success: true, message: "Email service not configured" }
-  }
-
-  try {
-    const result = await transporter.sendMail({
-      from: process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>",
-      to: Array.isArray(to) ? to.join(', ') : to,
-      subject,
-      html,
-    })
-    
-    console.log("[v0] Email sent successfully");
-    return result
-  } catch (error) {
-    console.error("[v0] Email sending failed:", error);
-    throw error
-  }
-}
-
-// Generate HTML email template for customer order confirmation
-export function generateCustomerOrderConfirmationEmail(order: any, customer: any, items: any[], shippingAddress: any): string {
- 

@@ -3,7 +3,7 @@
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
-import { sendEmail, generateOrderCancellationEmail } from "@/lib/email"
+import { sendEmail, generateCancellationConfirmationEmail } from "@/lib/email"
 
 interface OrderItem {
   productId: number
@@ -238,7 +238,7 @@ export async function cancelOrder(orderId: number) {
         // Send cancellation email to customer
         try {
           console.log(`[v0] Sending cancellation email to ${customer.email}`);
-          const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
+          const emailHtml = generateCancellationConfirmationEmail(order, customer, orderItems)
           await sendEmail({
             to: customer.email,
             subject: `Order #${order.order_number} Cancelled`,
@@ -259,7 +259,7 @@ export async function cancelOrder(orderId: number) {
           const adminEmails = adminEmailsResult.map((row: any) => row.email)
           
           if (adminEmails.length > 0) {
-            const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
+            const emailHtml = generateCancellationConfirmationEmail(order, customer, orderItems)
             await sendEmail({
               to: adminEmails,
               subject: `Order #${order.order_number} Cancelled by User - Admin Notification`,

@@ -2,16 +2,23 @@
 
 import { cookies } from "next/headers"
 import { createUser, getUserByEmail, verifyPassword } from "@/lib/auth"
-import { createSession } from "@/lib/session"
+import { createSession, setSessionCookie } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 import { sendEmail, generateWelcomeEmail, generateNewUserNotificationEmail } from "@/lib/email"
+import { sanitizeInput, validateAndSanitizeEmail, validatePhoneNumber } from "@/lib/sanitize"
 
 export async function signUp(formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-  const fullName = formData.get("fullName") as string
-  const phone = formData.get("phone") as string | undefined
+  const rawEmail = formData.get("email") as string
+  const rawPassword = formData.get("password") as string
+  const rawFullName = formData.get("fullName") as string
+  const rawPhone = formData.get("phone") as string | undefined
+
+  // Sanitize inputs
+  const email = validateAndSanitizeEmail(rawEmail)
+  const password = sanitizeInput(rawPassword)
+  const fullName = sanitizeInput(rawFullName)
+  const phone = rawPhone ? validatePhoneNumber(rawPhone) : undefined
 
   // Validation
   if (!email || !password || !fullName) {
@@ -31,6 +38,23 @@ export async function signUp(formData: FormData) {
 
     // Create user
     const user = await createUser(email, password, fullName, phone)
+
+    // Create session
+    const token = await createSession({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    })
+
+    // Set secure session cookie
+    const cookieStore = await cookies()
+    cookieStore.set("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: "/"
+    })
 
     // Send welcome email to user
     try {
@@ -70,21 +94,6 @@ export async function signUp(formData: FormData) {
       console.error("[v0] Failed to send admin notification for new user:", adminEmailError);
     }
 
-    // Create session
-    const token = await createSession({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
-
-    const cookieStore = await cookies()
-    cookieStore.set("session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
-
     return { success: true }
   } catch (error) {
     console.error("[v0] Sign up error:", error)
@@ -93,8 +102,12 @@ export async function signUp(formData: FormData) {
 }
 
 export async function signIn(formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
+  const rawEmail = formData.get("email") as string
+  const rawPassword = formData.get("password") as string
+
+  // Sanitize inputs
+  const email = validateAndSanitizeEmail(rawEmail)
+  const password = sanitizeInput(rawPassword)
 
   if (!email || !password) {
     return { error: "Email and password are required" }
@@ -120,12 +133,14 @@ export async function signIn(formData: FormData) {
       role: user.role,
     })
 
+    // Set secure session cookie
     const cookieStore = await cookies()
     cookieStore.set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: "/"
     })
 
     return { success: true }
