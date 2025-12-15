@@ -5,13 +5,32 @@ let transporter: nodemailer.Transporter | null = null;
 
 // Function to initialize transporter with current environment variables
 function initializeTransporter() {
-  // Check if required environment variables are present
+  // Check if we're using Gmail (preferred method)
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+  const fromEmail = process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>";
+  
+  if (gmailUser && gmailAppPassword) {
+    // Gmail configuration
+    transporter = nodemailer.createTransporter({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: gmailUser,
+        pass: gmailAppPassword,
+      },
+    });
+    console.log("[v0] Gmail transporter initialized successfully");
+    return;
+  }
+  
+  // Fallback to generic SMTP configuration
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined;
   const smtpUser = process.env.SMTP_USER;
   const smtpPassword = process.env.SMTP_PASSWORD;
-  const fromEmail = process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>";
-
+  
   if (smtpHost && smtpPort && smtpUser && smtpPassword) {
     transporter = nodemailer.createTransporter({
       host: smtpHost,
@@ -22,11 +41,12 @@ function initializeTransporter() {
         pass: smtpPassword,
       },
     });
-    console.log("[v0] Email transporter initialized successfully");
+    console.log("[v0] Generic SMTP transporter initialized successfully");
   } else {
     transporter = null;
-    console.warn("[v0] SMTP configuration not complete. Email sending will be disabled.");
-    console.warn("[v0] Required variables: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD");
+    console.warn("[v0] Email configuration not complete. Email sending will be disabled.");
+    console.warn("[v0] For Gmail: Set GMAIL_USER and GMAIL_APP_PASSWORD");
+    console.warn("[v0] For generic SMTP: Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD");
   }
 }
 
