@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { verifyAuth } from "@/lib/session"
 import { sql } from "@/lib/db"
+import { sendEmail, generateShippingConfirmationEmail } from "@/lib/email"
 
 export async function updateOrderStatus(orderId: number, status: string) {
   const cookieStore = await cookies()
@@ -19,11 +20,64 @@ export async function updateOrderStatus(orderId: number, status: string) {
   }
 
   try {
+    // Get order details before updating
+    const orderDetails: any = await sql`
+      SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId}
+    `
+
+    const orderItems: any = await sql`
+      SELECT * FROM order_items WHERE order_id = ${orderId}
+    `
+
     await sql`
       UPDATE orders
       SET status = ${status}, updated_at = CURRENT_TIMESTAMP
       WHERE id = ${orderId}
     `
+
+    // Send shipping confirmation email when status is updated to shipped
+    if (status === "shipped" && orderDetails.length > 0) {
+      const order = orderDetails[0]
+      const customer = {
+        full_name: order.full_name,
+        email: order.customer_email,
+        phone: order.customer_phone
+      }
+
+      // Get shipping address
+      let shippingAddress = null
+      if (order.shipping_address_id) {
+        const addressResult: any = await sql`
+          SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
+        `
+        if (addressResult.length > 0) {
+          shippingAddress = addressResult[0]
+        }
+      } else if (order.shipping_address) {
+        try {
+          shippingAddress = JSON.parse(order.shipping_address)
+        } catch (e) {
+          shippingAddress = {}
+        }
+      }
+
+      if (shippingAddress) {
+        // Send shipping confirmation email to customer
+        try {
+          const emailHtml = generateShippingConfirmationEmail(order, customer, orderItems, shippingAddress, null)
+          await sendEmail({
+            to: customer.email,
+            subject: `Your Order #${order.order_number} Has Been Shipped`,
+            html: emailHtml
+          })
+        } catch (emailError) {
+          console.error("[v0] Failed to send shipping confirmation email:", emailError)
+        }
+      }
+    }
 
     revalidatePath("/admin/orders")
     return { success: true }
@@ -282,12 +336,64 @@ export async function cancelOrder(orderId: number) {
       return { success: false, error: "Cannot cancel order in current status" }
     }
 
+    // Get order details for email
+    const orderDetails: any = await sql`
+      SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId}
+    `
+
+    const orderItems: any = await sql`
+      SELECT * FROM order_items WHERE order_id = ${orderId}
+    `
+
     // Update order status
     await sql`
       UPDATE orders
       SET status = 'cancelled'
       WHERE id = ${orderId}
     `
+
+    // Send cancellation email to customer
+    if (orderDetails.length > 0) {
+      const order = orderDetails[0]
+      const customer = {
+        full_name: order.full_name,
+        email: order.customer_email,
+        phone: order.customer_phone
+      }
+
+      // Get shipping address
+      let shippingAddress = null
+      if (order.shipping_address_id) {
+        const addressResult: any = await sql`
+          SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
+        `
+        if (addressResult.length > 0) {
+          shippingAddress = addressResult[0]
+        }
+      } else if (order.shipping_address) {
+        try {
+          shippingAddress = JSON.parse(order.shipping_address)
+        } catch (e) {
+          shippingAddress = {}
+        }
+      }
+
+      if (shippingAddress) {
+        try {
+          const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
+          await sendEmail({
+            to: customer.email,
+            subject: `Order #${order.order_number} Cancelled`,
+            html: emailHtml
+          })
+        } catch (emailError) {
+          console.error("[v0] Failed to send cancellation email:", emailError)
+        }
+      }
+    }
 
     revalidatePath("/admin/orders")
     revalidatePath(`/admin/orders/${orderId}`)

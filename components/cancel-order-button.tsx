@@ -34,8 +34,8 @@ export function CancelOrderButton({ orderId, isAdmin = false }: CancelOrderButto
       })
     } else {
       toast({
-        title: "Order cancelled",
-        description: "Your order has been cancelled successfully",
+        title: "Order Cancelled",
+        description: "Your order has been cancelled successfully. Refund will be processed within 5-7 working days.",
       })
       router.refresh()
     }

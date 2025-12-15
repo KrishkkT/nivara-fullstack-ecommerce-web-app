@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 import { createUser, getUserByEmail, verifyPassword } from "@/lib/auth"
 import { createSession } from "@/lib/session"
 import { redirect } from "next/navigation"
+import { sendEmail, generateWelcomeEmail } from "@/lib/email"
 
 export async function signUp(formData: FormData) {
   const email = formData.get("email") as string
@@ -29,6 +30,18 @@ export async function signUp(formData: FormData) {
 
     // Create user
     const user = await createUser(email, password, fullName, phone)
+
+    // Send welcome email
+    try {
+      const emailHtml = generateWelcomeEmail({ full_name: fullName, email });
+      await sendEmail({
+        to: email,
+        subject: `Welcome to NIVARA, ${fullName}!`,
+        html: emailHtml
+      });
+    } catch (emailError) {
+      console.error("[v0] Failed to send welcome email:", emailError);
+    }
 
     // Create session
     const token = await createSession({

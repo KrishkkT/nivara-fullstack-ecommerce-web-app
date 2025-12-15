@@ -3,7 +3,7 @@
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
-import { sendEmail, generateOrderNotificationEmail } from "@/lib/email"
+import { sendEmail, generateOrderCancellationEmail } from "@/lib/email"
 
 interface OrderItem {
   productId: number
@@ -155,82 +155,10 @@ export async function createOrder(data: OrderData) {
       // Don't fail the order creation if address saving fails
     }
 
-    // Send email notifications to admin emails and customer
-    try {
-      // Get active admin emails
-      const adminEmailsResult: any = await sql`
-        SELECT email FROM admin_emails WHERE is_active = true
-      `
-      
-      const adminEmails = adminEmailsResult.map((row: any) => row.email)
-      
-      // Get order details for email
-      const orderDetails: any = await sql`
-        SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
-        FROM orders o
-        JOIN users u ON o.user_id = u.id
-        WHERE o.id = ${orderId}
-      `
-      
-      const orderItems: any = await sql`
-        SELECT * FROM order_items WHERE order_id = ${orderId}
-      `
-      
-      if (orderDetails.length > 0) {
-        const order = orderDetails[0]
-        const customer = {
-          full_name: order.full_name,
-          email: order.customer_email,
-          phone: order.customer_phone
-        }
-        
-        // Get shipping address
-        let shippingAddress = null
-        if (order.shipping_address_id) {
-          const addressResult: any = await sql`
-            SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
-          `
-          if (addressResult.length > 0) {
-            shippingAddress = addressResult[0]
-          }
-        } else if (order.shipping_address) {
-          try {
-            shippingAddress = JSON.parse(order.shipping_address)
-          } catch (e) {
-            shippingAddress = {}
-          }
-        }
-        
-        if (shippingAddress) {
-          const emailHtml = generateOrderNotificationEmail(order, customer, orderItems, shippingAddress)
-          
-          // Send email to admins
-          if (adminEmails.length > 0) {
-            await sendEmail({
-              to: adminEmails,
-              subject: `New Order #${order.order_number} Received`,
-              html: emailHtml
-            })
-          }
-          
-          // Send confirmation email to customer
-          await sendEmail({
-            to: customer.email,
-            subject: `Order Confirmation #${order.order_number}`,
-            html: generateCustomerOrderConfirmationEmail(order, customer, orderItems, shippingAddress)
-          })
-        }
-      }
-    } catch (emailError) {
-      console.error("[v0] Failed to send order notification email:", emailError)
-      // Don't fail the order creation if email sending fails
-      // But log this as a critical issue that needs attention
-      console.error("[v0] CRITICAL: Email notification failed - this needs immediate attention!")
-    }
+    // Email notifications will be sent after successful payment verification
 
     return { success: true, orderId, orderNumber }
   } catch (error) {
-    console.error("[v0] Create order error:", error)
     return { error: "Failed to create order" }
   }
 }
@@ -257,6 +185,18 @@ export async function cancelOrder(orderId: number) {
       return { error: "Cannot cancel order in current status" }
     }
 
+    // Get order details for email
+    const orderDetails: any = await sql`
+      SELECT o.*, u.full_name, u.email as customer_email, u.phone as customer_phone
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ${orderId} AND o.user_id = ${session.userId}
+    `
+
+    const orderItems: any = await sql`
+      SELECT * FROM order_items WHERE order_id = ${orderId}
+    `
+
     // Update order status
     await sql`
       UPDATE orders
@@ -264,13 +204,52 @@ export async function cancelOrder(orderId: number) {
       WHERE id = ${orderId}
     `
 
+    // Send cancellation email to customer
+    if (orderDetails.length > 0) {
+      const order = orderDetails[0]
+      const customer = {
+        full_name: order.full_name,
+        email: order.customer_email,
+        phone: order.customer_phone
+      }
+
+      // Get shipping address
+      let shippingAddress = null
+      if (order.shipping_address_id) {
+        const addressResult: any = await sql`
+          SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
+        `
+        if (addressResult.length > 0) {
+          shippingAddress = addressResult[0]
+        }
+      } else if (order.shipping_address) {
+        try {
+          shippingAddress = JSON.parse(order.shipping_address)
+        } catch (e) {
+          shippingAddress = {}
+        }
+      }
+
+      if (shippingAddress) {
+        try {
+          const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
+          await sendEmail({
+            to: customer.email,
+            subject: `Order #${order.order_number} Cancelled`,
+            html: emailHtml
+          })
+        } catch (emailError) {
+          console.error("[v0] Failed to send cancellation email:", emailError)
+        }
+      }
+    }
+
     revalidatePath("/account")
     revalidatePath("/orders")
     revalidatePath(`/orders/${orderId}`)
 
     return { success: true }
   } catch (error) {
-    console.error("[v0] Cancel order error:", error)
     return { error: "Failed to cancel order" }
   }
 }
