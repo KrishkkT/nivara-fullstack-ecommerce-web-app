@@ -1,6 +1,28 @@
-import { Resend } from "resend"
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Create transporter only if email configuration is provided
+let transporter: nodemailer.Transporter | null = null;
+
+// Check if required environment variables are present
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined;
+const smtpUser = process.env.SMTP_USER;
+const smtpPassword = process.env.SMTP_PASSWORD;
+const fromEmail = process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>";
+
+if (smtpHost && smtpPort && smtpUser && smtpPassword) {
+  transporter = nodemailer.createTransporter({
+    host: smtpHost,
+    port: smtpPort,
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+      user: smtpUser,
+      pass: smtpPassword,
+    },
+  });
+} else {
+  console.warn("[v0] SMTP configuration not complete. Email sending will be disabled.");
+}
 
 // Email template for order notifications to admins
 export function generateOrderNotificationEmail(
@@ -95,15 +117,22 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
+  // If transporter is not configured, log the email content and return
+  if (!transporter) {
+    console.warn("[v0] Email service not configured. Skipping email send.")
+    console.log("[v0] Email content:", { to, subject, html })
+    return { success: true, message: "Email service not configured" }
+  }
+
   try {
-    const result = await resend.emails.send({
-      from: process.env.FROM_EMAIL || "NIVARA <noreply@nivara.in>",
-      to: Array.isArray(to) ? to : [to],
+    const result = await transporter.sendMail({
+      from: fromEmail,
+      to: Array.isArray(to) ? to.join(', ') : to,
       subject,
       html,
     })
     
-    console.log("[v0] Email sent successfully:", result)
+    console.log("[v0] Email sent successfully:", result.messageId)
     return result
   } catch (error) {
     console.error("[v0] Failed to send email:", error)

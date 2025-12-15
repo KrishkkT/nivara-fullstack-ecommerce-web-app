@@ -19,7 +19,7 @@ A premium e-commerce platform for sterling silver jewellery, built with Next.js 
 - **UI Components**: shadcn/ui, Radix UI
 - **Authentication**: Custom session-based auth
 - **Payments**: Razorpay
-- **Email**: Resend
+- **Email**: Nodemailer (optional)
 - **Deployment**: Vercel
 
 ## Getting Started
@@ -32,15 +32,4 @@ A premium e-commerce platform for sterling silver jewellery, built with Next.js 
 
 ## Deployment
 
-Deployed on Vercel with PostgreSQL database and Resend for email services.
-
-## Security
-
-- All sensitive information is stored in environment variables
-- Passwords are hashed using Web Crypto API
-- JWT tokens are stored in HTTP-only cookies
-- Database connections use SSL
-
-## Support
-
-For support, contact the development team or check the documentation.
+Deployed on Vercel with PostgreSQL database and optional Nodemailer for email services.
