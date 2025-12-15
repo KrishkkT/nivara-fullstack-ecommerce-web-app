@@ -4,15 +4,26 @@ import { createRazorpayOrder } from "@/lib/razorpay-server"
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("[v0] Razorpay create order API called")
     const session = await getSession()
 
     if (!session) {
+      console.log("[v0] Unauthorized access to Razorpay create order API")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { amount, orderId } = await request.json()
+    const body = await request.json()
+    console.log("[v0] Request body:", body)
+    
+    const { amount, orderId } = body
+
+    if (!amount || !orderId) {
+      console.log("[v0] Missing required parameters")
+      return NextResponse.json({ error: "Missing amount or orderId" }, { status: 400 })
+    }
 
     const razorpayOrder = await createRazorpayOrder(amount, orderId)
+    console.log("[v0] Razorpay order created:", razorpayOrder)
 
     return NextResponse.json({
       id: razorpayOrder.id,

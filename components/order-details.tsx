@@ -42,29 +42,64 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [razorpayKey, setRazorpayKey] = useState<string>("")
+  const [scriptLoaded, setScriptLoaded] = useState(false)
+  const [scriptError, setScriptError] = useState(false)
 
   useEffect(() => {
+    // Load Razorpay script
     const script = document.createElement("script")
     script.src = "https://checkout.razorpay.com/v1/checkout.js"
     script.async = true
+    script.onload = () => {
+      console.log("[v0] Razorpay script loaded successfully")
+      setScriptLoaded(true)
+    }
+    script.onerror = () => {
+      console.error("[v0] Failed to load Razorpay script")
+      setScriptError(true)
+    }
     document.body.appendChild(script)
 
-    getRazorpayPublicKey().then((key) => setRazorpayKey(key))
+    // Get Razorpay public key
+    getRazorpayPublicKey().then((key) => {
+      console.log("[v0] Razorpay public key:", key)
+      setRazorpayKey(key)
+    })
 
     return () => {
-      document.body.removeChild(script)
+      if (document.body.contains(script)) {
+        document.body.removeChild(script)
+      }
     }
   }, [])
 
   async function handlePayNow() {
+    console.log("[v0] Initiating payment...")
+    
+    if (!scriptLoaded) {
+      alert("Payment system is still loading. Please wait a moment and try again.")
+      return
+    }
+    
+    if (scriptError) {
+      alert("Payment system failed to load. Please refresh the page and try again.")
+      return
+    }
+
     if (!razorpayKey) {
       alert("Payment system is loading. Please try again in a moment.")
+      return
+    }
+
+    if (!window.Razorpay) {
+      alert("Payment gateway is not ready. Please refresh the page and try again.")
       return
     }
 
     setLoading(true)
 
     try {
+      console.log("[v0] Creating Razorpay order...")
       const response = await fetch("/api/razorpay/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,6 +110,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
       })
 
       const data = await response.json()
+      console.log("[v0] Razorpay order response:", data)
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to create payment order")
@@ -88,6 +124,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
         description: `Order ${order.order_number}`,
         order_id: data.id,
         handler: async (response: any) => {
+          console.log("[v0] Payment successful:", response)
           try {
             const verifyResponse = await fetch("/api/razorpay/verify-payment", {
               method: "POST",
@@ -101,6 +138,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
             })
 
             const verifyData = await verifyResponse.json()
+            console.log("[v0] Payment verification response:", verifyData)
 
             if (verifyResponse.ok) {
               alert("Payment successful! Your order is being processed.")
@@ -110,11 +148,16 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
               alert("Payment verification failed. Please contact support.")
             }
           } catch (verifyError) {
+            console.error("[v0] Payment verification error:", verifyError)
             alert("Payment verification failed. Please contact support.")
+          } finally {
+            setLoading(false)
+            document.body.style.overflow = ""
           }
         },
         modal: {
           ondismiss: () => {
+            console.log("[v0] Payment modal dismissed")
             setLoading(false)
             document.body.style.overflow = ""
           },
@@ -128,9 +171,11 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
         },
       }
 
+      console.log("[v0] Opening Razorpay modal with options:", options)
       const razorpayInstance = new window.Razorpay(options)
 
       razorpayInstance.on("payment.failed", (response: any) => {
+        console.error("[v0] Payment failed:", response)
         alert(`Payment failed: ${response.error.description}`)
         setLoading(false)
         document.body.style.overflow = ""
@@ -138,6 +183,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
 
       razorpayInstance.open()
     } catch (error: any) {
+      console.error("[v0] Payment initiation error:", error)
       alert(error.message || "Payment failed. Please try again.")
       setLoading(false)
     }
@@ -199,9 +245,14 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
         {showPayNow && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm mb-3">Complete your payment to process this order</p>
-            <Button onClick={handlePayNow} disabled={loading || !razorpayKey}>
+            <Button onClick={handlePayNow} disabled={loading || !razorpayKey || !scriptLoaded || scriptError}>
               {loading ? "Processing..." : "Pay Now"}
             </Button>
+            {(scriptError || !scriptLoaded) && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {scriptError ? "Payment system failed to load." : "Payment system is loading..."}
+              </p>
+            )}
           </div>
         )}
 
