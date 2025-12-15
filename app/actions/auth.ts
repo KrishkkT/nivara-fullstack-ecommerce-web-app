@@ -4,7 +4,8 @@ import { cookies } from "next/headers"
 import { createUser, getUserByEmail, verifyPassword } from "@/lib/auth"
 import { createSession } from "@/lib/session"
 import { redirect } from "next/navigation"
-import { sendEmail, generateWelcomeEmail } from "@/lib/email"
+import { sql } from "@/lib/db"
+import { sendEmail, generateWelcomeEmail, generateNewUserNotificationEmail } from "@/lib/email"
 
 export async function signUp(formData: FormData) {
   const email = formData.get("email") as string
@@ -31,7 +32,7 @@ export async function signUp(formData: FormData) {
     // Create user
     const user = await createUser(email, password, fullName, phone)
 
-    // Send welcome email
+    // Send welcome email to user
     try {
       const emailHtml = generateWelcomeEmail({ full_name: fullName, email });
       await sendEmail({
@@ -41,6 +42,32 @@ export async function signUp(formData: FormData) {
       });
     } catch (emailError) {
       console.error("[v0] Failed to send welcome email:", emailError);
+    }
+
+    // Send notification to admins about new user registration
+    try {
+      // Get active admin emails
+      const adminEmailsResult: any = await sql`
+        SELECT email FROM admin_emails WHERE is_active = true
+      `
+      
+      const adminEmails = adminEmailsResult.map((row: any) => row.email)
+      
+      if (adminEmails.length > 0) {
+        const emailHtml = generateNewUserNotificationEmail({ 
+          full_name: fullName, 
+          email,
+          phone
+        });
+        
+        await sendEmail({
+          to: adminEmails,
+          subject: `New User Registration: ${fullName}`,
+          html: emailHtml
+        });
+      }
+    } catch (adminEmailError) {
+      console.error("[v0] Failed to send admin notification for new user:", adminEmailError);
     }
 
     // Create session

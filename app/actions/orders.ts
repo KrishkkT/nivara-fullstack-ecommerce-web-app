@@ -235,6 +235,7 @@ export async function cancelOrder(orderId: number) {
       }
 
       if (shippingAddress) {
+        // Send cancellation email to customer
         try {
           console.log(`[v0] Sending cancellation email to ${customer.email}`);
           const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
@@ -245,7 +246,29 @@ export async function cancelOrder(orderId: number) {
           })
           console.log(`[v0] Cancellation email sent successfully to ${customer.email}`);
         } catch (emailError) {
-          console.error("[v0] Failed to send cancellation email:", emailError)
+          console.error("[v0] Failed to send cancellation email to customer:", emailError)
+        }
+        
+        // Send cancellation notification to admins
+        try {
+          // Get active admin emails
+          const adminEmailsResult: any = await sql`
+            SELECT email FROM admin_emails WHERE is_active = true
+          `
+          
+          const adminEmails = adminEmailsResult.map((row: any) => row.email)
+          
+          if (adminEmails.length > 0) {
+            const emailHtml = generateOrderCancellationEmail(order, customer, orderItems, shippingAddress)
+            await sendEmail({
+              to: adminEmails,
+              subject: `Order #${order.order_number} Cancelled by User - Admin Notification`,
+              html: emailHtml
+            })
+            console.log(`[v0] Cancellation notification email sent successfully to admins`);
+          }
+        } catch (adminEmailError) {
+          console.error("[v0] Failed to send cancellation notification email to admins:", adminEmailError)
         }
       } else {
         console.warn("[v0] No shipping address found for order, skipping cancellation email");
