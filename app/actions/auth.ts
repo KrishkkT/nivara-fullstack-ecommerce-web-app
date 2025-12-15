@@ -47,14 +47,7 @@ export async function signUp(formData: FormData) {
     })
 
     // Set secure session cookie
-    const cookieStore = await cookies()
-    cookieStore.set("session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: "/"
-    })
+    await setSessionCookie(token)
 
     // Send welcome email to user
     try {
@@ -120,6 +113,11 @@ export async function signIn(formData: FormData) {
       return { error: "Invalid email or password" }
     }
 
+    // Check if user needs to reset password
+    if (user.password_hash === 'RESET_REQUIRED') {
+      return { error: "Please reset your password. Contact support if you need assistance." }
+    }
+
     const isValidPassword = await verifyPassword(password, user.password_hash)
 
     if (!isValidPassword) {
@@ -133,15 +131,8 @@ export async function signIn(formData: FormData) {
       role: user.role,
     })
 
-    // Set secure session cookie
-    const cookieStore = await cookies()
-    cookieStore.set("session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: "/"
-    })
+    // Set secure session cookie using the helper function
+    await setSessionCookie(token)
 
     return { success: true }
   } catch (error) {

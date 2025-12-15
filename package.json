@@ -4,7 +4,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "reset-passwords": "node scripts/reset-old-passwords.ts"
   },
   "dependencies": {
     "@formspree/react": "latest",

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label"
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect") || "/account"
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -27,7 +29,7 @@ export function LoginForm() {
     if (result.error) {
       setError(result.error)
     } else {
-      router.push("/account")
+      router.push(redirect)
       router.refresh()
     }
   }

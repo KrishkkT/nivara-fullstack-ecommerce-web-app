@@ -18,12 +18,20 @@ export default function LoginPage() {
 
         <LoginForm />
 
-        <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link href="/register" className="font-medium text-foreground hover:underline">
-            Create one
-          </Link>
-        </p>
+        <div className="text-center text-sm space-y-2">
+          <p className="text-muted-foreground">
+            Don't have an account?{" "}
+            <Link href="/register" className="font-medium text-foreground hover:underline">
+              Create one
+            </Link>
+          </p>
+          <p className="text-muted-foreground">
+            Forgot your password?{" "}
+            <Link href="/reset-password" className="font-medium text-foreground hover:underline">
+              Reset it
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )
