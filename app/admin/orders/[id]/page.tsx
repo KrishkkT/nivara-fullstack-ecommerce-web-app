@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
 import { CancelOrderButton } from "@/components/cancel-order-button"
+import { UpdateOrderStatus } from "@/components/update-order-status"
 
 interface OrderItem {
   id: number
@@ -171,7 +172,9 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Status</p>
-                <p className="text-lg capitalize font-medium">{order.status}</p>
+                <div className="py-1">
+                  <UpdateOrderStatus orderId={order.id} currentStatus={order.status} />
+                </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Payment Status</p>
