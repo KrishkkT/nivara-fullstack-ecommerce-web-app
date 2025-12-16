@@ -3,38 +3,7 @@
 import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
-import { SignJWT } from "jose"
-import { nanoid } from "nanoid"
-import { redirect } from "next/navigation"
-
-// Simple session creation
-async function createSimpleSession(userId: number, email: string): Promise<string> {
-  const secret = new TextEncoder().encode("simple-secret-key")
-  const sessionData = {
-    userId,
-    email,
-    sessionId: nanoid(),
-    issuedAt: Math.floor(Date.now() / 1000)
-  }
-  
-  return new SignJWT(sessionData)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(7 * 24 * 60 * 60) // 7 days
-    .sign(secret)
-}
-
-// Simple session cookie setting
-async function setSimpleSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies()
-  cookieStore.set("session", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60,
-    path: "/"
-  })
-}
+import { createSimpleSession, setSimpleSessionCookie } from "@/lib/session"
 
 export async function signIn(formData: FormData) {
   try {
@@ -67,13 +36,9 @@ export async function signIn(formData: FormData) {
     const token = await createSimpleSession(user.id, user.email)
     await setSimpleSessionCookie(token)
 
-    // Redirect to account (this throws NEXT_REDIRECT which is normal)
-    redirect("/account")
+    // Return success - client will handle redirect
+    return { success: true }
   } catch (error) {
-    // NEXT_REDIRECT is expected and should not be caught
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error
-    }
     return { error: "Sign in failed" }
   }
 }
@@ -118,13 +83,9 @@ export async function signUp(formData: FormData) {
     const token = await createSimpleSession(user.id, user.email)
     await setSimpleSessionCookie(token)
 
-    // Redirect to account (this throws NEXT_REDIRECT which is normal)
-    redirect("/account")
+    // Return success - client will handle redirect
+    return { success: true }
   } catch (error) {
-    // NEXT_REDIRECT is expected and should not be caught
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error
-    }
     return { error: "Sign up failed" }
   }
 }
@@ -132,5 +93,6 @@ export async function signUp(formData: FormData) {
 export async function signOut() {
   const cookieStore = await cookies()
   cookieStore.delete("session")
-  redirect("/")
+  // Client will handle redirect
+  return { success: true }
 }

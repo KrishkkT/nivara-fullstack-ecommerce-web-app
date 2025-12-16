@@ -1,5 +1,35 @@
 import { cookies } from "next/headers"
-import { jwtVerify } from "jose"
+import { SignJWT, jwtVerify } from "jose"
+import { nanoid } from "nanoid"
+
+// Simple session creation
+export async function createSimpleSession(userId: number, email: string): Promise<string> {
+  const secret = new TextEncoder().encode("simple-secret-key")
+  const sessionData = {
+    userId,
+    email,
+    sessionId: nanoid(),
+    issuedAt: Math.floor(Date.now() / 1000)
+  }
+  
+  return new SignJWT(sessionData)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(7 * 24 * 60 * 60) // 7 days
+    .sign(secret)
+}
+
+// Simple session cookie setting
+export async function setSimpleSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set("session", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60,
+    path: "/"
+  })
+}
 
 // Simple session verification
 export async function getSession() {

@@ -24,6 +24,10 @@ export function RegisterForm() {
 
     if (result?.error) {
       setError(result.error)
+    } else {
+      // Successful registration - redirect to account page
+      router.push("/account")
+      router.refresh()
     }
   }
 
