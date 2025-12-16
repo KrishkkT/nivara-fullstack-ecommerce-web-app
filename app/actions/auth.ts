@@ -1,38 +1,8 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
-import { SignJWT, jwtVerify } from "jose"
-import { nanoid } from "nanoid"
-
-// Create session token
-async function createSession(userId: number, email: string): Promise<string> {
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret_key_for_development")
-  const sessionData = {
-    userId,
-    email,
-    sessionId: nanoid(),
-  }
-  
-  return new SignJWT(sessionData)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(secret)
-}
-
-// Set session cookie
-function setSessionCookie(token: string) {
-  cookies().set("session", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  })
-}
 
 export async function signIn(prevState: any, formData: FormData) {
   try {
@@ -61,11 +31,8 @@ export async function signIn(prevState: any, formData: FormData) {
       return { error: "Invalid credentials" }
     }
 
-    // Create and set session
-    const token = await createSession(user.id, user.email)
-    setSessionCookie(token)
-
-    // Redirect to account
+    // Store user ID in a simple cookie (no JWT)
+    // For now, just redirect - we'll handle persistence on the client side
     redirect("/account")
   } catch (error) {
     // NEXT_REDIRECT is expected and should not be caught
@@ -105,17 +72,10 @@ export async function signUp(prevState: any, formData: FormData) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     // Create user
-    const result = await sql`
+    await sql`
       INSERT INTO users (email, password_hash, full_name)
       VALUES (${email}, ${passwordHash}, ${fullName})
-      RETURNING id, email
     `
-
-    const user = result[0]
-
-    // Create and set session
-    const token = await createSession(user.id, user.email)
-    setSessionCookie(token)
 
     // Redirect to account
     redirect("/account")
@@ -131,6 +91,5 @@ export async function signUp(prevState: any, formData: FormData) {
 
 export async function signOut() {
   "use server"
-  cookies().delete("session")
   redirect("/")
 }
