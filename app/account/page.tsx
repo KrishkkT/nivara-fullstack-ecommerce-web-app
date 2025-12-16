@@ -4,19 +4,14 @@ import { sql } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { signOut } from "@/app/actions/auth"
+import { withAuth } from '@/components/with-auth'
 
 export const metadata = {
   title: "My Account | NIVARA",
   description: "Manage your account and orders",
 }
 
-export default async function AccountPage() {
-  const session = await getSession()
-
-  if (!session) {
-    redirect("/login")
-  }
-
+async function AccountPageContent({ session }: { session: any }) {
   const user = await sql`
     SELECT * FROM users WHERE id = ${session.userId}
   `
@@ -51,12 +46,6 @@ export default async function AccountPage() {
                 Profile Information
               </Link>
               <Link 
-                href="/orders" 
-                className="block px-3 py-2 rounded-md hover:bg-accent"
-              >
-                My Orders
-              </Link>
-              <Link 
                 href="/profile/addresses" 
                 className="block px-3 py-2 rounded-md hover:bg-accent"
               >
@@ -68,57 +57,69 @@ export default async function AccountPage() {
               >
                 Change Password
               </Link>
+              <Link 
+                href="/orders" 
+                className="block px-3 py-2 rounded-md hover:bg-accent"
+              >
+                My Orders
+              </Link>
             </nav>
+            
+            <form action={signOut} className="mt-6">
+              <Button variant="outline" className="w-full">
+                Sign Out
+              </Button>
+            </form>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="md:col-span-3">
           <div className="bg-white border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Welcome, {user[0].full_name}</h2>
-            <p className="text-gray-600 mb-6">Logged in as: {user[0].email}</p>
+            <h2 className="text-2xl font-semibold mb-4">Welcome, {session.fullName}</h2>
+            <p className="text-muted-foreground mb-6">Email: {session.email}</p>
             
-            <div className="flex justify-end">
-              <form action={signOut}>
-                <Button type="submit" variant="outline">
-                  Sign Out
-                </Button>
-              </form>
-            </div>
-          </div>
-
-          <div className="bg-white border rounded-lg p-6 mt-6">
-            <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
-            
-            {orders.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No orders yet</p>
-                <Button asChild>
-                  <Link href="/shop">Start Shopping</Link>
-                </Button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="border rounded-lg p-4 text-center">
+                <h3 className="text-lg font-semibold">Total Orders</h3>
+                <p className="text-2xl font-bold">{orders.length}</p>
               </div>
-            ) : (
+              <div className="border rounded-lg p-4 text-center">
+                <h3 className="text-lg font-semibold">Pending Orders</h3>
+                <p className="text-2xl font-bold">
+                  {orders.filter((order: any) => order.status === 'pending').length}
+                </p>
+              </div>
+              <div className="border rounded-lg p-4 text-center">
+                <h3 className="text-lg font-semibold">Completed Orders</h3>
+                <p className="text-2xl font-bold">
+                  {orders.filter((order: any) => order.status === 'paid').length}
+                </p>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-semibold mb-4">Recent Orders</h3>
+            {orders.length > 0 ? (
               <div className="space-y-3">
                 {orders.map((order: any) => (
-                  <div key={order.id} className="border rounded p-3">
-                    <Link href={`/orders/${order.id}`}>
-                      <div className="flex justify-between">
-                        <span>#{order.order_number}</span>
-                        <span>${order.total_amount}</span>
+                  <div key={order.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">Order #{order.order_number}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </p>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-500 mt-1">
-                        <span>{new Date(order.created_at).toLocaleDateString()}</span>
-                        <span className="capitalize">{order.status}</span>
+                      <div className="text-right">
+                        <p className="font-medium">₹{order.total_amount}</p>
+                        <p className="text-sm capitalize">{order.status}</p>
                       </div>
-                    </Link>
+                    </div>
                   </div>
                 ))}
-                <div className="pt-4">
-                  <Button asChild variant="outline">
-                    <Link href="/orders">View All Orders</Link>
-                  </Button>
-                </div>
               </div>
+            ) : (
+              <p className="text-muted-foreground">No orders yet.</p>
             )}
           </div>
         </div>
@@ -126,3 +127,8 @@ export default async function AccountPage() {
     </div>
   )
 }
+
+// Wrap the component with authentication
+const AccountPage = withAuth(AccountPageContent)
+
+export default AccountPage

@@ -36,7 +36,7 @@ const nextConfig = {
   },
   // Configure Turbopack root
   turbopack: {
-    root: join(__dirname, '.'),
+    root: __dirname,
   },
   // Reduce bundle size
   compiler: {

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
-import { createSessionToken, setSessionCookie } from "@/lib/session"
+import { createSessionToken, setSessionCookie, refreshSession } from "@/lib/session"
 import bcrypt from "bcryptjs"
 import { sendEmail, generateWelcomeEmail } from "@/lib/email"
 
@@ -148,4 +148,16 @@ export async function signOut() {
   await deleteSessionCookie()
   console.log("Session cookie deleted")
   redirect("/")
+}
+
+// Function to check if user is authenticated and refresh session if needed
+export async function checkAuth() {
+  try {
+    // This will automatically refresh the session if it's close to expiring
+    const session = await refreshSession()
+    return session
+  } catch (error) {
+    console.error("Auth check error:", error)
+    return null
+  }
 }

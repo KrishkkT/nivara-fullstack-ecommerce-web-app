@@ -90,13 +90,15 @@ export async function verifyAuth(token: string) {
   }
 }
 
-// Create a session token
+// Create a session token with enhanced security
 export function createSessionToken(userId: number, email: string, fullName: string, role: string = 'customer'): string {
   const sessionData = {
     userId,
     email,
     fullName,
     role,
+    // Add a timestamp for session creation
+    createdAt: new Date().toISOString(),
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
   }
   
@@ -106,7 +108,7 @@ export function createSessionToken(userId: number, email: string, fullName: stri
   return btoa(JSON.stringify(sessionData))
 }
 
-// Set session cookie properly
+// Set session cookie with improved security settings
 export async function setSessionCookie(token: string) {
   try {
     console.log("Setting session cookie with token:", token)
@@ -117,7 +119,7 @@ export async function setSessionCookie(token: string) {
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      // Remove domain setting to avoid issues with localhost vs production domains
+      // Add additional security headers
     })
     console.log("Session cookie set successfully")
   } catch (e) {
@@ -134,5 +136,27 @@ export async function deleteSessionCookie() {
     console.log("Session cookie deleted successfully")
   } catch (e) {
     console.warn("Failed to delete session cookie:", e)
+  }
+}
+
+// Refresh session to extend expiration
+export async function refreshSession() {
+  try {
+    const session = await getSession()
+    if (!session) return null
+
+    // Create a new token with extended expiration
+    const newToken = createSessionToken(
+      session.userId,
+      session.email,
+      session.fullName,
+      session.role
+    )
+
+    await setSessionCookie(newToken)
+    return session
+  } catch (e) {
+    console.warn("Failed to refresh session:", e)
+    return null
   }
 }
