@@ -47,6 +47,32 @@ export async function getSession() {
   }
 }
 
+// Auth verification function for admin routes
+export async function verifyAuth(token: string) {
+  try {
+    if (!token) {
+      return null
+    }
+
+    // Parse the session token (assuming it's a simple JSON string for now)
+    // In a production environment, you would verify a JWT token here
+    const sessionData = JSON.parse(atob(token))
+    
+    // Check if session is still valid (optional expiration check)
+    if (sessionData.expires && new Date(sessionData.expires) < new Date()) {
+      return null
+    }
+
+    return {
+      userId: sessionData.userId,
+      email: sessionData.email,
+      fullName: sessionData.fullName,
+    }
+  } catch (err) {
+    return null
+  }
+}
+
 // Create a session token
 export function createSessionToken(userId: number, email: string, fullName: string): string {
   const sessionData = {
