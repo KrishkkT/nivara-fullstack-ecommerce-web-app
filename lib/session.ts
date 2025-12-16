@@ -1,36 +1,7 @@
 import { cookies } from "next/headers"
-import { SignJWT, jwtVerify } from "jose"
-import { nanoid } from "nanoid"
+import { jwtVerify } from "jose"
 
-// Simple session creation
-export async function createSimpleSession(userId: number, email: string): Promise<string> {
-  const secret = new TextEncoder().encode("simple-secret-key")
-  const sessionData = {
-    userId,
-    email,
-    sessionId: nanoid(),
-    issuedAt: Math.floor(Date.now() / 1000)
-  }
-  
-  return new SignJWT(sessionData)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(7 * 24 * 60 * 60) // 7 days
-    .sign(secret)
-}
-
-// Simple session cookie setting - FIXED for middleware visibility
-export function setSimpleSessionCookie(token: string) {
-  cookies().set("session", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",     // REQUIRED
-    maxAge: 60 * 60 * 24 * 7,
-  })
-}
-
-// Simple session verification
+// Simple session verification - READ ONLY
 export async function getSession() {
   try {
     const token = cookies().get("session")?.value
@@ -59,7 +30,7 @@ export async function getSession() {
   }
 }
 
-// Restore verifyAuth for other modules that depend on it
+// Restore verifyAuth for other modules that depend on it - READ ONLY
 export async function verifyAuth(token: string) {
   try {
     if (!token) {

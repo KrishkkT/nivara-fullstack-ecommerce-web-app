@@ -1,9 +1,39 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
-import { createSimpleSession, setSimpleSessionCookie } from "@/lib/session"
+import { SignJWT } from "jose"
+import { nanoid } from "nanoid"
+
+// Cookie mutation functions - ONLY in server action file
+function setSessionCookie(token: string) {
+  cookies().set("session", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  })
+}
+
+// Simple session creation
+async function createSimpleSession(userId: number, email: string): Promise<string> {
+  const secret = new TextEncoder().encode("simple-secret-key")
+  const sessionData = {
+    userId,
+    email,
+    sessionId: nanoid(),
+    issuedAt: Math.floor(Date.now() / 1000)
+  }
+  
+  return new SignJWT(sessionData)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(7 * 24 * 60 * 60) // 7 days
+    .sign(secret)
+}
 
 // Simple email validation
 function validateAndSanitizeEmail(email: string): string | null {
@@ -57,7 +87,7 @@ export async function signIn(prevState: any, formData: FormData) {
   }
 
   const token = await createSimpleSession(user.id, user.email)
-  await setSimpleSessionCookie(token)
+  setSessionCookie(token) // Allowed here
 
   redirect("/account") // LAST LINE
 }
@@ -83,13 +113,13 @@ export async function signUp(prevState: any, formData: FormData) {
   const user = await createUser(email, password, fullName)
 
   const token = await createSimpleSession(user.id, user.email)
-  await setSimpleSessionCookie(token)
+  setSessionCookie(token) // Allowed here
 
   redirect("/account") // LAST LINE
 }
 
 export async function signOut() {
-  const { cookies } = await import("next/headers")
+  "use server"
   cookies().delete("session")
   redirect("/")
 }
