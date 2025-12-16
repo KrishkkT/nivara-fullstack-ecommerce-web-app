@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 import { nanoid } from "nanoid"
 
-const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "simple-secret-key")
+const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || "fallback-secret-key")
 const SESSION_TIMEOUT = 7 * 24 * 60 * 60
 
 export interface SessionData {
@@ -13,10 +13,10 @@ export interface SessionData {
   issuedAt: number
 }
 
-export async function createSession(data) {
+export async function createSession(data: Omit<SessionData, "sessionId" | "issuedAt">): Promise<string> {
   const sessionId = nanoid()
   
-  const sessionData = {
+  const sessionData: SessionData = {
     ...data,
     sessionId,
     issuedAt: Math.floor(Date.now() / 1000)
@@ -29,7 +29,7 @@ export async function createSession(data) {
     .sign(SECRET_KEY)
 }
 
-export async function getSession() {
+export async function getSession(): Promise<SessionData | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get("session")?.value
 
@@ -39,7 +39,7 @@ export async function getSession() {
 
   try {
     const verified = await jwtVerify(token, SECRET_KEY)
-    const sessionData = verified.payload
+    const sessionData = verified.payload as SessionData
     
     const now = Math.floor(Date.now() / 1000)
     if (now > sessionData.issuedAt + SESSION_TIMEOUT) {
@@ -52,11 +52,10 @@ export async function getSession() {
   }
 }
 
-// Restore verifyAuth function for other modules that depend on it
-export async function verifyAuth(token) {
+export async function verifyAuth(token: string): Promise<SessionData | null> {
   try {
     const verified = await jwtVerify(token, SECRET_KEY)
-    const sessionData = verified.payload
+    const sessionData = verified.payload as SessionData
     
     const now = Math.floor(Date.now() / 1000)
     if (now > sessionData.issuedAt + SESSION_TIMEOUT) {
@@ -69,7 +68,7 @@ export async function verifyAuth(token) {
   }
 }
 
-export async function setSessionCookie(token) {
+export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.set("session", token, {
     httpOnly: true,

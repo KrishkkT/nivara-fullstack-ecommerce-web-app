@@ -1,12 +1,11 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { createUser, getUserByEmail, verifyPassword } from "@/lib/auth"
+import { getUserByEmail, verifyPassword } from "@/lib/auth"
 import { createSession, setSessionCookie } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 
-// Simplified sign in function with server-side redirect
 export async function signIn(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
@@ -16,43 +15,35 @@ export async function signIn(formData: FormData) {
   }
 
   try {
-    // Get user
-    const result = await sql`
-      SELECT id, email, password_hash, full_name, role
-      FROM users
-      WHERE email = ${email}
-    `
+    const user = await getUserByEmail(email)
 
-    if (result.length === 0) {
+    if (!user) {
       return { error: "Invalid email or password" }
     }
 
-    const user = result[0]
+    const isValidPassword = await verifyPassword(password, user.password_hash)
 
-    // Verify password
-    const isValid = await verifyPassword(password, user.password_hash)
-    if (!isValid) {
+    if (!isValidPassword) {
       return { error: "Invalid email or password" }
     }
 
-    // Create session token
+    // Create session
     const token = await createSession({
       userId: user.id,
       email: user.email,
       role: user.role,
     })
 
-    // Set session cookie
+    // Set secure session cookie
     await setSessionCookie(token)
 
-    // Redirect to account page (server-side redirect as per specification)
+    // Redirect to account page
     redirect("/account")
   } catch (error) {
     return { error: "Failed to sign in" }
   }
 }
 
-// Simplified sign up function
 export async function signUp(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
@@ -67,17 +58,15 @@ export async function signUp(formData: FormData) {
   }
 
   try {
-    // Check if user exists
-    const existing = await sql`
-      SELECT id FROM users WHERE email = ${email}
-    `
-
-    if (existing.length > 0) {
+    // Check if user already exists
+    const existingUser = await getUserByEmail(email)
+    if (existingUser) {
       return { error: "Email already registered" }
     }
 
     // Hash password
-    const passwordHash = await import("bcryptjs").then(bcrypt => bcrypt.hash(password, 12))
+    const bcrypt = await import("bcryptjs")
+    const passwordHash = await bcrypt.hash(password, 12)
 
     // Create user
     const userResult = await sql`
@@ -95,31 +84,18 @@ export async function signUp(formData: FormData) {
       role: user.role,
     })
 
-    // Set session cookie
+    // Set secure session cookie
     await setSessionCookie(token)
 
-    // Redirect to account page (server-side redirect as per specification)
+    // Redirect to account page
     redirect("/account")
   } catch (error) {
     return { error: "Failed to create account" }
   }
 }
 
-// Updated signOut function to use API approach
 export async function signOut() {
-  try {
-    // Call the logout API endpoint
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    // Redirect to home page
-    redirect("/")
-  } catch (error) {
-    console.error("Sign out error:", error)
-    redirect("/")
-  }
+  const cookieStore = await cookies()
+  cookieStore.delete("session")
+  redirect("/")
 }
