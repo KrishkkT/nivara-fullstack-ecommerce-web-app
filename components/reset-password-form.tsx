@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { resetPassword } from "@/app/actions/reset-password"
+import { sendOTP, verifyOTP, resetPasswordWithOTP } from "@/app/actions/otp"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,8 +14,9 @@ export function ResetPasswordForm() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState<"email" | "reset">("email")
+  const [step, setStep] = useState<"email" | "otp" | "reset">("email")
   const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
 
   async function handleEmailSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -25,11 +26,40 @@ export function ResetPasswordForm() {
     const formData = new FormData(event.currentTarget)
     const email = formData.get("email") as string
 
-    // In a real implementation, you would send a password reset email
-    // For now, we'll just move to the reset step
-    setEmail(email)
-    setStep("reset")
-    setLoading(false)
+    try {
+      const result = await sendOTP(email)
+      
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setEmail(email)
+        setStep("otp")
+      }
+    } catch (err) {
+      setError("Failed to send OTP. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleOtpSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError("")
+    setLoading(true)
+
+    try {
+      const result = await verifyOTP(email, otp)
+      
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setStep("reset")
+      }
+    } catch (err) {
+      setError("Failed to verify OTP. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleResetSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -49,7 +79,7 @@ export function ResetPasswordForm() {
     }
 
     try {
-      const result = await resetPassword(email, password)
+      const result = await resetPasswordWithOTP(email, password)
       
       if (result.error) {
         setError(result.error)
@@ -64,6 +94,64 @@ export function ResetPasswordForm() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Handle OTP input to ensure it's numeric and 6 digits max
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 6) {
+      setOtp(value)
+    }
+  }
+
+  if (step === "otp") {
+    return (
+      <form onSubmit={handleOtpSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            value={email}
+            readOnly
+            className="bg-muted"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="otp">Verification Code</Label>
+          <Input 
+            id="otp" 
+            name="otp" 
+            type="text" 
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={otp}
+            onChange={handleOtpChange}
+            required 
+            placeholder="Enter 6-digit code" 
+            maxLength={6}
+          />
+          <p className="text-xs text-muted-foreground">We've sent a 6-digit code to your email</p>
+        </div>
+
+        {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
+        
+        <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
+          {loading ? "Verifying..." : "Verify Code"}
+        </Button>
+
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full" 
+          onClick={() => setStep("email")}
+          disabled={loading}
+        >
+          Back
+        </Button>
+      </form>
+    )
   }
 
   if (step === "reset") {
@@ -146,7 +234,7 @@ export function ResetPasswordForm() {
       {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Processing..." : "Continue"}
+        {loading ? "Sending..." : "Send Verification Code"}
       </Button>
     </form>
   )

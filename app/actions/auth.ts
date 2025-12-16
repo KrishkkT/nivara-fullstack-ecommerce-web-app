@@ -134,6 +134,7 @@ export async function signIn(formData: FormData) {
     // Set secure session cookie using the helper function
     await setSessionCookie(token)
 
+    console.log("[v0] User signed in successfully:", { userId: user.id, email: user.email });
     return { success: true }
   } catch (error) {
     console.error("[v0] Sign in error:", error)
