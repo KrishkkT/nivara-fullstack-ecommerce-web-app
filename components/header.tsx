@@ -1,6 +1,5 @@
 import Link from "next/link"
 import Image from "next/image"
-import { getSession } from "@/lib/session"
 import { User, Search, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
@@ -8,7 +7,7 @@ import { CartButton } from "./cart-button"
 import { WishlistButton } from "./wishlist-button"
 
 export async function Header() {
-  const session = await getSession()
+  // Simplified header without session checking for now
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -62,27 +61,16 @@ export async function Header() {
           <WishlistButton />
           <CartButton />
 
-          {session ? (
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/account">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Account</span>
-              </Link>
-            </Button>
-          ) : (
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-          )}
-
-          {session?.role === "admin" && (
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin">
-                <Shield className="h-5 w-5" />
-                <span className="sr-only">Admin</span>
-              </Link>
-            </Button>
-          )}
+          {/* Show both Sign In and Account links for now */}
+          <Button variant="ghost" asChild>
+            <Link href="/login">Sign In</Link>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/account">
+              <User className="h-5 w-5" />
+              <span className="sr-only">Account</span>
+            </Link>
+          </Button>
         </div>
       </div>
     </header>
