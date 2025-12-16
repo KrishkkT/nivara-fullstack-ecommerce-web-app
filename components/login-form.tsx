@@ -24,11 +24,8 @@ export function LoginForm({ redirect = "/account" }) {
 
     if (result.error) {
       setError(result.error)
-    } else {
-      // Successful login - redirect
-      router.push(redirect)
-      router.refresh()
     }
+    // No need to handle success case since server redirects
   }
 
   return (

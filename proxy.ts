@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server"
-import { getSession } from "@/lib/session"
+import { verifyAuth } from "@/lib/session"
 
 export async function proxy(request) {
   const token = request.cookies.get("session")?.value
 
-  // Protected routes
+  // Check if accessing admin routes
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")
+
+  // Check if accessing protected routes
   const isProtectedRoute = 
     request.nextUrl.pathname.startsWith("/account") ||
     request.nextUrl.pathname.startsWith("/checkout") ||
     request.nextUrl.pathname === "/cart" ||
     request.nextUrl.pathname.startsWith("/orders")
 
-  if (!isProtectedRoute) {
+  if (!isAdminRoute && !isProtectedRoute) {
     return NextResponse.next()
   }
 
@@ -23,11 +26,16 @@ export async function proxy(request) {
   }
 
   try {
-    const session = await getSession()
-    if (!session) {
+    const user = await verifyAuth(token)
+    if (!user) {
       const loginUrl = new URL("/login", request.url)
       loginUrl.searchParams.set("redirect", request.nextUrl.pathname)
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Check admin access
+    if (isAdminRoute && user.role !== "admin") {
+      return NextResponse.redirect(new URL("/", request.url))
     }
 
     return NextResponse.next()
@@ -39,5 +47,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/cart", "/checkout", "/orders/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*", "/cart", "/checkout", "/orders/:path*"],
 }

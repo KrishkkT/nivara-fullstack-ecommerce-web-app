@@ -6,7 +6,7 @@ import { createSession, setSessionCookie } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 
-// Simplified sign in function
+// Simplified sign in function with server-side redirect
 export async function signIn(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
@@ -45,8 +45,8 @@ export async function signIn(formData: FormData) {
     // Set session cookie
     await setSessionCookie(token)
 
-    // Return success - client will handle redirect
-    return { success: true }
+    // Redirect to account page (server-side redirect as per specification)
+    redirect("/account")
   } catch (error) {
     return { error: "Failed to sign in" }
   }
@@ -98,8 +98,8 @@ export async function signUp(formData: FormData) {
     // Set session cookie
     await setSessionCookie(token)
 
-    // Return success
-    return { success: true }
+    // Redirect to account page (server-side redirect as per specification)
+    redirect("/account")
   } catch (error) {
     return { error: "Failed to create account" }
   }

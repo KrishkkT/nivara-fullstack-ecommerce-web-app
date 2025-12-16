@@ -52,6 +52,23 @@ export async function getSession() {
   }
 }
 
+// Restore verifyAuth function for other modules that depend on it
+export async function verifyAuth(token) {
+  try {
+    const verified = await jwtVerify(token, SECRET_KEY)
+    const sessionData = verified.payload
+    
+    const now = Math.floor(Date.now() / 1000)
+    if (now > sessionData.issuedAt + SESSION_TIMEOUT) {
+      return null
+    }
+    
+    return sessionData
+  } catch (err) {
+    return null
+  }
+}
+
 export async function setSessionCookie(token) {
   const cookieStore = await cookies()
   cookieStore.set("session", token, {
