@@ -66,6 +66,12 @@ const nextConfig = {
         ],
       },
     ]
+  },
+  // Fix turbopack root issue
+  turbopack: {
+    resolveAlias: {
+      "@/*": ["./*"]
+    }
   }
 }
 
