@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { getSession } from "@/lib/session"
-import { User, Search, Shield } from "lucide-react"
+import { User, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
 import { CartButton } from "./cart-button"
@@ -49,10 +49,6 @@ export async function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link href="/search" className="p-2 hover:bg-accent rounded-full transition-colors">
-            <Search className="h-5 w-5" />
-          </Link>
-          
           <WishlistButton />
           <CartButton />
           
