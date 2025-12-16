@@ -1,7 +1,9 @@
 import { sql } from "@/lib/db"
+import { getSession } from "@/lib/session"
 import { CartList } from "@/components/cart-list"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { redirect } from "next/navigation"
 
 export const metadata = {
   title: "Shopping Cart | NIVARA",
@@ -9,22 +11,39 @@ export const metadata = {
 }
 
 export default async function CartPage() {
-  // Temporary: Disable session check to prevent redirect loops
-  // const session = await getSession()
-  //
-  // if (!session) {
-  //   redirect("/login")
-  // }
+  const session = await getSession()
 
-  // Mock cart items for demonstration
-  const cartItems = []
-  const total = 0
+  if (!session) {
+    redirect("/login")
+  }
+
+  // Fetch cart items from database
+  const cartItemsResult = await sql`
+    SELECT 
+      ci.id as cart_item_id,
+      ci.quantity,
+      p.id as product_id,
+      p.name,
+      p.slug,
+      p.price,
+      p.compare_at_price,
+      p.image_url
+    FROM cart_items ci
+    JOIN products p ON ci.product_id = p.id
+    WHERE ci.user_id = ${session.userId}
+    ORDER BY ci.created_at DESC
+  `
+
+  // Calculate total
+  const total = cartItemsResult.reduce((sum: number, item: any) => {
+    return sum + (Number.parseFloat(item.price) * item.quantity)
+  }, 0)
 
   return (
     <div className="container px-4 py-12">
       <h1 className="text-4xl font-serif tracking-tight mb-8">Shopping Cart</h1>
 
-      {cartItems.length === 0 ? (
+      {cartItemsResult.length === 0 ? (
         <div className="text-center py-16 space-y-4">
           <p className="text-lg text-muted-foreground">Your cart is empty</p>
           <Button asChild>
@@ -34,7 +53,7 @@ export default async function CartPage() {
       ) : (
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <CartList items={cartItems} />
+            <CartList items={cartItemsResult} />
           </div>
 
           <div className="lg:col-span-1">
