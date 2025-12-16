@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export function LoginForm({ redirect = "/account" }) {
+export function LoginForm() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError("")
     setLoading(true)
@@ -22,17 +22,22 @@ export function LoginForm({ redirect = "/account" }) {
 
     setLoading(false)
 
-    if (result.error) {
+    if (result?.error) {
       setError(result.error)
     }
-    // No need to handle success case since server redirects
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required placeholder="your@email.com" />
+        <Input 
+          id="email" 
+          name="email" 
+          type="email" 
+          required 
+          placeholder="your@email.com" 
+        />
       </div>
 
       <div className="space-y-2">
@@ -46,7 +51,11 @@ export function LoginForm({ redirect = "/account" }) {
         />
       </div>
 
-      {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Signing in..." : "Sign In"}

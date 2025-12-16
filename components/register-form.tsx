@@ -12,7 +12,7 @@ export function RegisterForm() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError("")
     setLoading(true)
@@ -22,10 +22,9 @@ export function RegisterForm() {
 
     setLoading(false)
 
-    if (result.error) {
+    if (result?.error) {
       setError(result.error)
     }
-    // No need to handle success case since server redirects
   }
 
   return (
@@ -65,7 +64,11 @@ export function RegisterForm() {
         <p className="text-xs text-muted-foreground">At least 8 characters</p>
       </div>
 
-      {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Creating Account..." : "Create Account"}

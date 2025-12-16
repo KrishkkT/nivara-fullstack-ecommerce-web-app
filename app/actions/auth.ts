@@ -1,98 +1,131 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { getUserByEmail, verifyPassword } from "@/lib/auth"
-import { createSession, setSessionCookie } from "@/lib/session"
-import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
+import bcrypt from "bcryptjs"
+import { SignJWT } from "jose"
+import { nanoid } from "nanoid"
+import { redirect } from "next/navigation"
+
+// Simple session creation
+async function createSimpleSession(userId: number, email: string): Promise<string> {
+  const secret = new TextEncoder().encode("simple-secret-key")
+  const sessionData = {
+    userId,
+    email,
+    sessionId: nanoid(),
+    issuedAt: Math.floor(Date.now() / 1000)
+  }
+  
+  return new SignJWT(sessionData)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(7 * 24 * 60 * 60) // 7 days
+    .sign(secret)
+}
+
+// Simple session cookie setting
+async function setSimpleSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set("session", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60,
+    path: "/"
+  })
+}
 
 export async function signIn(formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-
-  if (!email || !password) {
-    return { error: "Email and password are required" }
-  }
-
   try {
-    const user = await getUserByEmail(email)
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
 
-    if (!user) {
-      return { error: "Invalid email or password" }
+    // Simple validation
+    if (!email || !password) {
+      return { error: "Email and password required" }
     }
 
-    const isValidPassword = await verifyPassword(password, user.password_hash)
+    // Get user from database
+    const result = await sql`
+      SELECT id, email, password_hash FROM users WHERE email = ${email}
+    `
 
-    if (!isValidPassword) {
-      return { error: "Invalid email or password" }
+    if (result.length === 0) {
+      return { error: "Invalid credentials" }
     }
 
-    // Create session
-    const token = await createSession({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
+    const user = result[0]
 
-    // Set secure session cookie
-    await setSessionCookie(token)
+    // Check password
+    const isValid = await bcrypt.compare(password, user.password_hash)
+    if (!isValid) {
+      return { error: "Invalid credentials" }
+    }
 
-    // Always redirect to account page - ignore redirect parameter for now
+    // Create and set session
+    const token = await createSimpleSession(user.id, user.email)
+    await setSimpleSessionCookie(token)
+
+    // Redirect to account (this throws NEXT_REDIRECT which is normal)
     redirect("/account")
   } catch (error) {
-    console.error("Sign in error:", error)
-    return { error: "Failed to sign in" }
+    // NEXT_REDIRECT is expected and should not be caught
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+    return { error: "Sign in failed" }
   }
 }
 
 export async function signUp(formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-  const fullName = formData.get("fullName") as string
-
-  if (!email || !password || !fullName) {
-    return { error: "All fields are required" }
-  }
-
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters" }
-  }
-
   try {
-    // Check if user already exists
-    const existingUser = await getUserByEmail(email)
-    if (existingUser) {
-      return { error: "Email already registered" }
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
+    const fullName = formData.get("fullName") as string
+
+    // Simple validation
+    if (!email || !password || !fullName) {
+      return { error: "All fields required" }
+    }
+
+    if (password.length < 8) {
+      return { error: "Password too short" }
+    }
+
+    // Check if user exists
+    const existing = await sql`
+      SELECT id FROM users WHERE email = ${email}
+    `
+
+    if (existing.length > 0) {
+      return { error: "Email taken" }
     }
 
     // Hash password
-    const bcrypt = await import("bcryptjs")
-    const passwordHash = await bcrypt.hash(password, 12)
+    const passwordHash = await bcrypt.hash(password, 10)
 
     // Create user
-    const userResult = await sql`
+    const result = await sql`
       INSERT INTO users (email, password_hash, full_name)
       VALUES (${email}, ${passwordHash}, ${fullName})
-      RETURNING id, email, full_name, role
+      RETURNING id, email
     `
 
-    const user = userResult[0]
+    const user = result[0]
 
-    // Create session
-    const token = await createSession({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
+    // Create and set session
+    const token = await createSimpleSession(user.id, user.email)
+    await setSimpleSessionCookie(token)
 
-    // Set secure session cookie
-    await setSessionCookie(token)
-
-    // Always redirect to account page
+    // Redirect to account (this throws NEXT_REDIRECT which is normal)
     redirect("/account")
   } catch (error) {
-    console.error("Sign up error:", error)
-    return { error: "Failed to create account" }
+    // NEXT_REDIRECT is expected and should not be caught
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+    return { error: "Sign up failed" }
   }
 }
 
