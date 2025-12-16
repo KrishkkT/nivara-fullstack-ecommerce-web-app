@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 import { createSessionToken, setSessionCookie } from "@/lib/session"
-import { hashPassword, verifyPassword } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 
 export async function signIn(formData: FormData) {
   try {
@@ -32,8 +32,14 @@ export async function signIn(formData: FormData) {
 
     const user = result[0]
 
-    // Check password using SHA-256
-    const isValid = await verifyPassword(password, user.password_hash)
+    // Check if user needs to reset password
+    if (user.password_hash === 'RESET_REQUIRED') {
+      console.log("User needs to reset password")
+      return { error: "Please reset your password using the 'Forgot Password' link" }
+    }
+
+    // Check password using bcrypt
+    const isValid = await bcrypt.compare(password, user.password_hash)
     console.log("Password validation result:", isValid)
     
     if (!isValid) {
@@ -88,9 +94,9 @@ export async function signUp(formData: FormData) {
       return { error: "An account with this email already exists" }
     }
 
-    // Hash password using SHA-256
-    const passwordHash = await hashPassword(password)
-    console.log("Password hashed")
+    // Hash password using bcrypt
+    const passwordHash = await bcrypt.hash(password, 12)
+    console.log("Password hashed with bcrypt")
 
     // Create user
     const result = await sql`

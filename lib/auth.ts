@@ -1,12 +1,11 @@
-import { createHash } from "crypto"
+import bcrypt from "bcryptjs"
 
-// Hash password using SHA-256
+// Hash password using bcrypt
 export async function hashPassword(password: string): Promise<string> {
-  return createHash('sha256').update(password).digest('hex')
+  return await bcrypt.hash(password, 12)
 }
 
-// Verify password using SHA-256
+// Verify password using bcrypt
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const hashedPassword = createHash('sha256').update(password).digest('hex')
-  return hashedPassword === hash
+  return await bcrypt.compare(password, hash)
 }

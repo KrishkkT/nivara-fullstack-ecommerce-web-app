@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { getSession } from "@/lib/session"
 import { User, Search, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
@@ -7,8 +8,8 @@ import { CartButton } from "./cart-button"
 import { WishlistButton } from "./wishlist-button"
 
 export async function Header() {
-  // Simplified header without session checking since middleware is disabled
-  // This will show the account link to everyone
+  // Check if user is logged in
+  const session = await getSession()
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -54,10 +55,22 @@ export async function Header() {
           <WishlistButton />
           <CartButton />
           
-          {/* Show account link to everyone since middleware is disabled */}
-          <Link href="/account" className="p-2 hover:bg-accent rounded-full transition-colors">
-            <User className="h-5 w-5" />
-          </Link>
+          {/* Show appropriate auth links based on session status */}
+          {session ? (
+            <Link href="/account" className="p-2 hover:bg-accent rounded-full transition-colors">
+              <User className="h-5 w-5" />
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">
+                Sign In
+              </Link>
+              <span className="text-muted-foreground">|</span>
+              <Link href="/register" className="text-sm font-medium hover:text-primary transition-colors">
+                Register
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>
