@@ -3,6 +3,7 @@
 import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
+import { redirect } from "next/navigation"
 import { createSimpleSession, setSimpleSessionCookie } from "@/lib/session"
 
 export async function signIn(formData: FormData) {
@@ -36,9 +37,13 @@ export async function signIn(formData: FormData) {
     const token = await createSimpleSession(user.id, user.email)
     await setSimpleSessionCookie(token)
 
-    // Return success - client will handle redirect
-    return { success: true }
+    // Redirect to account (this is the proper Next.js way)
+    redirect("/account")
   } catch (error) {
+    // NEXT_REDIRECT is expected and should not be caught
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
     return { error: "Sign in failed" }
   }
 }
@@ -83,16 +88,19 @@ export async function signUp(formData: FormData) {
     const token = await createSimpleSession(user.id, user.email)
     await setSimpleSessionCookie(token)
 
-    // Return success - client will handle redirect
-    return { success: true }
+    // Redirect to account (this is the proper Next.js way)
+    redirect("/account")
   } catch (error) {
+    // NEXT_REDIRECT is expected and should not be caught
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
     return { error: "Sign up failed" }
   }
 }
 
 export async function signOut() {
-  const cookieStore = await cookies()
+  const cookieStore = cookies()
   cookieStore.delete("session")
-  // Client will handle redirect
-  return { success: true }
+  redirect("/")
 }

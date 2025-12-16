@@ -19,22 +19,22 @@ export async function createSimpleSession(userId: number, email: string): Promis
     .sign(secret)
 }
 
-// Simple session cookie setting
+// Simple session cookie setting - FIXED for middleware visibility
 export async function setSimpleSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies()
+  const cookieStore = cookies() // DO NOT AWAIT cookies()
   cookieStore.set("session", token, {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production", // Enable for production
     sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60,
-    path: "/"
+    path: "/" // Critical for middleware visibility
   })
 }
 
 // Simple session verification
 export async function getSession() {
   try {
-    const cookieStore = await cookies()
+    const cookieStore = cookies() // DO NOT AWAIT cookies()
     const token = cookieStore.get("session")?.value
 
     if (!token) {

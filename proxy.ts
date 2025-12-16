@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server"
 import { verifyAuth } from "@/lib/session"
 import { rateLimit } from "@/lib/rate-limit"
 
@@ -21,6 +21,7 @@ export async function proxy(request: NextRequest) {
     )
   }
 
+  // CORRECT WAY TO READ COOKIES IN MIDDLEWARE - DO NOT USE cookies() FUNCTION
   const token = request.cookies.get("session")?.value
 
   // Check if accessing admin routes

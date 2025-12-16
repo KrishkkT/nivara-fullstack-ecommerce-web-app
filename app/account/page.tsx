@@ -52,11 +52,7 @@ export default async function AccountPage() {
                 </Link>
               </Button>
               
-              <form action={async () => {
-                'use server'
-                await signOut()
-                redirect("/")
-              }}>
+              <form action={signOut}>
                 <Button type="submit" variant="outline" className="w-full bg-transparent">
                   Sign Out
                 </Button>
