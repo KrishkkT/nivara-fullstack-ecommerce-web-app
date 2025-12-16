@@ -1,106 +1,95 @@
 "use server"
 
-import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
-import { redirect } from "next/navigation"
 import { createSimpleSession, setSimpleSessionCookie } from "@/lib/session"
 
-export async function signIn(formData: FormData) {
-  try {
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
-
-    // Simple validation
-    if (!email || !password) {
-      return { error: "Email and password required" }
-    }
-
-    // Get user from database
-    const result = await sql`
-      SELECT id, email, password_hash FROM users WHERE email = ${email}
-    `
-
-    if (result.length === 0) {
-      return { error: "Invalid credentials" }
-    }
-
-    const user = result[0]
-
-    // Check password
-    const isValid = await bcrypt.compare(password, user.password_hash)
-    if (!isValid) {
-      return { error: "Invalid credentials" }
-    }
-
-    // Create and set session
-    const token = await createSimpleSession(user.id, user.email)
-    await setSimpleSessionCookie(token)
-
-    // Redirect to account (this is the proper Next.js way)
-    redirect("/account")
-  } catch (error) {
-    // NEXT_REDIRECT is expected and should not be caught
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error
-    }
-    return { error: "Sign in failed" }
-  }
+// Simple email validation
+function validateAndSanitizeEmail(email: string): string | null {
+  if (!email || typeof email !== "string") return null
+  const sanitized = email.trim().toLowerCase()
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(sanitized) ? sanitized : null
 }
 
-export async function signUp(formData: FormData) {
-  try {
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
-    const fullName = formData.get("fullName") as string
+// Simple input sanitization
+function sanitizeInput(input: string): string | null {
+  if (!input || typeof input !== "string") return null
+  return input.trim()
+}
 
-    // Simple validation
-    if (!email || !password || !fullName) {
-      return { error: "All fields required" }
-    }
+// Get user by email
+async function getUserByEmail(email: string) {
+  const result = await sql`
+    SELECT id, email, password_hash, full_name FROM users WHERE email = ${email}
+  `
+  return result.length > 0 ? result[0] : null
+}
 
-    if (password.length < 8) {
-      return { error: "Password too short" }
-    }
+// Create user
+async function createUser(email: string, password: string, fullName: string) {
+  const passwordHash = await bcrypt.hash(password, 10)
+  const result = await sql`
+    INSERT INTO users (email, password_hash, full_name)
+    VALUES (${email}, ${passwordHash}, ${fullName})
+    RETURNING id, email, full_name
+  `
+  return result[0]
+}
 
-    // Check if user exists
-    const existing = await sql`
-      SELECT id FROM users WHERE email = ${email}
-    `
+export async function signIn(prevState: any, formData: FormData) {
+  const email = validateAndSanitizeEmail(formData.get("email") as string)
+  const password = sanitizeInput(formData.get("password") as string)
 
-    if (existing.length > 0) {
-      return { error: "Email taken" }
-    }
-
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10)
-
-    // Create user
-    const result = await sql`
-      INSERT INTO users (email, password_hash, full_name)
-      VALUES (${email}, ${passwordHash}, ${fullName})
-      RETURNING id, email
-    `
-
-    const user = result[0]
-
-    // Create and set session
-    const token = await createSimpleSession(user.id, user.email)
-    await setSimpleSessionCookie(token)
-
-    // Redirect to account (this is the proper Next.js way)
-    redirect("/account")
-  } catch (error) {
-    // NEXT_REDIRECT is expected and should not be caught
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error
-    }
-    return { error: "Sign up failed" }
+  if (!email || !password) {
+    return { error: "Email and password are required" }
   }
+
+  const user = await getUserByEmail(email)
+  if (!user) {
+    return { error: "Invalid email or password" }
+  }
+
+  const isValid = await bcrypt.compare(password, user.password_hash)
+  if (!isValid) {
+    return { error: "Invalid email or password" }
+  }
+
+  const token = await createSimpleSession(user.id, user.email)
+  await setSimpleSessionCookie(token)
+
+  redirect("/account") // LAST LINE
+}
+
+export async function signUp(prevState: any, formData: FormData) {
+  const email = validateAndSanitizeEmail(formData.get("email") as string)
+  const password = sanitizeInput(formData.get("password") as string)
+  const fullName = sanitizeInput(formData.get("fullName") as string)
+
+  if (!email || !password || !fullName) {
+    return { error: "All fields are required" }
+  }
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" }
+  }
+
+  const existingUser = await getUserByEmail(email)
+  if (existingUser) {
+    return { error: "Email already registered" }
+  }
+
+  const user = await createUser(email, password, fullName)
+
+  const token = await createSimpleSession(user.id, user.email)
+  await setSimpleSessionCookie(token)
+
+  redirect("/account") // LAST LINE
 }
 
 export async function signOut() {
-  const cookieStore = cookies()
-  cookieStore.delete("session")
+  const { cookies } = await import("next/headers")
+  cookies().delete("session")
   redirect("/")
 }

@@ -1,78 +1,39 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useFormState } from "react-dom"
 import { signUp } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export function RegisterForm() {
-  const router = useRouter()
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError("")
-    setLoading(true)
-
-    const formData = new FormData(event.currentTarget)
-    const result = await signUp(formData)
-
-    setLoading(false)
-
-    if (result?.error) {
-      setError(result.error)
-    }
-    // No need to handle success case since server redirects
-  }
+  const [state, formAction] = useFormState(signUp, null)
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form action={formAction} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="fullName">Full Name</Label>
-        <Input
-          id="fullName"
-          name="fullName"
-          type="text"
-          required
-          placeholder="Your full name"
-        />
+        <Input id="fullName" name="fullName" required />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          required
-          placeholder="your@email.com"
-        />
+        <Input id="email" name="email" type="email" required />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          required
-          placeholder="••••••••"
-          minLength={8}
-        />
-        <p className="text-xs text-muted-foreground">At least 8 characters</p>
+        <Input id="password" name="password" type="password" required />
       </div>
 
-      {error && (
+      {state?.error && (
         <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-          {error}
+          {state.error}
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating Account..." : "Create Account"}
+      <Button type="submit" className="w-full">
+        Create Account
       </Button>
     </form>
   )
