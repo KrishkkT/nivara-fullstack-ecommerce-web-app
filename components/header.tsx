@@ -1,6 +1,5 @@
 import Link from "next/link"
 import Image from "next/image"
-import { getSession } from "@/lib/session"
 import { User, Search, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
@@ -8,7 +7,7 @@ import { CartButton } from "./cart-button"
 import { WishlistButton } from "./wishlist-button"
 
 export async function Header() {
-  const session = await getSession()
+  // Simplified header without session checking for now
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -19,70 +18,45 @@ export async function Header() {
             <div className="relative w-20 h-20 flex-shrink-0">
               <Image
                 src="/images/nivara-logo.png"
-                alt="NIVARA"
+                alt="Nivara Silver Logo"
                 fill
-                className="object-contain group-hover:scale-110 transition-transform duration-300"
+                className="object-contain transition-transform group-hover:scale-105"
                 priority
               />
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="text-2xl font-serif font-bold tracking-tight leading-none group-hover:text-primary transition-colors">
-                NIVARA
-              </span>
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-light">
-                YUG DIAMONDS AND JEWELS
-              </span>
             </div>
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-1">
-          <Button variant="ghost" asChild>
-            <Link href="/shop">Shop</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/categories">Collections</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/about">About</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/contact">Contact</Link>
-          </Button>
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/shop" className="text-sm font-medium hover:text-primary transition-colors">
+            Shop
+          </Link>
+          <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors">
+            Categories
+          </Link>
+          <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
+            About
+          </Link>
+          <Link href="/care" className="text-sm font-medium hover:text-primary transition-colors">
+            Care
+          </Link>
+          <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+            Contact
+          </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/search">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
-            </Link>
-          </Button>
-
+        <div className="flex items-center gap-4">
+          <Link href="/search" className="p-2 hover:bg-accent rounded-full transition-colors">
+            <Search className="h-5 w-5" />
+          </Link>
+          
           <WishlistButton />
           <CartButton />
-
-          {session ? (
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/account">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Account</span>
-              </Link>
-            </Button>
-          ) : (
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-          )}
-
-          {session?.role === "admin" && (
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin">
-                <Shield className="h-5 w-5" />
-                <span className="sr-only">Admin</span>
-              </Link>
-            </Button>
-          )}
+          
+          {/* Simplified user menu without authentication */}
+          <Link href="/account" className="p-2 hover:bg-accent rounded-full transition-colors">
+            <User className="h-5 w-5" />
+          </Link>
         </div>
       </div>
     </header>
