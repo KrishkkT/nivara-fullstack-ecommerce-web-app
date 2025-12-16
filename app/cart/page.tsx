@@ -17,27 +17,60 @@ export default async function CartPage() {
     redirect("/login")
   }
 
-  // Fetch cart items from database
-  const cartItemsResult = await sql`
-    SELECT 
-      ci.id as cart_item_id,
-      ci.quantity,
-      p.id as product_id,
-      p.name,
-      p.slug,
-      p.price,
-      p.compare_at_price,
-      p.image_url
-    FROM cart_items ci
-    JOIN products p ON ci.product_id = p.id
-    WHERE ci.user_id = ${session.userId}
-    ORDER BY ci.created_at DESC
-  `
+  // Debug: Log session info
+  console.log(`[v0] Cart page accessed by user ${session.userId} (${session.email})`);
 
-  // Calculate total
-  const total = cartItemsResult.reduce((sum: number, item: any) => {
-    return sum + (Number.parseFloat(item.price) * item.quantity)
-  }, 0)
+  // Fetch cart items from database
+  let cartItemsResult = []
+  let total = 0
+  
+  try {
+    // Debug: First check if there are any cart items for this user
+    const userCartItems = await sql`
+      SELECT * FROM cart_items WHERE user_id = ${session.userId}
+    `
+    console.log(`[v0] Found ${userCartItems.length} cart items for user ${session.userId}`, userCartItems);
+    
+    // Debug: Check if products exist
+    const allProducts = await sql`
+      SELECT id, name FROM products LIMIT 5
+    `
+    console.log(`[v0] Sample products in database:`, allProducts);
+    
+    // Main query to fetch cart items with product details
+    cartItemsResult = await sql`
+      SELECT 
+        ci.id as cart_item_id,
+        ci.quantity,
+        p.id as product_id,
+        p.name,
+        p.slug,
+        p.price,
+        p.compare_at_price,
+        p.image_url
+      FROM cart_items ci
+      LEFT JOIN products p ON ci.product_id = p.id
+      WHERE ci.user_id = ${session.userId}
+      ORDER BY ci.created_at DESC
+    `
+    
+    console.log(`[v0] Cart items with product details:`, cartItemsResult);
+    
+    // Filter out any items where product was not found (LEFT JOIN resulted in NULLs)
+    cartItemsResult = cartItemsResult.filter((item: any) => item.name !== null);
+    
+    // Calculate total
+    total = cartItemsResult.reduce((sum: number, item: any) => {
+      return sum + (Number.parseFloat(item.price) * item.quantity)
+    }, 0)
+    
+    console.log(`[v0] Final cart items count: ${cartItemsResult.length}, Total: ${total}`);
+  } catch (error) {
+    console.error("[v0] Error fetching cart items:", error)
+    // If there's an error, we'll show an empty cart
+    cartItemsResult = []
+    total = 0
+  }
 
   return (
     <div className="container px-4 py-12">

@@ -47,11 +47,14 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
     e.preventDefault()
     e.stopPropagation()
 
+    console.log(`[v0] Adding ${quantity} of product ${product.id} (${product.name}) to cart`);
+
     setIsAddingToCart(true)
 
     let lastResult = null
     for (let i = 0; i < quantity; i++) {
       lastResult = await addToCart(product.id)
+      console.log(`[v0] Add to cart attempt ${i + 1}:`, lastResult);
     }
 
     setIsAddingToCart(false)
