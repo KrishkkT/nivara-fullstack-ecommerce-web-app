@@ -7,13 +7,7 @@ export const metadata: Metadata = {
   description: "Sign in to your NIVARA account",
 }
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
-  const redirect = searchParams.redirect ? String(searchParams.redirect) : "/account"
-  
+export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-8">
@@ -22,7 +16,7 @@ export default function LoginPage({
           <p className="mt-2 text-muted-foreground">Sign in to your NIVARA account</p>
         </div>
 
-        <LoginForm redirect={redirect} />
+        <LoginForm />
 
         <div className="text-center text-sm space-y-2">
           <p className="text-muted-foreground">

@@ -1,31 +1,10 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { verifyAuth } from "@/lib/session"
-import { rateLimit } from "@/lib/rate-limit"
 
 export async function proxy(request: NextRequest) {
-  // Apply rate limiting to all requests
-  const ip = request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1'
-  const rateLimitResult = rateLimit(ip, 100) // 100 requests per 15 minutes
-  
-  if (!rateLimitResult.success) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Too Many Requests' }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
-        }
-      }
-    )
-  }
-
-  // CORRECT WAY TO READ COOKIES IN MIDDLEWARE - DO NOT USE cookies() FUNCTION
+  // Read session token from cookies
   const token = request.cookies.get("session")?.value
-
-  // Check if accessing admin routes
-  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")
 
   // Check if accessing protected routes
   const isProtectedRoute =
@@ -35,7 +14,7 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/orders")
 
   // If not a protected route, allow
-  if (!isAdminRoute && !isProtectedRoute) {
+  if (!isProtectedRoute) {
     return NextResponse.next()
   }
 
@@ -55,11 +34,6 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    // Check admin access
-    if (isAdminRoute && user.role !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url))
-    }
-
     return NextResponse.next()
   } catch (error) {
     const loginUrl = new URL("/login", request.url)
@@ -69,5 +43,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*", "/cart", "/checkout", "/orders/:path*"],
+  matcher: ["/account/:path*", "/cart", "/checkout", "/orders/:path*"],
 }

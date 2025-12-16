@@ -10,19 +10,29 @@ export function LoginForm() {
   const [state, formAction] = useFormState(signIn, null)
 
   return (
-    <form action={formAction} className="space-y-6">
-      <div className="space-y-2">
+    <form action={formAction} className="space-y-4">
+      <div>
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+        <Input 
+          id="email" 
+          name="email" 
+          type="email" 
+          required 
+        />
       </div>
 
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="password">Password</Label>
-        <Input id="password" name="password" type="password" required />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          required
+        />
       </div>
 
       {state?.error && (
-        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+        <div className="text-red-500 text-sm">
           {state.error}
         </div>
       )}

@@ -1,7 +1,8 @@
 import { cookies } from "next/headers"
-import { jwtVerify } from "jose"
+import { jwtVerify, SignJWT } from "jose"
+import { nanoid } from "nanoid"
 
-// Session verification - READ ONLY
+// Simple session verification - READ ONLY
 export async function getSession() {
   try {
     const token = cookies().get("session")?.value
@@ -14,23 +15,16 @@ export async function getSession() {
     const verified = await jwtVerify(token, secret)
     const sessionData = verified.payload
 
-    // Check if session is expired (7 days)
-    const now = Math.floor(Date.now() / 1000)
-    if (now > (sessionData.issuedAt as number) + (7 * 24 * 60 * 60)) {
-      return null
-    }
-
     return {
       userId: sessionData.userId,
       email: sessionData.email,
-      role: sessionData.role || "customer"
     }
   } catch (err) {
     return null
   }
 }
 
-// Auth verification - READ ONLY
+// Simple auth verification - READ ONLY
 export async function verifyAuth(token: string) {
   try {
     if (!token) {
@@ -41,16 +35,9 @@ export async function verifyAuth(token: string) {
     const verified = await jwtVerify(token, secret)
     const sessionData = verified.payload
 
-    // Check if session is expired (7 days)
-    const now = Math.floor(Date.now() / 1000)
-    if (now > (sessionData.issuedAt as number) + (7 * 24 * 60 * 60)) {
-      return null
-    }
-
     return {
       userId: sessionData.userId,
       email: sessionData.email,
-      role: sessionData.role || "customer"
     }
   } catch (err) {
     return null
