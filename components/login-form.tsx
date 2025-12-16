@@ -1,23 +1,62 @@
 "use client"
 
-import { useFormState } from "react-dom"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { signIn } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export function LoginForm() {
-  const [state, formAction] = useFormState(signIn, null)
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError("")
+    setLoading(true)
+
+    // Simple validation
+    if (!email || !password) {
+      setError("Email and password are required")
+      setLoading(false)
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("email", email)
+    formData.append("password", password)
+
+    try {
+      const result = await signIn(formData)
+      
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        // Successful login - redirect to account page
+        router.push("/account")
+        router.refresh()
+      }
+    } catch (err) {
+      setError("Failed to sign in. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="email">Email</Label>
-        <Input 
-          id="email" 
-          name="email" 
-          type="email" 
-          required 
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
       </div>
 
@@ -25,20 +64,21 @@ export function LoginForm() {
         <Label htmlFor="password">Password</Label>
         <Input
           id="password"
-          name="password"
           type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
       </div>
 
-      {state?.error && (
-        <div className="text-red-500 text-sm">
-          {state.error}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+          {error}
         </div>
       )}
 
-      <Button type="submit" className="w-full">
-        Sign In
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Signing in..." : "Sign In"}
       </Button>
     </form>
   )

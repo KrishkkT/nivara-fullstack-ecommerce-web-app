@@ -1,22 +1,69 @@
 "use client"
 
-import { useFormState } from "react-dom"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { signUp } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export function RegisterForm() {
-  const [state, formAction] = useFormState(signUp, null)
+  const router = useRouter()
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError("")
+    setLoading(true)
+
+    // Simple validation
+    if (!fullName || !email || !password) {
+      setError("All fields are required")
+      setLoading(false)
+      return
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters")
+      setLoading(false)
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("fullName", fullName)
+    formData.append("email", email)
+    formData.append("password", password)
+
+    try {
+      const result = await signUp(formData)
+      
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        // Successful registration - redirect to account page
+        router.push("/account")
+        router.refresh()
+      }
+    } catch (err) {
+      setError("Failed to create account. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="fullName">Full Name</Label>
         <Input
           id="fullName"
-          name="fullName"
           type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
           required
         />
       </div>
@@ -25,8 +72,9 @@ export function RegisterForm() {
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
-          name="email"
           type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
       </div>
@@ -35,21 +83,25 @@ export function RegisterForm() {
         <Label htmlFor="password">Password</Label>
         <Input
           id="password"
-          name="password"
           type="password"
-          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           minLength={8}
+          required
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          Password must be at least 8 characters
+        </p>
       </div>
 
-      {state?.error && (
-        <div className="text-red-500 text-sm">
-          {state.error}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+          {error}
         </div>
       )}
 
-      <Button type="submit" className="w-full">
-        Create Account
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Creating account..." : "Create Account"}
       </Button>
     </form>
   )

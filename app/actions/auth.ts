@@ -2,17 +2,17 @@
 
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
-import bcrypt from "bcryptjs"
 import { createSessionToken, setSessionCookie } from "@/lib/session"
+import { hashPassword, verifyPassword } from "@/lib/auth"
 
-export async function signIn(prevState: any, formData: FormData) {
+export async function signIn(formData: FormData) {
   try {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
     // Simple validation
     if (!email || !password) {
-      return { error: "Email and password required" }
+      return { error: "Email and password are required" }
     }
 
     // Get user from database
@@ -21,34 +21,30 @@ export async function signIn(prevState: any, formData: FormData) {
     `
 
     if (result.length === 0) {
-      return { error: "Invalid credentials" }
+      return { error: "Invalid email or password" }
     }
 
     const user = result[0]
 
-    // Check password
-    const isValid = await bcrypt.compare(password, user.password_hash)
+    // Check password using SHA-256
+    const isValid = await verifyPassword(password, user.password_hash)
     if (!isValid) {
-      return { error: "Invalid credentials" }
+      return { error: "Invalid email or password" }
     }
 
     // Create and set session
     const token = createSessionToken(user.id, user.email, user.full_name)
     setSessionCookie(token)
 
-    // Redirect to account
-    redirect("/account")
+    // Return success - client will handle redirect
+    return { success: true }
   } catch (error) {
-    // NEXT_REDIRECT is expected and should not be caught
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error
-    }
     console.error("Sign in error:", error)
-    return { error: "Failed to sign in" }
+    return { error: "Failed to sign in. Please try again." }
   }
 }
 
-export async function signUp(prevState: any, formData: FormData) {
+export async function signUp(formData: FormData) {
   try {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
@@ -56,11 +52,11 @@ export async function signUp(prevState: any, formData: FormData) {
 
     // Simple validation
     if (!email || !password || !fullName) {
-      return { error: "All fields required" }
+      return { error: "All fields are required" }
     }
 
     if (password.length < 8) {
-      return { error: "Password too short" }
+      return { error: "Password must be at least 8 characters" }
     }
 
     // Check if user exists
@@ -69,11 +65,11 @@ export async function signUp(prevState: any, formData: FormData) {
     `
 
     if (existing.length > 0) {
-      return { error: "Email taken" }
+      return { error: "An account with this email already exists" }
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10)
+    // Hash password using SHA-256
+    const passwordHash = await hashPassword(password)
 
     // Create user
     const result = await sql`
@@ -88,15 +84,11 @@ export async function signUp(prevState: any, formData: FormData) {
     const token = createSessionToken(user.id, user.email, user.full_name)
     setSessionCookie(token)
 
-    // Redirect to account
-    redirect("/account")
+    // Return success - client will handle redirect
+    return { success: true }
   } catch (error) {
-    // NEXT_REDIRECT is expected and should not be caught
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error
-    }
     console.error("Sign up error:", error)
-    return { error: "Failed to create account" }
+    return { error: "Failed to create account. Please try again." }
   }
 }
 

@@ -1,10 +1,9 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { getSession } from "@/lib/session"
 
-// Proper authentication middleware
+// Simple authentication middleware
 export async function proxy(request: NextRequest) {
-  // Read session token from cookies
+  // Read session token from cookies manually (since we can't use cookies() in middleware)
   const cookieHeader = request.headers.get('cookie') || ''
   const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
     const [name, value] = cookie.trim().split('=')
@@ -34,7 +33,7 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    // Parse session token manually since we can't use cookies() in middleware
+    // Parse session token manually
     const sessionData = JSON.parse(atob(token))
     
     // Check if session is still valid

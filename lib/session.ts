@@ -1,14 +1,12 @@
 import { cookies } from "next/headers"
 
-// Proper session management with cookie handling
+// Simple session management with cookie handling
 export async function getSession() {
   try {
-    // This might fail in certain contexts, so we wrap it in try-catch
     let token = null
     try {
       token = cookies().get("session")?.value
     } catch (e) {
-      // Ignore cookie reading errors
       return null
     }
 
@@ -16,17 +14,16 @@ export async function getSession() {
       return null
     }
 
-    // Parse the session token (assuming it's a simple JSON string for now)
-    // In a production environment, you would verify a JWT token here
+    // Parse the session token
     const sessionData = JSON.parse(atob(token))
     
-    // Check if session is still valid (optional expiration check)
+    // Check if session is still valid
     if (sessionData.expires && new Date(sessionData.expires) < new Date()) {
       // Session expired, remove the cookie
       try {
         cookies().delete("session")
       } catch (e) {
-        // Ignore errors in cookie deletion
+        // Ignore errors
       }
       return null
     }
@@ -41,7 +38,7 @@ export async function getSession() {
     try {
       cookies().delete("session")
     } catch (e) {
-      // Ignore errors in cookie deletion
+      // Ignore errors
     }
     return null
   }
@@ -54,11 +51,10 @@ export async function verifyAuth(token: string) {
       return null
     }
 
-    // Parse the session token (assuming it's a simple JSON string for now)
-    // In a production environment, you would verify a JWT token here
+    // Parse the session token
     const sessionData = JSON.parse(atob(token))
     
-    // Check if session is still valid (optional expiration check)
+    // Check if session is still valid
     if (sessionData.expires && new Date(sessionData.expires) < new Date()) {
       return null
     }
@@ -82,14 +78,13 @@ export function createSessionToken(userId: number, email: string, fullName: stri
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
   }
   
-  // Encode as base64 JSON string (simplified session token)
+  // Encode as base64 JSON string
   return btoa(JSON.stringify(sessionData))
 }
 
 // Set session cookie properly
 export function setSessionCookie(token: string) {
   try {
-    // This might fail in certain contexts, so we wrap it in try-catch
     const cookieStore = cookies()
     cookieStore.set("session", token, {
       httpOnly: true,
@@ -99,7 +94,6 @@ export function setSessionCookie(token: string) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     })
   } catch (e) {
-    // Ignore cookie setting errors
     console.warn("Failed to set session cookie:", e)
   }
 }
@@ -107,11 +101,9 @@ export function setSessionCookie(token: string) {
 // Delete session cookie
 export function deleteSessionCookie() {
   try {
-    // This might fail in certain contexts, so we wrap it in try-catch
     const cookieStore = cookies()
     cookieStore.delete("session")
   } catch (e) {
-    // Ignore cookie deletion errors
     console.warn("Failed to delete session cookie:", e)
   }
 }
