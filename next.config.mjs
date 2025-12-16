@@ -34,10 +34,6 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
-  // Configure Turbopack root
-  turbopack: {
-    root: __dirname,
-  },
   // Reduce bundle size
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,

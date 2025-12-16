@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 // Simple session management with cookie handling
 export async function getSession() {
@@ -119,7 +120,6 @@ export async function setSessionCookie(token: string) {
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      // Add additional security headers
     })
     console.log("Session cookie set successfully")
   } catch (e) {
@@ -159,4 +159,30 @@ export async function refreshSession() {
     console.warn("Failed to refresh session:", e)
     return null
   }
+}
+
+// Server-side authentication check for protected routes
+export async function requireAuth(redirectTo: string = "/login") {
+  const session = await getSession()
+  if (!session) {
+    redirect(redirectTo)
+  }
+  return session
+}
+
+// Server-side authorization check for admin routes
+export async function requireAdminAuth() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("session")?.value
+
+  if (!token) {
+    redirect("/login?redirect=/admin")
+  }
+
+  const user = await verifyAuth(token)
+  if (!user || user.role !== "admin") {
+    redirect("/")
+  }
+  
+  return user
 }

@@ -3,9 +3,20 @@ import { redirect } from "next/navigation"
 import { verifyAuth } from "@/lib/session"
 import { sql } from "@/lib/db"
 import { AdminDashboard } from "@/components/admin-dashboard"
-import { withAuth } from '@/components/with-auth'
 
-async function AdminPageContent({ session }: { session: any }) {
+export default async function AdminPage() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("session")?.value
+
+  if (!token) {
+    redirect("/login?redirect=/admin")
+  }
+
+  const user = await verifyAuth(token)
+  if (!user || user.role !== "admin") {
+    redirect("/")
+  }
+
   // Fetch dashboard statistics
   const [stats] = await sql`
     SELECT 
@@ -48,8 +59,3 @@ async function AdminPageContent({ session }: { session: any }) {
 
   return <AdminDashboard stats={stats} recentOrders={recentOrders} topProducts={topProducts} />
 }
-
-// Wrap the component with authentication and require admin role
-const AdminPage = withAuth(AdminPageContent, 'admin')
-
-export default AdminPage

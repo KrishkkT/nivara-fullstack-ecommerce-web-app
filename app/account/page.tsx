@@ -4,14 +4,19 @@ import { sql } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { signOut } from "@/app/actions/auth"
-import { withAuth } from '@/components/with-auth'
 
 export const metadata = {
   title: "My Account | NIVARA",
   description: "Manage your account and orders",
 }
 
-async function AccountPageContent({ session }: { session: any }) {
+export default async function AccountPage() {
+  const session = await getSession()
+
+  if (!session) {
+    redirect("/login")
+  }
+
   const user = await sql`
     SELECT * FROM users WHERE id = ${session.userId}
   `
@@ -76,8 +81,8 @@ async function AccountPageContent({ session }: { session: any }) {
         {/* Main Content */}
         <div className="md:col-span-3">
           <div className="bg-white border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4">Welcome, {session.fullName}</h2>
-            <p className="text-muted-foreground mb-6">Email: {session.email}</p>
+            <h2 className="text-2xl font-semibold mb-4">Welcome, {user[0].full_name}</h2>
+            <p className="text-muted-foreground mb-6">Email: {user[0].email}</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="border rounded-lg p-4 text-center">
@@ -127,8 +132,3 @@ async function AccountPageContent({ session }: { session: any }) {
     </div>
   )
 }
-
-// Wrap the component with authentication
-const AccountPage = withAuth(AccountPageContent)
-
-export default AccountPage
