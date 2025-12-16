@@ -15,8 +15,12 @@ export const metadata = {
 
 export default async function AccountPage() {
   const session = await getSession()
+  
+  // Debug logging
+  console.log("[v0] Account page session check:", session ? "Session found" : "No session");
 
   if (!session) {
+    console.log("[v0] No session, redirecting to login");
     redirect("/login")
   }
 

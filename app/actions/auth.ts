@@ -135,6 +135,7 @@ export async function signIn(formData: FormData) {
     await setSessionCookie(token)
 
     console.log("[v0] User signed in successfully:", { userId: user.id, email: user.email });
+    // Return success - redirect will be handled on client side
     return { success: true }
   } catch (error) {
     console.error("[v0] Sign in error:", error)

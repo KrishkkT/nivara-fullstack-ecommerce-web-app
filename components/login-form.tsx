@@ -32,8 +32,15 @@ export function LoginForm({ redirect = "/account" }: LoginFormProps) {
       setError(result.error)
     } else {
       console.log("[v0] Login successful, redirecting to:", redirect);
-      // Force a full page reload to ensure the session is properly recognized
-      window.location.href = redirect;
+      try {
+        router.push(redirect)
+        // Refresh the router to ensure the page updates
+        router.refresh()
+      } catch (routerError) {
+        console.error("[v0] Router push error:", routerError);
+        // Fallback to window location if router fails
+        window.location.href = redirect
+      }
     }
   }
 
