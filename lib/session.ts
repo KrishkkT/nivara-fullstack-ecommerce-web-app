@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import { jwtVerify } from "jose"
 
-// Simple session verification - READ ONLY
+// Session verification - READ ONLY
 export async function getSession() {
   try {
     const token = cookies().get("session")?.value
@@ -30,7 +30,7 @@ export async function getSession() {
   }
 }
 
-// Restore verifyAuth for other modules that depend on it - READ ONLY
+// Auth verification - READ ONLY
 export async function verifyAuth(token: string) {
   try {
     if (!token) {
