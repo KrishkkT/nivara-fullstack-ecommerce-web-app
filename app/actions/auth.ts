@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
+import { createSessionToken, setSessionCookie } from "@/lib/session"
 
 export async function signIn(prevState: any, formData: FormData) {
   try {
@@ -31,8 +32,11 @@ export async function signIn(prevState: any, formData: FormData) {
       return { error: "Invalid credentials" }
     }
 
-    // For now, just redirect to account without setting cookies
-    // This is a temporary solution to identify the issue
+    // Create and set session
+    const token = createSessionToken(user.id, user.email, user.full_name)
+    setSessionCookie(token)
+
+    // Redirect to account
     redirect("/account")
   } catch (error) {
     // NEXT_REDIRECT is expected and should not be caught
@@ -80,8 +84,11 @@ export async function signUp(prevState: any, formData: FormData) {
 
     const user = result[0]
 
-    // For now, just redirect to account without setting cookies
-    // This is a temporary solution to identify the issue
+    // Create and set session
+    const token = createSessionToken(user.id, user.email, user.full_name)
+    setSessionCookie(token)
+
+    // Redirect to account
     redirect("/account")
   } catch (error) {
     // NEXT_REDIRECT is expected and should not be caught
@@ -95,6 +102,8 @@ export async function signUp(prevState: any, formData: FormData) {
 
 export async function signOut() {
   "use server"
-  // For now, just redirect to home without deleting cookies
+  // Import the delete function
+  const { deleteSessionCookie } = await import("@/lib/session")
+  deleteSessionCookie()
   redirect("/")
 }

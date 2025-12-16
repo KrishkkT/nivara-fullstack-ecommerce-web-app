@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { getSession } from "@/lib/session"
 import { User, Search, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
@@ -7,7 +8,7 @@ import { CartButton } from "./cart-button"
 import { WishlistButton } from "./wishlist-button"
 
 export async function Header() {
-  // Simplified header without session checking for now
+  const session = await getSession()
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -53,10 +54,15 @@ export async function Header() {
           <WishlistButton />
           <CartButton />
           
-          {/* Simplified user menu without authentication */}
-          <Link href="/account" className="p-2 hover:bg-accent rounded-full transition-colors">
-            <User className="h-5 w-5" />
-          </Link>
+          {session ? (
+            <Link href="/account" className="p-2 hover:bg-accent rounded-full transition-colors">
+              <User className="h-5 w-5" />
+            </Link>
+          ) : (
+            <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
     </header>
