@@ -3,9 +3,6 @@
 import { sql } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 
-// Store OTPs in memory (in production, use a database or Redis)
-const otpStore = new Map<string, { otp: string; expires: number }>()
-
 // Generate a 6-digit OTP
 function generateOTP(): string {
   // Ensure we always generate a 6-digit number (pad with leading zeros if necessary)
@@ -30,10 +27,18 @@ export async function sendOTP(email: string) {
     
     // Generate OTP
     const otp = generateOTP()
-    const expires = Date.now() + 10 * 60 * 1000 // 10 minutes expiration
+    const expires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiration
     
-    // Store OTP
-    otpStore.set(email, { otp, expires })
+    // Store OTP in database
+    await sql`
+      INSERT INTO otps (email, otp, expires_at)
+      VALUES (${email}, ${otp}, ${expires})
+      ON CONFLICT (email) 
+      DO UPDATE SET 
+        otp = ${otp},
+        expires_at = ${expires},
+        created_at = CURRENT_TIMESTAMP
+    `
     
     // Send OTP via email
     const emailHtml = `
@@ -82,25 +87,31 @@ export async function sendOTP(email: string) {
 // Verify OTP
 export async function verifyOTP(email: string, otp: string) {
   try {
-    const storedOTP = otpStore.get(email)
+    // Get OTP from database
+    const otpResult: any = await sql`
+      SELECT otp, expires_at FROM otps WHERE email = ${email}
+    `
     
-    if (!storedOTP) {
+    if (!otpResult.length) {
       return { error: "OTP not found or expired" }
     }
     
+    const storedOTP = otpResult[0]
+    
     // Check if OTP is expired
-    if (Date.now() > storedOTP.expires) {
-      otpStore.delete(email)
+    if (new Date() > storedOTP.expires_at) {
+      // Delete expired OTP
+      await sql`DELETE FROM otps WHERE email = ${email}`
       return { error: "OTP has expired" }
     }
     
-    // Check if OTP matches (ensure both are strings for comparison)
+    // Check if OTP matches
     if (storedOTP.otp !== otp) {
       return { error: "Invalid OTP" }
     }
     
     // Remove OTP after successful verification
-    otpStore.delete(email)
+    await sql`DELETE FROM otps WHERE email = ${email}`
     
     return { success: true }
   } catch (error) {

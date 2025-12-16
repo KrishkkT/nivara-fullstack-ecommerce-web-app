@@ -20,7 +20,7 @@ export async function signIn(formData: FormData) {
 
     // Get user from database
     const result = await sql`
-      SELECT id, email, password_hash, full_name FROM users WHERE email = ${email}
+      SELECT id, email, password_hash, full_name, role FROM users WHERE email = ${email}
     `
 
     console.log("Database query result:", result)
@@ -48,7 +48,7 @@ export async function signIn(formData: FormData) {
     }
 
     // Create and set session
-    const token = createSessionToken(user.id, user.email, user.full_name)
+    const token = createSessionToken(user.id, user.email, user.full_name, user.role)
     console.log("Created session token")
     
     await setSessionCookie(token)
@@ -100,9 +100,9 @@ export async function signUp(formData: FormData) {
 
     // Create user
     const result = await sql`
-      INSERT INTO users (email, password_hash, full_name)
-      VALUES (${email}, ${passwordHash}, ${fullName})
-      RETURNING id, email, full_name
+      INSERT INTO users (email, password_hash, full_name, role)
+      VALUES (${email}, ${passwordHash}, ${fullName}, 'customer')
+      RETURNING id, email, full_name, role
     `
 
     console.log("User created:", result)
@@ -110,7 +110,7 @@ export async function signUp(formData: FormData) {
     const user = result[0]
 
     // Create and set session
-    const token = createSessionToken(user.id, user.email, user.full_name)
+    const token = createSessionToken(user.id, user.email, user.full_name, user.role)
     console.log("Created session token for new user")
     
     await setSessionCookie(token)

@@ -41,6 +41,7 @@ export async function getSession() {
       userId: sessionData.userId,
       email: sessionData.email,
       fullName: sessionData.fullName,
+      role: sessionData.role,
     }
   } catch (err) {
     console.log("Error parsing session token:", err)
@@ -81,6 +82,7 @@ export async function verifyAuth(token: string) {
       userId: sessionData.userId,
       email: sessionData.email,
       fullName: sessionData.fullName,
+      role: sessionData.role,
     }
   } catch (err) {
     console.log("Error verifying token:", err)
@@ -89,11 +91,12 @@ export async function verifyAuth(token: string) {
 }
 
 // Create a session token
-export function createSessionToken(userId: number, email: string, fullName: string): string {
+export function createSessionToken(userId: number, email: string, fullName: string, role: string = 'customer'): string {
   const sessionData = {
     userId,
     email,
     fullName,
+    role,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
   }
   

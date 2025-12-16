@@ -10,6 +10,15 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- OTPs table for password reset verification
+CREATE TABLE IF NOT EXISTS otps (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  otp VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Addresses table for user shipping addresses
 CREATE TABLE IF NOT EXISTS addresses (
   id SERIAL PRIMARY KEY,
