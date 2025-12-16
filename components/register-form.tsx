@@ -39,16 +39,20 @@ export function RegisterForm() {
     formData.append("password", password)
 
     try {
+      console.log("Attempting to sign up with email:", email)
       const result = await signUp(formData)
+      console.log("Sign up result:", result)
       
       if (result?.error) {
         setError(result.error)
       } else {
         // Successful registration - redirect to account page
+        console.log("Registration successful, redirecting to account page")
         router.push("/account")
         router.refresh()
       }
     } catch (err) {
+      console.error("Sign up error:", err)
       setError("Failed to create account. Please try again.")
     } finally {
       setLoading(false)

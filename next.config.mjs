@@ -1,3 +1,9 @@
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -27,6 +33,10 @@ const nextConfig = {
   // Add performance optimizations
   experimental: {
     optimizeCss: true,
+  },
+  // Configure Turbopack root
+  turbopack: {
+    root: join(__dirname, '.'),
   },
   // Reduce bundle size
   compiler: {

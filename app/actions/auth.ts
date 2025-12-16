@@ -10,8 +10,11 @@ export async function signIn(formData: FormData) {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
+    console.log("Sign in attempt for email:", email)
+
     // Simple validation
     if (!email || !password) {
+      console.log("Validation failed: Email or password missing")
       return { error: "Email and password are required" }
     }
 
@@ -20,7 +23,10 @@ export async function signIn(formData: FormData) {
       SELECT id, email, password_hash, full_name FROM users WHERE email = ${email}
     `
 
+    console.log("Database query result:", result)
+
     if (result.length === 0) {
+      console.log("No user found with this email")
       return { error: "Invalid email or password" }
     }
 
@@ -28,15 +34,22 @@ export async function signIn(formData: FormData) {
 
     // Check password using SHA-256
     const isValid = await verifyPassword(password, user.password_hash)
+    console.log("Password validation result:", isValid)
+    
     if (!isValid) {
+      console.log("Invalid password")
       return { error: "Invalid email or password" }
     }
 
     // Create and set session
     const token = createSessionToken(user.id, user.email, user.full_name)
-    setSessionCookie(token)
+    console.log("Created session token")
+    
+    await setSessionCookie(token)
+    console.log("Set session cookie")
 
     // Return success - client will handle redirect
+    console.log("Sign in successful")
     return { success: true }
   } catch (error) {
     console.error("Sign in error:", error)
@@ -50,12 +63,16 @@ export async function signUp(formData: FormData) {
     const password = formData.get("password") as string
     const fullName = formData.get("fullName") as string
 
+    console.log("Sign up attempt for email:", email)
+
     // Simple validation
     if (!email || !password || !fullName) {
+      console.log("Validation failed: Missing required fields")
       return { error: "All fields are required" }
     }
 
     if (password.length < 8) {
+      console.log("Validation failed: Password too short")
       return { error: "Password must be at least 8 characters" }
     }
 
@@ -64,12 +81,16 @@ export async function signUp(formData: FormData) {
       SELECT id FROM users WHERE email = ${email}
     `
 
+    console.log("Existing user check result:", existing)
+
     if (existing.length > 0) {
+      console.log("User already exists with this email")
       return { error: "An account with this email already exists" }
     }
 
     // Hash password using SHA-256
     const passwordHash = await hashPassword(password)
+    console.log("Password hashed")
 
     // Create user
     const result = await sql`
@@ -78,13 +99,19 @@ export async function signUp(formData: FormData) {
       RETURNING id, email, full_name
     `
 
+    console.log("User created:", result)
+
     const user = result[0]
 
     // Create and set session
     const token = createSessionToken(user.id, user.email, user.full_name)
-    setSessionCookie(token)
+    console.log("Created session token for new user")
+    
+    await setSessionCookie(token)
+    console.log("Set session cookie for new user")
 
     // Return success - client will handle redirect
+    console.log("Sign up successful")
     return { success: true }
   } catch (error) {
     console.error("Sign up error:", error)
@@ -94,8 +121,10 @@ export async function signUp(formData: FormData) {
 
 export async function signOut() {
   "use server"
+  console.log("Sign out initiated")
   // Import the delete function
   const { deleteSessionCookie } = await import("@/lib/session")
-  deleteSessionCookie()
+  await deleteSessionCookie()
+  console.log("Session cookie deleted")
   redirect("/")
 }

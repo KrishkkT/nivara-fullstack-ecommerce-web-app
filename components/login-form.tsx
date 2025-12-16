@@ -31,16 +31,20 @@ export function LoginForm() {
     formData.append("password", password)
 
     try {
+      console.log("Attempting to sign in with email:", email)
       const result = await signIn(formData)
+      console.log("Sign in result:", result)
       
       if (result?.error) {
         setError(result.error)
       } else {
         // Successful login - redirect to account page
+        console.log("Login successful, redirecting to account page")
         router.push("/account")
         router.refresh()
       }
     } catch (err) {
+      console.error("Sign in error:", err)
       setError("Failed to sign in. Please try again.")
     } finally {
       setLoading(false)
