@@ -1,10 +1,39 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
+import { SignJWT, jwtVerify } from "jose"
+import { nanoid } from "nanoid"
 
-// Extremely simple authentication - no sessions, no cookies
+// Create session token
+async function createSession(userId: number, email: string): Promise<string> {
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret_key_for_development")
+  const sessionData = {
+    userId,
+    email,
+    sessionId: nanoid(),
+  }
+  
+  return new SignJWT(sessionData)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("7d")
+    .sign(secret)
+}
+
+// Set session cookie
+function setSessionCookie(token: string) {
+  cookies().set("session", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+  })
+}
+
 export async function signIn(prevState: any, formData: FormData) {
   try {
     const email = formData.get("email") as string
@@ -32,9 +61,17 @@ export async function signIn(prevState: any, formData: FormData) {
       return { error: "Invalid credentials" }
     }
 
-    // Just redirect to account - no session management
+    // Create and set session
+    const token = await createSession(user.id, user.email)
+    setSessionCookie(token)
+
+    // Redirect to account
     redirect("/account")
   } catch (error) {
+    // NEXT_REDIRECT is expected and should not be caught
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
     console.error("Sign in error:", error)
     return { error: "Failed to sign in" }
   }
@@ -68,14 +105,25 @@ export async function signUp(prevState: any, formData: FormData) {
     const passwordHash = await bcrypt.hash(password, 10)
 
     // Create user
-    await sql`
+    const result = await sql`
       INSERT INTO users (email, password_hash, full_name)
       VALUES (${email}, ${passwordHash}, ${fullName})
+      RETURNING id, email
     `
 
-    // Just redirect to account - no session management
+    const user = result[0]
+
+    // Create and set session
+    const token = await createSession(user.id, user.email)
+    setSessionCookie(token)
+
+    // Redirect to account
     redirect("/account")
   } catch (error) {
+    // NEXT_REDIRECT is expected and should not be caught
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
     console.error("Sign up error:", error)
     return { error: "Failed to create account" }
   }
@@ -83,5 +131,6 @@ export async function signUp(prevState: any, formData: FormData) {
 
 export async function signOut() {
   "use server"
+  cookies().delete("session")
   redirect("/")
 }

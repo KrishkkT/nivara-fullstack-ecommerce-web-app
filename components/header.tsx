@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-// import { getSession } from "@/lib/session" // Temporarily disabled
+import { getSession } from "@/lib/session"
 import { User, Search, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
@@ -8,7 +8,7 @@ import { CartButton } from "./cart-button"
 import { WishlistButton } from "./wishlist-button"
 
 export async function Header() {
-  // const session = await getSession() // Temporarily disabled
+  const session = await getSession()
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
@@ -62,26 +62,27 @@ export async function Header() {
           <WishlistButton />
           <CartButton />
 
-          {/* Temporarily show both Sign In and Account buttons */}
-          <Button variant="ghost" asChild>
-            <Link href="/login">Sign In</Link>
-          </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/account">
-              <User className="h-5 w-5" />
-              <span className="sr-only">Account</span>
-            </Link>
-          </Button>
-          
-          {/* Temporarily hide admin button */}
-          {/* {session?.role === "admin" && (
+          {session ? (
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/account">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Account</span>
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
+          )}
+
+          {session?.role === "admin" && (
             <Button variant="ghost" size="icon" asChild>
               <Link href="/admin">
                 <Shield className="h-5 w-5" />
                 <span className="sr-only">Admin</span>
               </Link>
             </Button>
-          )} */}
+          )}
         </div>
       </div>
     </header>
