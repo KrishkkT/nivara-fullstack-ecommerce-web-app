@@ -70,9 +70,10 @@ export async function verifyAuth(token: string): Promise<SessionData | null> {
 
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies()
+  // Simple cookie setting without complex options
   cookieStore.set("session", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Disable secure for development
     sameSite: "lax",
     maxAge: SESSION_TIMEOUT,
     path: "/"

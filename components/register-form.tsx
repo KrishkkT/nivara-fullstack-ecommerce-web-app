@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { signUp } from "@/app/actions/auth"
@@ -14,7 +12,7 @@ export function RegisterForm() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event) {
     event.preventDefault()
     setError("")
     setLoading(true)
@@ -38,7 +36,6 @@ export function RegisterForm() {
           id="fullName"
           name="fullName"
           type="text"
-          autoComplete="name"
           required
           placeholder="Your full name"
         />
@@ -50,7 +47,6 @@ export function RegisterForm() {
           id="email"
           name="email"
           type="email"
-          autoComplete="email"
           required
           placeholder="your@email.com"
         />
@@ -62,7 +58,6 @@ export function RegisterForm() {
           id="password"
           name="password"
           type="password"
-          autoComplete="new-password"
           required
           placeholder="••••••••"
           minLength={8}

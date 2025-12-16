@@ -37,9 +37,10 @@ export async function signIn(formData: FormData) {
     // Set secure session cookie
     await setSessionCookie(token)
 
-    // Redirect to account page
+    // Always redirect to account page - ignore redirect parameter for now
     redirect("/account")
   } catch (error) {
+    console.error("Sign in error:", error)
     return { error: "Failed to sign in" }
   }
 }
@@ -87,9 +88,10 @@ export async function signUp(formData: FormData) {
     // Set secure session cookie
     await setSessionCookie(token)
 
-    // Redirect to account page
+    // Always redirect to account page
     redirect("/account")
   } catch (error) {
+    console.error("Sign up error:", error)
     return { error: "Failed to create account" }
   }
 }
