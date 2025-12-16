@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
 import { createSessionToken, setSessionCookie } from "@/lib/session"
 import bcrypt from "bcryptjs"
+import { sendEmail, generateWelcomeEmail } from "@/lib/email"
 
 export async function signIn(formData: FormData) {
   try {
@@ -108,6 +109,20 @@ export async function signUp(formData: FormData) {
     console.log("User created:", result)
 
     const user = result[0]
+
+    // Send welcome email
+    try {
+      console.log(`[v0] Sending welcome email to new user ${email}`);
+      const emailHtml = generateWelcomeEmail(user);
+      await sendEmail({
+        to: email,
+        subject: "Welcome to NIVARA!",
+        html: emailHtml
+      });
+      console.log(`[v0] Welcome email sent successfully to ${email}`);
+    } catch (emailError) {
+      console.error("[v0] Failed to send welcome email:", emailError);
+    }
 
     // Create and set session
     const token = createSessionToken(user.id, user.email, user.full_name, user.role)

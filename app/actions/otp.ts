@@ -134,14 +134,15 @@ export async function resetPasswordWithOTP(email: string, newPassword: string) {
 
     // Check if user exists
     const userResult: any = await sql`
-      SELECT id FROM users WHERE email = ${email}
+      SELECT id, full_name FROM users WHERE email = ${email}
     `
 
     if (userResult.length === 0) {
       return { error: "User not found" }
     }
 
-    const userId = userResult[0].id
+    const user = userResult[0]
+    const userId = user.id
 
     // Hash the new password
     const bcrypt = await import("bcryptjs")
@@ -154,6 +155,43 @@ export async function resetPasswordWithOTP(email: string, newPassword: string) {
           updated_at = CURRENT_TIMESTAMP 
       WHERE id = ${userId}
     `
+    
+    // Send password reset confirmation email
+    try {
+      console.log(`[v0] Sending password reset confirmation email to ${email}`);
+      const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Password Reset Successfully - NIVARA</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #B29789;">Password Reset Successfully</h1>
+            
+            <p>Hello ${user.full_name},</p>
+            
+            <p>Your password for your NIVARA account has been successfully reset.</p>
+            
+            <p>If you did not make this change, please contact our support team immediately.</p>
+            
+            <p>Thank you,<br>The NIVARA Team</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      await sendEmail({
+        to: email,
+        subject: "Password Reset Successfully - NIVARA",
+        html: emailHtml
+      });
+      
+      console.log(`[v0] Password reset confirmation email sent successfully to ${email}`);
+    } catch (emailError) {
+      console.error("[v0] Failed to send password reset confirmation email:", emailError);
+    }
 
     return { success: true }
   } catch (error) {

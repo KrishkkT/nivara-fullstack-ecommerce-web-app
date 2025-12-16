@@ -9,6 +9,7 @@ A premium e-commerce platform for sterling silver jewellery, built with Next.js 
 - **User Accounts**: Registration, login, and profile management
 - **Admin Dashboard**: Complete backend for managing products, orders, and content
 - **Secure Payments**: Integration with Razorpay for online payments
+- **Email Notifications**: Automated emails for order confirmations, shipping updates, etc.
 - **Responsive Design**: Mobile-first approach for all device sizes
 - **SEO Optimized**: Proper metadata and structured data for search engines
 
@@ -29,6 +30,31 @@ A premium e-commerce platform for sterling silver jewellery, built with Next.js 
 3. Set up environment variables (see `.env.example`)
 4. Run database migrations
 5. Start the development server with `pnpm dev`
+
+## Email Configuration
+
+To enable email notifications, configure one of the following in your `.env` file:
+
+### Option 1: Gmail (Recommended for development/testing)
+```
+GMAIL_USER=your-gmail-address@gmail.com
+GMAIL_APP_PASSWORD=your-app-password
+```
+
+### Option 2: Generic SMTP
+```
+SMTP_HOST=smtp.yourprovider.com
+SMTP_PORT=587
+SMTP_USER=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+SMTP_SECURE=false
+```
+
+### Optional Settings
+```
+FROM_EMAIL=NIVARA <noreply@nivara.in>
+NEXT_PUBLIC_SITE_URL=https://your-site.com
+```
 
 ## Deployment
 
