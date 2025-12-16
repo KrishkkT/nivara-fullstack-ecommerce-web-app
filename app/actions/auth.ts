@@ -87,8 +87,8 @@ export async function signUp(formData: FormData) {
       console.error("[v0] Failed to send admin notification for new user:", adminEmailError);
     }
 
-    // Redirect to account page after successful signup
-    redirect("/account")
+    // Return success - redirect will be handled on client side
+    return { success: true }
   } catch (error) {
     console.error("[v0] Sign up error:", error)
     return { error: "Failed to create account" }
@@ -137,9 +137,8 @@ export async function signIn(formData: FormData) {
     // Set secure session cookie using the helper function
     await setSessionCookie(token)
 
-    console.log("[v0] User signed in successfully, redirecting to:", redirectUrl);
-    // Redirect directly from server action
-    redirect(redirectUrl)
+    // Return success with redirect URL - redirect will be handled on client side
+    return { success: true, redirectUrl }
   } catch (error) {
     console.error("[v0] Sign in error:", error)
     return { error: "Failed to sign in" }

@@ -29,12 +29,15 @@ export function LoginForm({ redirect = "/account" }: LoginFormProps) {
 
     const result = await signIn(formData)
 
-    // This shouldn't be reached since we're redirecting from the server action
-    // But just in case there's an error, handle it here
+    // Handle the result
     setLoading(false)
 
     if (result.error) {
       setError(result.error)
+    } else if (result.success) {
+      // Redirect to the specified URL
+      router.push(result.redirectUrl || redirect)
+      router.refresh()
     }
   }
 
