@@ -66,6 +66,13 @@ const nextConfig = {
         ],
       },
     ]
+  },
+  // Fix turbopack root issue
+  turbopack: {
+    root: "V:\\Github\\nivara-fullstack-ecommerce-web-app",
+    resolveAlias: {
+      "@/*": ["./*"]
+    }
   }
 }
 
