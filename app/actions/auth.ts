@@ -5,22 +5,59 @@ import { createUser, getUserByEmail, verifyPassword } from "@/lib/auth"
 import { createSession, setSessionCookie } from "@/lib/session"
 import { redirect } from "next/navigation"
 import { sql } from "@/lib/db"
-import { sendEmail, generateWelcomeEmail, generateNewUserNotificationEmail } from "@/lib/email"
-import { sanitizeInput, validateAndSanitizeEmail, validatePhoneNumber } from "@/lib/sanitize"
 
+// Simplified sign in function
+export async function signIn(formData: FormData) {
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+
+  if (!email || !password) {
+    return { error: "Email and password are required" }
+  }
+
+  try {
+    // Get user
+    const result = await sql`
+      SELECT id, email, password_hash, full_name, role
+      FROM users
+      WHERE email = ${email}
+    `
+
+    if (result.length === 0) {
+      return { error: "Invalid email or password" }
+    }
+
+    const user = result[0]
+
+    // Verify password
+    const isValid = await verifyPassword(password, user.password_hash)
+    if (!isValid) {
+      return { error: "Invalid email or password" }
+    }
+
+    // Create session token
+    const token = await createSession({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    })
+
+    // Set session cookie
+    await setSessionCookie(token)
+
+    // Return success - client will handle redirect
+    return { success: true }
+  } catch (error) {
+    return { error: "Failed to sign in" }
+  }
+}
+
+// Simplified sign up function
 export async function signUp(formData: FormData) {
-  const rawEmail = formData.get("email") as string
-  const rawPassword = formData.get("password") as string
-  const rawFullName = formData.get("fullName") as string
-  const rawPhone = formData.get("phone") as string | undefined
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+  const fullName = formData.get("fullName") as string
 
-  // Sanitize inputs
-  const email = validateAndSanitizeEmail(rawEmail)
-  const password = sanitizeInput(rawPassword)
-  const fullName = sanitizeInput(rawFullName)
-  const phone = rawPhone ? validatePhoneNumber(rawPhone) : undefined
-
-  // Validation
   if (!email || !password || !fullName) {
     return { error: "All fields are required" }
   }
@@ -30,14 +67,26 @@ export async function signUp(formData: FormData) {
   }
 
   try {
-    // Check if user already exists
-    const existingUser = await getUserByEmail(email)
-    if (existingUser) {
+    // Check if user exists
+    const existing = await sql`
+      SELECT id FROM users WHERE email = ${email}
+    `
+
+    if (existing.length > 0) {
       return { error: "Email already registered" }
     }
 
+    // Hash password
+    const passwordHash = await import("bcryptjs").then(bcrypt => bcrypt.hash(password, 12))
+
     // Create user
-    const user = await createUser(email, password, fullName, phone)
+    const userResult = await sql`
+      INSERT INTO users (email, password_hash, full_name)
+      VALUES (${email}, ${passwordHash}, ${fullName})
+      RETURNING id, email, full_name, role
+    `
+
+    const user = userResult[0]
 
     // Create session
     const token = await createSession({
@@ -46,102 +95,13 @@ export async function signUp(formData: FormData) {
       role: user.role,
     })
 
-    // Set secure session cookie
+    // Set session cookie
     await setSessionCookie(token)
 
-    // Send welcome email to user
-    try {
-      const emailHtml = generateWelcomeEmail({ full_name: fullName, email });
-      await sendEmail({
-        to: email,
-        subject: `Welcome to NIVARA, ${fullName}!`,
-        html: emailHtml
-      });
-    } catch (emailError) {
-      console.error("[v0] Failed to send welcome email:", emailError);
-    }
-
-    // Send notification to admins about new user registration
-    try {
-      // Get active admin emails
-      const adminEmailsResult: any = await sql`
-        SELECT email FROM admin_emails WHERE is_active = true
-      `
-      
-      const adminEmails = adminEmailsResult.map((row: any) => row.email)
-      
-      if (adminEmails.length > 0) {
-        const emailHtml = generateNewUserNotificationEmail({ 
-          full_name: fullName, 
-          email,
-          phone
-        });
-        
-        await sendEmail({
-          to: adminEmails,
-          subject: `New User Registration: ${fullName}`,
-          html: emailHtml
-        });
-      }
-    } catch (adminEmailError) {
-      console.error("[v0] Failed to send admin notification for new user:", adminEmailError);
-    }
-
-    // Return success - redirect will be handled on client side
+    // Return success
     return { success: true }
   } catch (error) {
-    console.error("[v0] Sign up error:", error)
     return { error: "Failed to create account" }
-  }
-}
-
-export async function signIn(formData: FormData) {
-  const rawEmail = formData.get("email") as string
-  const rawPassword = formData.get("password") as string
-  // Get redirect URL from form data
-  const redirectUrl = formData.get("redirect") as string || "/account"
-
-  // Sanitize inputs
-  const email = validateAndSanitizeEmail(rawEmail)
-  const password = sanitizeInput(rawPassword)
-
-  if (!email || !password) {
-    return { error: "Email and password are required" }
-  }
-
-  try {
-    const user = await getUserByEmail(email)
-
-    if (!user) {
-      return { error: "Invalid email or password" }
-    }
-
-    // Check if user needs to reset password
-    if (user.password_hash === 'RESET_REQUIRED') {
-      return { error: "Please reset your password. Contact support if you need assistance." }
-    }
-
-    const isValidPassword = await verifyPassword(password, user.password_hash)
-
-    if (!isValidPassword) {
-      return { error: "Invalid email or password" }
-    }
-
-    // Create session
-    const token = await createSession({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
-
-    // Set secure session cookie using the helper function
-    await setSessionCookie(token)
-
-    // Return success with redirect URL - redirect will be handled on client side
-    return { success: true, redirectUrl }
-  } catch (error) {
-    console.error("[v0] Sign in error:", error)
-    return { error: "Failed to sign in" }
   }
 }
 
