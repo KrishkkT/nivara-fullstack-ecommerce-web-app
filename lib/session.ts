@@ -1,45 +1,45 @@
 import { cookies } from "next/headers"
-import { jwtVerify, SignJWT } from "jose"
-import { nanoid } from "nanoid"
+import { jwtVerify } from "jose"
 
-// Simple session verification - READ ONLY
-export async function getSession() {
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required")
+}
+
+export interface Session {
+  userId: number
+  email: string
+  role: string
+  fullName: string
+}
+
+export async function getSession(): Promise<Session | null> {
   try {
-    const token = cookies().get("session")?.value
+    const cookieStore = await cookies()
+    const token = cookieStore.get("session")?.value
 
     if (!token) {
       return null
     }
 
-    const secret = new TextEncoder().encode("simple-secret-key")
-    const verified = await jwtVerify(token, secret)
-    const sessionData = verified.payload
-
-    return {
-      userId: sessionData.userId,
-      email: sessionData.email,
-    }
-  } catch (err) {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET), {
+      issuer: 'nivara-app'
+    })
+    return payload as Session
+  } catch (error) {
+    console.error("Session verification error:", error)
     return null
   }
 }
 
-// Simple auth verification - READ ONLY
-export async function verifyAuth(token: string) {
+export async function verifyAuth(token: string): Promise<Session | null> {
   try {
-    if (!token) {
-      return null
-    }
-
-    const secret = new TextEncoder().encode("simple-secret-key")
-    const verified = await jwtVerify(token, secret)
-    const sessionData = verified.payload
-
-    return {
-      userId: sessionData.userId,
-      email: sessionData.email,
-    }
-  } catch (err) {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET), {
+      issuer: 'nivara-app'
+    })
+    return payload as Session
+  } catch (error) {
     return null
   }
 }

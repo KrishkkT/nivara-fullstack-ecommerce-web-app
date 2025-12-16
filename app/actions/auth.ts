@@ -5,32 +5,26 @@ import { cookies } from "next/headers"
 import { sql } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { SignJWT } from "jose"
-import { nanoid } from "nanoid"
 
-// Simple session creation
-async function createSimpleSession(userId: number, email: string): Promise<string> {
-  const secret = new TextEncoder().encode("simple-secret-key")
-  const sessionData = {
-    userId,
-    email,
-    sessionId: nanoid(),
-  }
-  
-  return new SignJWT(sessionData)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(secret)
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required")
 }
 
-// Set session cookie
-function setSessionCookie(token: string) {
-  cookies().set("session", token, {
+async function createSession(user: { id: number; email: string; role: string; full_name: string }) {
+  const token = await new SignJWT({ userId: user.id, email: user.email, role: user.role, fullName: user.full_name })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuer('nivara-app')
+    .setExpirationTime('7d')
+    .sign(new TextEncoder().encode(JWT_SECRET))
+
+  const cookieStore = cookies()
+  cookieStore.set('session', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 24 * 7 // 7 days
   })
 }
 
@@ -46,7 +40,7 @@ export async function signIn(prevState: any, formData: FormData) {
 
     // Get user from database
     const result = await sql`
-      SELECT id, email, password_hash FROM users WHERE email = ${email}
+      SELECT id, email, password_hash, role, full_name FROM users WHERE email = ${email}
     `
 
     if (result.length === 0) {
@@ -61,9 +55,7 @@ export async function signIn(prevState: any, formData: FormData) {
       return { error: "Invalid credentials" }
     }
 
-    // Create and set session
-    const token = await createSimpleSession(user.id, user.email)
-    setSessionCookie(token)
+    await createSession(user)
 
     // Redirect to account
     redirect("/account")
@@ -104,14 +96,12 @@ export async function signUp(prevState: any, formData: FormData) {
     const result = await sql`
       INSERT INTO users (email, password_hash, full_name)
       VALUES (${email}, ${passwordHash}, ${fullName})
-      RETURNING id, email
+      RETURNING id, email, role, full_name
     `
 
     const user = result[0]
 
-    // Create and set session
-    const token = await createSimpleSession(user.id, user.email)
-    setSessionCookie(token)
+    await createSession(user)
 
     // Redirect to account
     redirect("/account")
@@ -123,6 +113,7 @@ export async function signUp(prevState: any, formData: FormData) {
 
 export async function signOut() {
   "use server"
-  cookies().delete("session")
+  const cookieStore = cookies()
+  cookieStore.delete('session')
   redirect("/")
 }

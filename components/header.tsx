@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { getSession } from "@/lib/session"
+// import { getSession } from "@/lib/session" // Temporarily disabled
 import { User, Search, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "./mobile-nav"
@@ -8,8 +8,8 @@ import { CartButton } from "./cart-button"
 import { WishlistButton } from "./wishlist-button"
 
 export async function Header() {
-  const session = await getSession()
-
+  // const session = await getSession() // Temporarily disabled
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -62,27 +62,26 @@ export async function Header() {
           <WishlistButton />
           <CartButton />
 
-          {session ? (
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/account">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Account</span>
-              </Link>
-            </Button>
-          ) : (
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-          )}
-
-          {session?.role === "admin" && (
+          {/* Temporarily show both Sign In and Account buttons */}
+          <Button variant="ghost" asChild>
+            <Link href="/login">Sign In</Link>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/account">
+              <User className="h-5 w-5" />
+              <span className="sr-only">Account</span>
+            </Link>
+          </Button>
+          
+          {/* Temporarily hide admin button */}
+          {/* {session?.role === "admin" && (
             <Button variant="ghost" size="icon" asChild>
               <Link href="/admin">
                 <Shield className="h-5 w-5" />
                 <span className="sr-only">Admin</span>
               </Link>
             </Button>
-          )}
+          )} */}
         </div>
       </div>
     </header>
