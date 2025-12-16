@@ -58,23 +58,17 @@ export async function getSession(): Promise<SessionData | null> {
 
 export async function verifyAuth(token: string): Promise<SessionData | null> {
   try {
-    console.log("[v0] Verifying auth token:", token ? "Token present" : "No token");
     const verified = await jwtVerify(token, SECRET_KEY)
     const sessionData = verified.payload as SessionData
-    
-    console.log("[v0] Token verified, session data:", sessionData);
     
     // Check if session has expired
     const now = Math.floor(Date.now() / 1000)
     if (now > sessionData.issuedAt + SESSION_TIMEOUT) {
-      console.log("[v0] Session expired");
       return null
     }
     
-    console.log("[v0] Session valid");
     return sessionData
   } catch (err) {
-    console.error("[v0] Token verification failed:", err);
     return null
   }
 }
@@ -84,16 +78,14 @@ export async function deleteSession(): Promise<void> {
   cookieStore.delete("session")
 }
 
-// Set secure session cookie
+// Set secure session cookie - simplified version
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies()
-  console.log("[v0] Setting session cookie with token:", token ? "Token present" : "No token");
   cookieStore.set("session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: SESSION_TIMEOUT,
-    path: "/"
+    path: "/" // Ensure path is set to root
   })
-  console.log("[v0] Session cookie set successfully");
 }

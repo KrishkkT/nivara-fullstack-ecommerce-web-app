@@ -24,23 +24,17 @@ export function LoginForm({ redirect = "/account" }: LoginFormProps) {
     setLoading(true)
 
     const formData = new FormData(event.currentTarget)
+    // Add redirect URL to form data
+    formData.append("redirect", redirect)
+
     const result = await signIn(formData)
 
+    // This shouldn't be reached since we're redirecting from the server action
+    // But just in case there's an error, handle it here
     setLoading(false)
 
     if (result.error) {
       setError(result.error)
-    } else {
-      console.log("[v0] Login successful, redirecting to:", redirect);
-      try {
-        router.push(redirect)
-        // Refresh the router to ensure the page updates
-        router.refresh()
-      } catch (routerError) {
-        console.error("[v0] Router push error:", routerError);
-        // Fallback to window location if router fails
-        window.location.href = redirect
-      }
     }
   }
 

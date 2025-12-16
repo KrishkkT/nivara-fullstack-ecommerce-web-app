@@ -47,9 +47,6 @@ export async function proxy(request: NextRequest) {
 
   try {
     const user = await verifyAuth(token)
-    
-    // Log for debugging
-    console.log("[v0] Session verification result:", user);
 
     if (!user) {
       const loginUrl = new URL("/login", request.url)
@@ -64,7 +61,6 @@ export async function proxy(request: NextRequest) {
 
     return NextResponse.next()
   } catch (error) {
-    console.error("[v0] Session verification error:", error);
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("redirect", request.nextUrl.pathname)
     return NextResponse.redirect(loginUrl)
