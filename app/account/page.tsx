@@ -13,6 +13,8 @@ export const metadata = {
 export default async function AccountPage() {
   const session = await getSession()
 
+  // Even though middleware is disabled, we still check for session
+  // to maintain some level of authentication
   if (!session) {
     redirect("/login")
   }
