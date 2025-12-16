@@ -105,8 +105,21 @@ export async function signUp(formData: FormData) {
   }
 }
 
+// Updated signOut function to use API approach
 export async function signOut() {
-  const cookieStore = await cookies()
-  cookieStore.delete("session")
-  redirect("/")
+  try {
+    // Call the logout API endpoint
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    // Redirect to home page
+    redirect("/")
+  } catch (error) {
+    console.error("Sign out error:", error)
+    redirect("/")
+  }
 }
