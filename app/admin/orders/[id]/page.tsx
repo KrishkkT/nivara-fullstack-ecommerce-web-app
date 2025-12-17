@@ -7,6 +7,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { CancelOrderButton } from "@/components/cancel-order-button"
 import { UpdateOrderStatus } from "@/components/update-order-status"
+import { Badge } from "@/components/ui/badge"
+
+interface Shipment {
+  waybill_number: string;
+  status: string;
+  event_data: any;
+  created_at: string;
+  updated_at: string;
+}
 
 interface OrderItem {
   id: number
@@ -147,6 +156,15 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
     day: "numeric",
   })
 
+  // Add shipment data fetching
+  const shipmentResult = await sql<Shipment[]>`
+    SELECT *
+    FROM delhivery_shipments
+    WHERE order_id = ${Number.parseInt(id)}
+  `
+
+  const shipment: Shipment | null = shipmentResult?.[0] || null
+
   return (
     <div className="container px-4 py-8">
       <div className="mb-6">
@@ -238,6 +256,74 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                   {billingAddress.city}, {billingAddress.state} {billingAddress.postal_code}
                 </p>
                 <p>{billingAddress.country}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Shipment Information */}
+          {shipment && (
+            <div className="bg-card border rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-4">Shipment Information</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Waybill Number</p>
+                  <p className="font-medium">{shipment.waybill_number}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Shipment Status</p>
+                  <div>
+                    {shipment.status === "created" && (
+                      <Badge variant="secondary">Created</Badge>
+                    )}
+                    {shipment.status === "in_transit" && (
+                      <Badge className="bg-blue-500">In Transit</Badge>
+                    )}
+                    {shipment.status === "out_for_delivery" && (
+                      <Badge className="bg-yellow-500">Out for Delivery</Badge>
+                    )}
+                    {shipment.status === "delivered" && (
+                      <Badge className="bg-green-500">Delivered</Badge>
+                    )}
+                    {shipment.status === "rto" && (
+                      <Badge variant="destructive">Returned</Badge>
+                    )}
+                    {shipment.status === "ndr" && (
+                      <Badge variant="outline">Action Required</Badge>
+                    )}
+                    {!["created", "in_transit", "out_for_delivery", "delivered", "rto", "ndr"].includes(shipment.status) && (
+                      <Badge variant="secondary">{shipment.status}</Badge>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Created At</p>
+                  <p className="font-medium">
+                    {new Date(shipment.created_at).toLocaleDateString("en-IN", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Last Updated</p>
+                  <p className="font-medium">
+                    {new Date(shipment.updated_at).toLocaleDateString("en-IN", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Button variant="outline" onClick={() => window.open(`/shipping/track?waybill=${shipment.waybill_number}`, '_blank')}>
+                  View Tracking Details
+                </Button>
               </div>
             </div>
           )}

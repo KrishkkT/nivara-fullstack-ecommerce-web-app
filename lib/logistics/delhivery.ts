@@ -193,8 +193,11 @@ export async function createShipment(shipmentData: any) {
   try {
     const response = await delhiveryPost("/api/cmu/create.json", shipmentData, true);
     
+    // Log the full response for debugging purposes
+    console.log("Delhivery shipment creation response:", JSON.stringify(response, null, 2));
+    
     // If shipment creation is successful, send email notifications
-    if (response && response.packages && response.packages.length > 0) {
+    if (response && response.packages && response.packages.length > 0 && response.packages[0].status === "Success") {
       const waybill = response.packages[0].waybill;
       const orderId = shipmentData.orderId;
       
@@ -251,6 +254,9 @@ export async function createShipment(shipmentData: any) {
           console.error("Failed to send shipment creation emails:", emailError);
         }
       }
+    } else if (response && response.packages && response.packages.length > 0) {
+      // Log the actual error from Delhivery for debugging
+      console.error("Delhivery shipment creation failed:", response.packages[0]);
     }
     
     return response;
@@ -383,9 +389,17 @@ export async function handleNdrAction(waybill: string, action: string, remarks?:
 // Utility function to update shipment status in database
 export async function updateShipmentStatus(waybill: string, status: string, eventData?: any) {
   try {
+    // Create a more detailed event record
+    const eventRecord = {
+      ...(eventData || {}),
+      status: status,
+      timestamp: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
     await sql`
       INSERT INTO delhivery_shipments (waybill_number, status, event_data, updated_at)
-      VALUES (${waybill}, ${status}, ${eventData ? JSON.stringify(eventData) : null}, NOW())
+      VALUES (${waybill}, ${status}, ${JSON.stringify(eventRecord)}, NOW())
       ON CONFLICT (waybill_number) 
       DO UPDATE SET 
         status = EXCLUDED.status,

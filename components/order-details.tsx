@@ -38,12 +38,96 @@ interface OrderItem {
   slug: string
 }
 
+// Add this interface for shipment data
+interface ShipmentData {
+  waybill: string;
+  status: string;
+  current_location?: string;
+  scan_details?: {
+    status: string;
+    scan_datetime: string;
+    location: string;
+    remarks?: string;
+  }[];
+}
+
+// Add this interface for tracking result
+interface TrackingResult {
+  shipment_data: ShipmentData[];
+}
+
 export function OrderDetails({ order, items }: { order: Order; items: OrderItem[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [razorpayKey, setRazorpayKey] = useState<string>("")
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [scriptError, setScriptError] = useState(false)
+  // Add tracking state
+  const [trackingData, setTrackingData] = useState<ShipmentData | null>(null)
+  const [trackingLoading, setTrackingLoading] = useState(false)
+  const [trackingError, setTrackingError] = useState<string | null>(null)
+
+  // Simplified tracking function that works directly with waybill
+  const fetchTrackingByWaybill = async (waybill: string) => {
+    setTrackingLoading(true);
+    setTrackingError(null);
+    
+    try {
+      const response = await fetch("/api/logistics", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "track-shipment",
+          waybill: waybill,
+        }),
+      });
+      
+      const data: TrackingResult = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to track shipment");
+      }
+      
+      if (data.shipment_data && data.shipment_data.length > 0) {
+        setTrackingData(data.shipment_data[0]);
+      } else {
+        setTrackingError("No tracking data found for this shipment");
+      }
+    } catch (err) {
+      setTrackingError(err instanceof Error ? err.message : "Failed to load tracking information");
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  // Effect to fetch tracking data when order is shipped
+  useEffect(() => {
+    const loadTrackingData = async () => {
+      // Only fetch tracking data for shipped or delivered orders
+      if ((order.status === "shipped" || order.status === "delivered") && order.id) {
+        try {
+          // First, get the waybill number from the database
+          const response = await fetch(`/api/orders/${order.id}/tracking`);
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || "Failed to fetch tracking data");
+          }
+          
+          if (data.waybill) {
+            // Now fetch the tracking details from Delhivery
+            await fetchTrackingByWaybill(data.waybill);
+          }
+        } catch (err) {
+          setTrackingError(err instanceof Error ? err.message : "Failed to load tracking information");
+        }
+      }
+    };
+    
+    loadTrackingData();
+  }, [order.status, order.id]);
 
   useEffect(() => {
     // Load Razorpay script
@@ -190,6 +274,40 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
   const showPayNow = !isCancelled && order.payment_type === "razorpay" && order.payment_status === "awaiting_payment"
   const isShipped = order.status === "shipped" || order.status === "delivered"
 
+  // Add helper function for status badges
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "created":
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          Created
+        </span>
+      case "in_transit":
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          In Transit
+        </span>
+      case "out_for_delivery":
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          Out for Delivery
+        </span>
+      case "delivered":
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          Delivered
+        </span>
+      case "rto":
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          Returned
+        </span>
+      case "ndr":
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+          Action Required
+        </span>
+      default:
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          {status}
+        </span>
+    }
+  }
+
   return (
     <div className="container px-4 py-12">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -262,6 +380,18 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
           </div>
         )}
 
+        {/* Show tracking link for shipped orders */}
+        {!isCancelled && (order.status === "shipped" || order.status === "delivered") && !trackingData && !trackingLoading && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm mb-3">
+              <strong>Your order has been shipped!</strong> You can track your shipment using the link below.
+            </p>
+            <Button variant="outline" onClick={() => window.location.href = '/shipping/track'}>
+              Track Shipment
+            </Button>
+          </div>
+        )}
+
         <div className="bg-card border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Items</h2>
           <div className="space-y-4">
@@ -312,6 +442,91 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
             </div>
           </div>
         </div>
+
+        {!isCancelled && (order.status === "shipped" || order.status === "delivered") && trackingData && (
+          <div className="bg-card border rounded-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Shipment Tracking</h2>
+              <Button variant="outline" size="sm" onClick={() => trackingData.waybill && fetchTrackingByWaybill(trackingData.waybill)}>
+                Refresh
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium">Waybill Number</p>
+                  <p className="text-sm text-muted-foreground">{trackingData.waybill}</p>
+                </div>
+                <div>
+                  {getStatusBadge(trackingData.status)}
+                </div>
+              </div>
+              
+              {trackingData.current_location && (
+                <div>
+                  <p className="font-medium">Current Location</p>
+                  <p className="text-sm text-muted-foreground">{trackingData.current_location}</p>
+                </div>
+              )}
+              
+              {trackingData.scan_details && trackingData.scan_details.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-2">Tracking History</h3>
+                  <div className="space-y-3">
+                    {trackingData.scan_details.map((scan, index) => (
+                      <div key={index} className="flex gap-3 text-sm">
+                        <div className="flex flex-col items-center">
+                          <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
+                          {index !== trackingData.scan_details!.length - 1 && (
+                            <div className="w-0.5 h-full bg-gray-200 flex-grow"></div>
+                          )}
+                        </div>
+                        <div className="pb-2">
+                          <p className="font-medium">{scan.status}</p>
+                          <p className="text-muted-foreground">
+                            {new Date(scan.scan_datetime).toLocaleString()} • {scan.location}
+                          </p>
+                          {scan.remarks && (
+                            <p className="text-muted-foreground mt-1">{scan.remarks}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {trackingLoading && (
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Shipment Tracking</h2>
+            <p>Loading tracking information...</p>
+          </div>
+        )}
+
+        {trackingError && (
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Shipment Tracking</h2>
+            <p className="text-destructive mb-4">{trackingError}</p>
+            <Button variant="outline" onClick={() => {
+              // Try to refetch tracking data
+              if (order.id) {
+                // Get waybill and fetch tracking data
+                fetch(`/api/orders/${order.id}/tracking`).then(res => res.json()).then(data => {
+                  if (data.waybill) {
+                    fetchTrackingByWaybill(data.waybill);
+                  }
+                }).catch(err => {
+                  setTrackingError(err instanceof Error ? err.message : "Failed to load tracking information");
+                });
+              }
+            }}>
+              Retry
+            </Button>
+          </div>
+        )}
 
         {/* Only show shipping address if it exists */}
         {address && Object.keys(address).length > 0 && (

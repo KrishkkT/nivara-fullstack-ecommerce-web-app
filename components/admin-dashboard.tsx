@@ -89,6 +89,12 @@ export function AdminDashboard({ stats, recentOrders, topProducts }: AdminDashbo
               Email Notifications
             </Button>
           </Link>
+          <Link href="/admin/diagnostics">
+            <Button variant="outline">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Diagnostics
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Grid */}

@@ -127,23 +127,51 @@ export async function POST(request: Request) {
         
         const shipmentResult = await createShipment(shipmentData);
         
-        // If shipment creation is successful, link it to the order and mark waybill as used
-        if (shipmentResult && shipmentResult.packages && shipmentResult.packages.length > 0 && data.orderId) {
+        // Check if shipment creation is actually successful according to Delhivery requirements
+        // packages[0].status === "Success" is what matters, not just the top-level success flag
+        const isShipmentSuccessful = shipmentResult && 
+          shipmentResult.packages && 
+          shipmentResult.packages.length > 0 && 
+          shipmentResult.packages[0].status === "Success";
+        
+        // Store shipment data in our database regardless of success for tracking purposes
+        // This helps us debug issues where shipments are created but not visible in dashboard
+        if (data.orderId && availableWaybill) {
+          // Store the shipment attempt with detailed status information
+          const shipmentStatus = shipmentResult && shipmentResult.packages && shipmentResult.packages.length > 0 
+            ? shipmentResult.packages[0].status 
+            : 'unknown';
+          
+          const eventData = {
+            delhivery_response: shipmentResult,
+            is_successful: isShipmentSuccessful,
+            timestamp: new Date().toISOString()
+          };
+          
           await sql`
-            INSERT INTO delhivery_shipments (waybill_number, order_id, status)
-            VALUES (${availableWaybill}, ${data.orderId}, 'created')
+            INSERT INTO delhivery_shipments (waybill_number, order_id, status, event_data)
+            VALUES (${availableWaybill}, ${data.orderId}, ${shipmentStatus}, ${JSON.stringify(eventData)})
             ON CONFLICT (waybill_number) 
             DO UPDATE SET 
               order_id = EXCLUDED.order_id,
-              status = EXCLUDED.status
+              status = EXCLUDED.status,
+              event_data = EXCLUDED.event_data,
+              updated_at = NOW()
           `;
           
-          // Mark waybill as used
-          await sql`
-            UPDATE delhivery_waybills 
-            SET status = 'used', used_at = NOW() 
-            WHERE waybill_number = ${availableWaybill}
-          `;
+          // Only mark waybill as used if shipment was actually successful
+          if (isShipmentSuccessful) {
+            await sql`
+              UPDATE delhivery_waybills 
+              SET status = 'used', used_at = NOW() 
+              WHERE waybill_number = ${availableWaybill}
+            `;
+          }
+        }
+        
+        // Log errors for debugging
+        if (shipmentResult && shipmentResult.packages && shipmentResult.packages.length > 0 && !isShipmentSuccessful) {
+          console.error("Delhivery shipment creation failed:", shipmentResult.packages[0]);
         }
         
         return NextResponse.json(shipmentResult);
@@ -211,6 +239,20 @@ export async function POST(request: Request) {
         
         const ndrResult = await handleNdrAction(ndrWaybill, ndrAction, remarks);
         return NextResponse.json(ndrResult);
+
+      case "verify-shipment":
+        const adminCheck9 = await verifyAdmin(request);
+        if (!adminCheck9.success) {
+          return NextResponse.json({ error: adminCheck9.error }, { status: 401 });
+        }
+        
+        const { waybill: verifyWaybill } = data;
+        if (!verifyWaybill) {
+          return NextResponse.json({ error: "Missing required field: waybill" }, { status: 400 });
+        }
+        
+        const verifyResult = await trackShipment(verifyWaybill);
+        return NextResponse.json(verifyResult);
 
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
