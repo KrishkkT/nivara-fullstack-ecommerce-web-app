@@ -2,9 +2,19 @@ import nodemailer from 'nodemailer';
 
 // Create transporter only if email configuration is provided
 let transporter: nodemailer.Transporter | null = null;
+let lastEnvCheck = 0;
+const ENV_CHECK_INTERVAL = 60000; // Check environment variables every minute
 
 // Function to initialize transporter with current environment variables
 function initializeTransporter() {
+  const now = Date.now();
+  // Only recheck environment variables periodically to avoid unnecessary checks
+  if (now - lastEnvCheck < ENV_CHECK_INTERVAL && transporter !== null) {
+    return;
+  }
+  
+  lastEnvCheck = now;
+
   // Check if we're using Gmail (preferred method)
   const gmailUser = process.env.GMAIL_USER;
   const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;

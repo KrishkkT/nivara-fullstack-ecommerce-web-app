@@ -6,9 +6,7 @@ import { signIn } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
-import { authRateLimiter } from "@/lib/rate-limit"
+import { useToast } from "@/hooks/use-toast"
 
 export function LoginForm() {
   const router = useRouter()
@@ -16,6 +14,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -24,14 +23,22 @@ export function LoginForm() {
 
     // Simple validation
     if (!email || !password) {
-      setError("Email and password are required")
+      toast({
+        title: "Error",
+        description: "Email and password are required",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
 
     // Validate email format
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Invalid email format")
+      toast({
+        title: "Error",
+        description: "Invalid email format",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
@@ -46,7 +53,11 @@ export function LoginForm() {
       console.log("Sign in result:", result)
       
       if (result?.error) {
-        setError(result.error)
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        })
       } else {
         // Successful login - redirect to account page
         console.log("Login successful, redirecting to account page")
@@ -55,7 +66,11 @@ export function LoginForm() {
       }
     } catch (err) {
       console.error("Sign in error:", err)
-      setError("Failed to sign in. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to sign in. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -84,13 +99,6 @@ export function LoginForm() {
           required
         />
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Signing in..." : "Sign In"}

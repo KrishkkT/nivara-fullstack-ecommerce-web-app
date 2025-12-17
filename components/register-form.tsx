@@ -6,8 +6,7 @@ import { signUp } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export function RegisterForm() {
   const router = useRouter()
@@ -16,6 +15,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -24,20 +24,32 @@ export function RegisterForm() {
 
     // Simple validation
     if (!fullName || !email || !password) {
-      setError("All fields are required")
+      toast({
+        title: "Error",
+        description: "All fields are required",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
 
     // Validate email format
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Invalid email format")
+      toast({
+        title: "Error",
+        description: "Invalid email format",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters")
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
@@ -53,7 +65,11 @@ export function RegisterForm() {
       console.log("Sign up result:", result)
       
       if (result?.error) {
-        setError(result.error)
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        })
       } else {
         // Successful registration - redirect to account page
         console.log("Registration successful, redirecting to account page")
@@ -62,7 +78,11 @@ export function RegisterForm() {
       }
     } catch (err) {
       console.error("Sign up error:", err)
-      setError("Failed to create account. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to create account. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -106,13 +126,6 @@ export function RegisterForm() {
           Password must be at least 8 characters
         </p>
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Creating account..." : "Create Account"}

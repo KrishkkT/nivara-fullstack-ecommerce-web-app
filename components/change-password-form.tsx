@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export function ChangePasswordForm() {
@@ -15,28 +13,36 @@ export function ChangePasswordForm() {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    setSuccess(false)
     
     if (newPassword !== confirmPassword) {
-      setError("New password and confirm password do not match")
+      toast({
+        title: "Error",
+        description: "New password and confirm password do not match",
+        variant: "destructive",
+      })
       return
     }
     
     if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters long")
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      })
       return
     }
     
     if (currentPassword === newPassword) {
-      setError("New password must be different from current password")
+      toast({
+        title: "Error",
+        description: "New password must be different from current password",
+        variant: "destructive",
+      })
       return
     }
     
@@ -57,7 +63,6 @@ export function ChangePasswordForm() {
       const data = await response.json()
       
       if (response.ok) {
-        setSuccess(true)
         toast({
           title: "Success",
           description: "Password changed successfully",
@@ -68,10 +73,18 @@ export function ChangePasswordForm() {
         setNewPassword("")
         setConfirmPassword("")
       } else {
-        setError(data.error || "Failed to change password")
+        toast({
+          title: "Error",
+          description: data.error || "Failed to change password",
+          variant: "destructive",
+        })
       }
     } catch (error) {
-      setError("An unexpected error occurred")
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -115,20 +128,6 @@ export function ChangePasswordForm() {
             required
           />
         </div>
-        
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {success && (
-          <Alert variant="default" className="border-green-500 text-green-700">
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>Password changed successfully!</AlertDescription>
-          </Alert>
-        )}
         
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Changing Password..." : "Change Password"}

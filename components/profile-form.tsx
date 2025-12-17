@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface UserData {
   full_name: string
@@ -16,8 +15,7 @@ interface UserData {
 export function ProfileForm({ initialData }: { initialData: UserData }) {
   const [formData, setFormData] = useState<UserData>(initialData)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+  const { toast } = useToast()
 
   // Update form data when initialData changes
   useEffect(() => {
@@ -26,20 +24,26 @@ export function ProfileForm({ initialData }: { initialData: UserData }) {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    setError("")
-    setSuccess(false)
     setLoading(true)
 
     // Validate email format
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Invalid email format")
+      toast({
+        title: "Error",
+        description: "Invalid email format",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
 
     // Validate phone number if provided
     if (formData.phone && !/^[+]?[\d\s\-()]{10,15}$/.test(formData.phone)) {
-      setError("Invalid phone number format")
+      toast({
+        title: "Error",
+        description: "Invalid phone number format",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
@@ -56,13 +60,23 @@ export function ProfileForm({ initialData }: { initialData: UserData }) {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess(true)
-        setTimeout(() => setSuccess(false), 5000)
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        })
       } else {
-        setError(data.error || "Failed to update profile")
+        toast({
+          title: "Error",
+          description: data.error || "Failed to update profile",
+          variant: "destructive",
+        })
       }
     } catch (err) {
-      setError("Failed to update profile. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -94,20 +108,6 @@ export function ProfileForm({ initialData }: { initialData: UserData }) {
           placeholder="+1 (555) 123-4567"
         />
       </div>
-      
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {success && (
-        <Alert variant="default" className="border-green-500 text-green-700">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>Profile updated successfully!</AlertDescription>
-        </Alert>
-      )}
       
       <Button type="submit" disabled={loading}>
         {loading ? "Updating..." : "Update Profile"}

@@ -1,6 +1,6 @@
 "use server"
 
-import { sql } from "@/lib/db"
+import { sql, pooledQuery } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { otpRateLimiter } from "@/lib/rate-limit"
 
@@ -27,34 +27,36 @@ export async function sendOTP(email: string) {
       return { error: `Too many requests. Please try again after ${resetTime}.` }
     }
 
-    // Check if user exists
-    const userResult: any = await sql`
-      SELECT id, email, full_name FROM users WHERE email = ${email}
-    `
+    // Check if user exists using pooled query
+    const userResult = await pooledQuery(
+      'SELECT id, email, full_name FROM users WHERE email = $1',
+      [email]
+    )
 
-    if (userResult.length === 0) {
+    if (userResult.rowCount === 0) {
       // For security reasons, don't reveal if user exists
       console.log(`[v0] OTP request for non-existent email: ${email}`)
       // Still return success to prevent email enumeration
       return { success: true }
     }
 
-    const user = userResult[0]
+    const user = userResult.rows[0]
     
     // Generate OTP
     const otp = generateOTP()
     const expires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiration
     
-    // Store OTP in database
-    await sql`
-      INSERT INTO otps (email, otp, expires_at)
-      VALUES (${email}, ${otp}, ${expires})
-      ON CONFLICT (email) 
-      DO UPDATE SET 
-        otp = ${otp},
-        expires_at = ${expires},
-        created_at = CURRENT_TIMESTAMP
-    `
+    // Store OTP in database using pooled query
+    await pooledQuery(
+      `INSERT INTO otps (email, otp, expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (email) 
+       DO UPDATE SET 
+         otp = $2,
+         expires_at = $3,
+         created_at = CURRENT_TIMESTAMP`,
+      [email, otp, expires]
+    )
     
     // Send OTP via email
     const emailHtml = `
@@ -129,21 +131,25 @@ export async function verifyOTP(email: string, otp: string) {
       return { error: "Invalid OTP format" }
     }
 
-    // Get OTP from database
-    const otpResult: any = await sql`
-      SELECT otp, expires_at FROM otps WHERE email = ${email}
-    `
+    // Get OTP from database using pooled query
+    const otpResult = await pooledQuery(
+      'SELECT otp, expires_at FROM otps WHERE email = $1',
+      [email]
+    )
     
-    if (!otpResult.length) {
+    if (otpResult.rowCount === 0) {
       return { error: "OTP not found or expired" }
     }
     
-    const storedOTP = otpResult[0]
+    const storedOTP = otpResult.rows[0]
     
     // Check if OTP is expired
     if (new Date() > storedOTP.expires_at) {
-      // Delete expired OTP
-      await sql`DELETE FROM otps WHERE email = ${email}`
+      // Delete expired OTP using pooled query
+      await pooledQuery(
+        'DELETE FROM otps WHERE email = $1',
+        [email]
+      )
       return { error: "OTP has expired" }
     }
     
@@ -152,8 +158,11 @@ export async function verifyOTP(email: string, otp: string) {
       return { error: "Invalid OTP" }
     }
     
-    // Remove OTP after successful verification
-    await sql`DELETE FROM otps WHERE email = ${email}`
+    // Remove OTP after successful verification using pooled query
+    await pooledQuery(
+      'DELETE FROM otps WHERE email = $1',
+      [email]
+    )
     
     return { success: true }
   } catch (error) {
@@ -178,29 +187,28 @@ export async function resetPasswordWithOTP(email: string, newPassword: string) {
       return { error: "Password must be at least 8 characters" }
     }
 
-    // Check if user exists
-    const userResult: any = await sql`
-      SELECT id, full_name FROM users WHERE email = ${email}
-    `
+    // Check if user exists using pooled query
+    const userResult = await pooledQuery(
+      'SELECT id, full_name FROM users WHERE email = $1',
+      [email]
+    )
 
-    if (userResult.length === 0) {
+    if (userResult.rowCount === 0) {
       return { error: "User not found" }
     }
 
-    const user = userResult[0]
+    const user = userResult.rows[0]
     const userId = user.id
 
     // Hash the new password
     const bcrypt = await import("bcryptjs")
     const passwordHash = await bcrypt.hash(newPassword, 12)
 
-    // Update the user's password
-    await sql`
-      UPDATE users 
-      SET password_hash = ${passwordHash}, 
-          updated_at = CURRENT_TIMESTAMP 
-      WHERE id = ${userId}
-    `
+    // Update the user's password using pooled query
+    await pooledQuery(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [passwordHash, userId]
+    )
     
     // Send password reset confirmation email
     try {

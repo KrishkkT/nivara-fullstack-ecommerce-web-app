@@ -8,8 +8,7 @@ import { sendOTP, verifyOTP, resetPasswordWithOTP } from "@/app/actions/otp"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -19,6 +18,7 @@ export function ResetPasswordForm() {
   const [step, setStep] = useState<"email" | "otp" | "reset">("email")
   const [email, setEmail] = useState("")
   const [otp, setOtp] = useState("")
+  const { toast } = useToast()
 
   async function handleEmailSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -32,15 +32,27 @@ export function ResetPasswordForm() {
       const result = await sendOTP(email)
       
       if (result.error) {
-        setError(result.error)
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        })
       } else {
         setEmail(email)
         setStep("otp")
         setSuccess(true)
         setTimeout(() => setSuccess(false), 5000)
+        toast({
+          title: "Success",
+          description: "OTP sent successfully! Please check your email.",
+        })
       }
     } catch (err) {
-      setError("Failed to send OTP. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -55,14 +67,26 @@ export function ResetPasswordForm() {
       const result = await verifyOTP(email, otp)
       
       if (result.error) {
-        setError(result.error)
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        })
       } else {
         setStep("reset")
         setSuccess(true)
         setTimeout(() => setSuccess(false), 5000)
+        toast({
+          title: "Success",
+          description: "OTP verified successfully!",
+        })
       }
     } catch (err) {
-      setError("Failed to verify OTP. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to verify OTP. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -79,7 +103,11 @@ export function ResetPasswordForm() {
     const confirmPassword = formData.get("confirmPassword") as string
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      })
       setLoading(false)
       return
     }
@@ -88,15 +116,27 @@ export function ResetPasswordForm() {
       const result = await resetPasswordWithOTP(email, password)
       
       if (result.error) {
-        setError(result.error)
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        })
       } else {
         setSuccess(true)
+        toast({
+          title: "Success",
+          description: "Password reset successfully! Redirecting to login...",
+        })
         setTimeout(() => {
           router.push("/login")
         }, 3000)
       }
     } catch (err) {
-      setError("Failed to reset password. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to reset password. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -140,20 +180,6 @@ export function ResetPasswordForm() {
           />
           <p className="text-xs text-muted-foreground">We've sent a 6-digit code to your email</p>
         </div>
-
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {success && (
-          <Alert variant="default" className="border-green-500 text-green-700">
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>OTP sent successfully! Please check your email.</AlertDescription>
-          </Alert>
-        )}
 
         <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
           {loading ? "Verifying..." : "Verify Code"}
@@ -210,20 +236,6 @@ export function ResetPasswordForm() {
           />
         </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        {success && (
-          <Alert variant="default" className="border-green-500 text-green-700">
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>Password reset successfully! Redirecting to login...</AlertDescription>
-          </Alert>
-        )}
-
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Resetting..." : "Reset Password"}
         </Button>
@@ -254,20 +266,6 @@ export function ResetPasswordForm() {
           placeholder="your@email.com" 
         />
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {success && (
-        <Alert variant="default" className="border-green-500 text-green-700">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>OTP sent successfully! Please check your email.</AlertDescription>
-        </Alert>
-      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Sending..." : "Send Verification Code"}

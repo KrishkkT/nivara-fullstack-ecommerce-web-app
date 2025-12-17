@@ -1,7 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { sql } from "@/lib/db"
+import { sql, pooledQuery } from "@/lib/db"
 import { createSessionToken, setSessionCookie, refreshSession } from "@/lib/session"
 import bcrypt from "bcryptjs"
 import { sendEmail, generateWelcomeEmail } from "@/lib/email"
@@ -25,19 +25,20 @@ export async function signIn(formData: FormData) {
       return { error: "Invalid email format" }
     }
 
-    // Get user from database
-    const result = await sql`
-      SELECT id, email, password_hash, full_name, role FROM users WHERE email = ${email}
-    `
+    // Get user from database using pooled query for better performance
+    const result = await pooledQuery(
+      'SELECT id, email, password_hash, full_name, role FROM users WHERE email = $1',
+      [email]
+    )
 
     console.log("Database query result:", result)
 
-    if (result.length === 0) {
+    if (result.rowCount === 0) {
       console.log("No user found with this email")
       return { error: "Invalid email or password" }
     }
 
-    const user = result[0]
+    const user = result.rows[0]
 
     // Check if user needs to reset password
     if (user.password_hash === 'RESET_REQUIRED') {
@@ -95,14 +96,15 @@ export async function signUp(formData: FormData) {
       return { error: "Password must be at least 8 characters" }
     }
 
-    // Check if user exists
-    const existing = await sql`
-      SELECT id FROM users WHERE email = ${email}
-    `
+    // Check if user exists using pooled query
+    const existing = await pooledQuery(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    )
 
     console.log("Existing user check result:", existing)
 
-    if (existing.length > 0) {
+    if (existing.rowCount > 0) {
       console.log("User already exists with this email")
       return { error: "An account with this email already exists" }
     }
@@ -111,16 +113,15 @@ export async function signUp(formData: FormData) {
     const passwordHash = await bcrypt.hash(password, 12)
     console.log("Password hashed with bcrypt")
 
-    // Create user
-    const result = await sql`
-      INSERT INTO users (email, password_hash, full_name, role)
-      VALUES (${email}, ${passwordHash}, ${fullName}, 'customer')
-      RETURNING id, email, full_name, role
-    `
+    // Create user using pooled query
+    const result = await pooledQuery(
+      'INSERT INTO users (email, password_hash, full_name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, full_name, role',
+      [email, passwordHash, fullName, 'customer']
+    )
 
     console.log("User created:", result)
 
-    const user = result[0]
+    const user = result.rows[0]
 
     // Send welcome email
     try {

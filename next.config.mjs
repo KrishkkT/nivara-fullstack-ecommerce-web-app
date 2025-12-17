@@ -33,6 +33,7 @@ const nextConfig = {
   // Add performance optimizations
   experimental: {
     optimizeCss: true,
+    webpackBuildWorker: true,
   },
   // Reduce bundle size
   compiler: {
@@ -69,10 +70,21 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'geolocation=(), microphone=(), camera=()',
           },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
         ],
       },
     ]
-  }
+  },
+  // Performance optimizations
+  reactStrictMode: true,
+  swcMinify: true,
+  // Compress responses
+  compress: true,
+  // Optimize static assets
+  poweredByHeader: false,
 }
 
 export default nextConfig

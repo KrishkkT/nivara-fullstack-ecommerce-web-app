@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { SignJWT, jwtVerify } from "jose"
+import { sql, pooledQuery } from "@/lib/db"
 
 // Secret key for signing JWT tokens (should be at least 256 bits)
 const JWT_SECRET = new TextEncoder().encode(
