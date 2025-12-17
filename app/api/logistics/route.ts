@@ -127,8 +127,8 @@ export async function POST(request: Request) {
         
         const shipmentResult = await createShipment(shipmentData);
         
-        // If shipment creation is successful, link it to the order
-        if (shipmentResult && shipmentResult.success && data.orderId) {
+        // If shipment creation is successful, link it to the order and mark waybill as used
+        if (shipmentResult && shipmentResult.packages && shipmentResult.packages.length > 0 && data.orderId) {
           await sql`
             INSERT INTO delhivery_shipments (waybill_number, order_id, status)
             VALUES (${availableWaybill}, ${data.orderId}, 'created')
@@ -136,6 +136,13 @@ export async function POST(request: Request) {
             DO UPDATE SET 
               order_id = EXCLUDED.order_id,
               status = EXCLUDED.status
+          `;
+          
+          // Mark waybill as used
+          await sql`
+            UPDATE delhivery_waybills 
+            SET status = 'used', used_at = NOW() 
+            WHERE waybill_number = ${availableWaybill}
           `;
         }
         

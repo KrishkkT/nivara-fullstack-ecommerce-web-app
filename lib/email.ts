@@ -107,10 +107,10 @@ export function generateOrderNotificationEmail(
         
         <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Shipping Address</h2>
         <p>
-          ${shippingAddress?.address_line1 || ''}<br>
-          ${shippingAddress?.address_line2 ? `${shippingAddress.address_line2}<br>` : ''}
-          ${(shippingAddress?.city || '') + (shippingAddress?.state ? `, ${shippingAddress.state}` : '') + (shippingAddress?.postal_code ? ` ${shippingAddress.postal_code}` : '')}<br>
-          ${shippingAddress?.country || ''}
+          ${(shippingAddress?.address_line1 || '') ? `${shippingAddress.address_line1}<br>` : ''}
+          ${(shippingAddress?.address_line2 || '') ? `${shippingAddress.address_line2}<br>` : ''}
+          ${[(shippingAddress?.city || ''), (shippingAddress?.state || ''), (shippingAddress?.postal_code || '')].filter(Boolean).join(', ')}<br>
+          ${shippingAddress?.country || 'India'}
         </p>
         
         <h2 style="color: #B29789; border-bottom: 2px solid #B29789; padding-bottom: 5px;">Order Items</h2>
@@ -197,6 +197,20 @@ export function generateCustomerOrderConfirmationEmail(order: any, customer: any
     </tr>
   `).join('')
   
+  // Safely handle shipping address
+  let shippingAddressHtml = '';
+  if (shippingAddress) {
+    shippingAddressHtml = `
+      <p><strong>Shipping Address:</strong></p>
+      <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
+        <div>${shippingAddress?.address_line1 || ''}</div>
+        ${(shippingAddress?.address_line2 || '') ? `<div>${shippingAddress.address_line2}</div>` : ''}
+        <div>${[shippingAddress?.city || '', shippingAddress?.state || '', shippingAddress?.postal_code || ''].filter(Boolean).join(', ')}</div>
+        <div>${shippingAddress?.country || 'India'}</div>
+      </div>
+    `;
+  }
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -208,15 +222,15 @@ export function generateCustomerOrderConfirmationEmail(order: any, customer: any
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #B29789;">Order Confirmation</h1>
         
-        <p>Dear ${customer.full_name},</p>
+        <p>Dear ${customer.full_name || 'Customer'},</p>
         
         <p>Thank you for your order! We're preparing your items for shipment.</p>
         
         <p><strong>Order Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Order Number:</strong> ${order.order_number}</li>
-          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
-          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+          <li><strong>Order Number:</strong> ${order.order_number || ''}</li>
+          <li><strong>Order Date:</strong> ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : ''}</li>
+          <li><strong>Total Amount:</strong> ₹${order.total_amount ? parseFloat(order.total_amount).toFixed(2) : '0.00'}</li>
         </ul>
         
         <p><strong>Items Ordered:</strong></p>
@@ -232,13 +246,7 @@ export function generateCustomerOrderConfirmationEmail(order: any, customer: any
           </tbody>
         </table>
         
-        <p><strong>Shipping Address:</strong></p>
-        <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
-          <div>${shippingAddress.address_line1}</div>
-          ${shippingAddress.address_line2 ? `<div>${shippingAddress.address_line2}</div>` : ''}
-          <div>${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}</div>
-          <div>${shippingAddress.country}</div>
-        </div>
+        ${shippingAddressHtml}
         
         <p>We'll notify you when your order has been shipped.</p>
         
@@ -263,6 +271,20 @@ export function generateShippingConfirmationEmail(order: any, customer: any, ite
     </tr>
   `).join('')
   
+  // Safely handle shipping address
+  let shippingAddressHtml = '';
+  if (shippingAddress) {
+    shippingAddressHtml = `
+      <p><strong>Shipping Address:</strong></p>
+      <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
+        <div>${shippingAddress?.address_line1 || ''}</div>
+        ${(shippingAddress?.address_line2 || '') ? `<div>${shippingAddress.address_line2}</div>` : ''}
+        <div>${[shippingAddress?.city || '', shippingAddress?.state || '', shippingAddress?.postal_code || ''].filter(Boolean).join(', ')}</div>
+        <div>${shippingAddress?.country || 'India'}</div>
+      </div>
+    `;
+  }
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -274,15 +296,15 @@ export function generateShippingConfirmationEmail(order: any, customer: any, ite
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #B29789;">Your Order Has Been Shipped!</h1>
         
-        <p>Dear ${customer.full_name},</p>
+        <p>Dear ${customer.full_name || 'Customer'},</p>
         
         <p>Great news! Your order has been shipped and is on its way to you.</p>
         
         <p><strong>Order Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Order Number:</strong> ${order.order_number}</li>
-          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
-          <li><strong>Total Amount:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</li>
+          <li><strong>Order Number:</strong> ${order.order_number || ''}</li>
+          <li><strong>Order Date:</strong> ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : ''}</li>
+          <li><strong>Total Amount:</strong> ₹${order.total_amount ? parseFloat(order.total_amount).toFixed(2) : '0.00'}</li>
         </ul>
         
         <p><strong>Items Shipped:</strong></p>
@@ -298,13 +320,7 @@ export function generateShippingConfirmationEmail(order: any, customer: any, ite
           </tbody>
         </table>
         
-        <p><strong>Shipping Address:</strong></p>
-        <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
-          <div>${shippingAddress.address_line1}</div>
-          ${shippingAddress.address_line2 ? `<div>${shippingAddress.address_line2}</div>` : ''}
-          <div>${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}</div>
-          <div>${shippingAddress.country}</div>
-        </div>
+        ${shippingAddressHtml}
         
         <p>You should receive your order soon. Thank you for shopping with us!</p>
       </div>

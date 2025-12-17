@@ -19,9 +19,24 @@ interface ShipmentItem {
   weight: number;
 }
 
+interface Warehouse {
+  id: number;
+  warehouse_name: string;
+  warehouse_code: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  phone: string | null;
+  email: string | null;
+}
+
 export function ShipmentCreation() {
   const [orderId, setOrderId] = useState("");
   const [warehouse, setWarehouse] = useState("");
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [deliveryName, setDeliveryName] = useState("");
   const [deliveryAddress1, setDeliveryAddress1] = useState("");
   const [deliveryAddress2, setDeliveryAddress2] = useState("");
@@ -35,6 +50,24 @@ export function ShipmentCreation() {
   const [items, setItems] = useState<ShipmentItem[]>([
     { name: "", sku: "", units: 1, unit_price: 0, weight: 0.5 }
   ]);
+  
+  useEffect(() => {
+    // Fetch warehouses
+    const fetchWarehouses = async () => {
+      try {
+        const response = await fetch("/api/admin/warehouses");
+        const data = await response.json();
+        
+        if (response.ok) {
+          setWarehouses(data.warehouses || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch warehouses:", error);
+      }
+    };
+    
+    fetchWarehouses();
+  }, []);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +102,15 @@ export function ShipmentCreation() {
       if (!orderId || !warehouse || !deliveryName || !deliveryAddress1 || 
           !deliveryCity || !deliveryState || !deliveryPincode || !deliveryPhone) {
         throw new Error("Please fill in all required fields");
+      }
+      
+      // Validate warehouse
+      if (warehouses.length === 0) {
+        throw new Error("No warehouses configured. Please add warehouses first.");
+      }
+      
+      if (!warehouses.some(w => w.warehouse_code === warehouse)) {
+        throw new Error("Selected warehouse not found.");
       }
 
       if (deliveryPincode.length !== 6) {
@@ -106,11 +148,11 @@ export function ShipmentCreation() {
             declared_value: items.reduce((sum, item) => sum + (item.unit_price * item.units), 0),
             return_address: {
               name: warehouse,
-              add: "Warehouse Address", // This should be the actual warehouse address
-              city: "Warehouse City",
-              state: "Warehouse State",
-              pin: "110001", // Warehouse pincode
-              phone: "Warehouse Phone"
+              add: warehouses.find(w => w.warehouse_code === warehouse)?.address_line1 || "123 Main Street",
+              city: warehouses.find(w => w.warehouse_code === warehouse)?.city || "New Delhi",
+              state: warehouses.find(w => w.warehouse_code === warehouse)?.state || "Delhi",
+              pin: warehouses.find(w => w.warehouse_code === warehouse)?.postal_code || "110001",
+              phone: warehouses.find(w => w.warehouse_code === warehouse)?.phone || "9876543210"
             },
             ship_details: {
               waybill: "", // Will be filled by the API
@@ -219,15 +261,21 @@ export function ShipmentCreation() {
               
               <div className="space-y-2">
                 <Label htmlFor="warehouse">Warehouse *</Label>
-                <Select value={warehouse} onValueChange={setWarehouse} disabled={loading}>
+                <Select value={warehouse} onValueChange={setWarehouse} disabled={loading || warehouses.length === 0}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select warehouse" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="primary">Primary Warehouse</SelectItem>
-                    <SelectItem value="secondary">Secondary Warehouse</SelectItem>
+                    {warehouses.map((w) => (
+                      <SelectItem key={w.id} value={w.warehouse_code}>
+                        {w.warehouse_name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {warehouses.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No warehouses configured. Please add warehouses first.</p>
+                )}
               </div>
               
               <div className="space-y-2">

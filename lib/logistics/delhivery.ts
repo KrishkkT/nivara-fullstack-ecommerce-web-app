@@ -125,7 +125,7 @@ export async function trackShipment(waybill?: string, refIds?: string) {
 // 4. Warehouse Management
 export async function createWarehouse(warehouseData: any) {
   try {
-    const response = await delhiveryPost("/api/backend/clientwarehouse/create/", warehouseData);
+    const response = await delhiveryPost("/api/backend/clientwarehouse/create/", warehouseData, true);
     return response;
   } catch (error) {
     console.error("Error creating warehouse:", error);
@@ -135,7 +135,7 @@ export async function createWarehouse(warehouseData: any) {
 
 export async function updateWarehouse(warehouseData: any) {
   try {
-    const response = await delhiveryPost("/api/backend/clientwarehouse/update/", warehouseData);
+    const response = await delhiveryPost("/api/backend/clientwarehouse/update/", warehouseData, true);
     return response;
   } catch (error) {
     console.error("Error updating warehouse:", error);
@@ -178,13 +178,6 @@ export async function getAvailableWaybill() {
     `;
     
     if (result.length > 0) {
-      // Mark waybill as used
-      await sql`
-        UPDATE delhivery_waybills 
-        SET status = 'used', used_at = NOW() 
-        WHERE waybill_number = ${result[0].waybill_number}
-      `;
-      
       return result[0].waybill_number;
     }
     
@@ -198,7 +191,7 @@ export async function getAvailableWaybill() {
 // 7. Shipment Creation (Manifestation)
 export async function createShipment(shipmentData: any) {
   try {
-    const response = await delhiveryPost("/api/cmu/create.json", shipmentData);
+    const response = await delhiveryPost("/api/cmu/create.json", shipmentData, true);
     
     // If shipment creation is successful, send email notifications
     if (response && response.packages && response.packages.length > 0) {
@@ -223,11 +216,15 @@ export async function createShipment(shipmentData: any) {
             };
             
             // Send email to customer
-            await sendEmail({
-              to: order.email,
-              subject: `Your Order #${order.order_number} Has Been Shipped`,
-              html: generateShipmentCreationEmail(order, customer, waybill)
-            });
+            try {
+              await sendEmail({
+                to: order.email,
+                subject: `Your Order #${order.order_number} Has Been Shipped`,
+                html: generateShipmentCreationEmail(order, customer, waybill)
+              });
+            } catch (customerEmailError) {
+              console.error("Failed to send customer shipment creation notification:", customerEmailError);
+            }
             
             // Send notification to admins
             try {
@@ -247,6 +244,8 @@ export async function createShipment(shipmentData: any) {
             } catch (adminEmailError) {
               console.error("Failed to send admin shipment creation notification:", adminEmailError);
             }
+          } else {
+            console.warn(`Order with ID ${orderId} not found for shipment creation email`);
           }
         } catch (emailError) {
           console.error("Failed to send shipment creation emails:", emailError);
@@ -288,7 +287,7 @@ export async function generateShippingLabel(waybill: string) {
 // 9. Pickup Request Creation
 export async function createPickupRequest(pickupData: any) {
   try {
-    const response = await delhiveryPost("/fm/request/new/", pickupData);
+    const response = await delhiveryPost("/fm/request/new/", pickupData, true);
     return response;
   } catch (error) {
     console.error("Error creating pickup request:", error);
@@ -302,7 +301,7 @@ export async function cancelShipment(waybill: string) {
     const response = await delhiveryPost("/api/p/edit", {
       waybill: waybill,
       cancellation: "true"
-    });
+    }, true);
     
     // If cancellation is successful, send email notifications
     if (response && response.success) {
@@ -373,7 +372,7 @@ export async function handleNdrAction(waybill: string, action: string, remarks?:
       payload.remarks = remarks;
     }
     
-    const response = await delhiveryPost("/api/nsl/ndr/action", payload);
+    const response = await delhiveryPost("/api/nsl/ndr/action", payload, true);
     return response;
   } catch (error) {
     console.error("Error handling NDR action:", error);

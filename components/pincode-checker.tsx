@@ -104,10 +104,6 @@ export function PincodeChecker() {
               <AlertDescription>{result.message}</AlertDescription>
             </Alert>
           )}
-
-          <p className="text-sm text-muted-foreground">
-            Note: Our warehouse is located in pincode {WAREHOUSE_PINCODE}
-          </p>
         </div>
       </CardContent>
     </Card>
