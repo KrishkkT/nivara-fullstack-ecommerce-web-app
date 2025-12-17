@@ -4,8 +4,15 @@ import { sql } from "@/lib/db"
 import { ProductGrid } from "@/components/product-grid"
 
 export async function generateStaticParams() {
-  const categories = await sql`SELECT slug FROM categories`
-  return categories.map((cat: any) => ({ slug: cat.slug }))
+  try {
+    const categories = await sql`SELECT slug FROM categories`
+    return categories.map((cat: any) => ({ slug: cat.slug }))
+  } catch (error) {
+    // If database is not available during build, return empty array
+    // This is common in CI/CD environments
+    console.warn('Could not fetch categories for static generation:', error)
+    return []
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

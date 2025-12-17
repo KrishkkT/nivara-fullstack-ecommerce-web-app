@@ -358,4 +358,226 @@ export function ShipmentCreation() {
               </div>
             </div>
             
-            <div
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="delivery-city">City *</Label>
+                <Input
+                  id="delivery-city"
+                  value={deliveryCity}
+                  onChange={(e) => setDeliveryCity(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="delivery-state">State *</Label>
+                <Input
+                  id="delivery-state"
+                  value={deliveryState}
+                  onChange={(e) => setDeliveryState(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="delivery-pincode">Pincode *</Label>
+                <Input
+                  id="delivery-pincode"
+                  type="text"
+                  maxLength={6}
+                  value={deliveryPincode}
+                  onChange={(e) => setDeliveryPincode(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="delivery-phone">Phone *</Label>
+                <Input
+                  id="delivery-phone"
+                  type="tel"
+                  value={deliveryPhone}
+                  onChange={(e) => setDeliveryPhone(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="delivery-email">Email</Label>
+                <Input
+                  id="delivery-email"
+                  type="email"
+                  value={deliveryEmail}
+                  onChange={(e) => setDeliveryEmail(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">Shipment Items</h3>
+              <Button type="button" variant="outline" onClick={addItem} disabled={loading}>
+                Add Item
+              </Button>
+            </div>
+            
+            {items.map((item, index) => (
+              <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 p-4 border rounded-lg">
+                <div className="md:col-span-2 space-y-2">
+                  <Label>Item Name *</Label>
+                  <Input
+                    value={item.name}
+                    onChange={(e) => updateItem(index, "name", e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>SKU *</Label>
+                  <Input
+                    value={item.sku}
+                    onChange={(e) => updateItem(index, "sku", e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Units *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.units}
+                    onChange={(e) => updateItem(index, "units", parseInt(e.target.value) || 1)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Unit Price *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={item.unit_price}
+                    onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Weight (kg) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={item.weight}
+                    onChange={(e) => updateItem(index, "weight", parseFloat(e.target.value) || 0.5)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                
+                {items.length > 1 && (
+                  <div className="md:col-span-5 flex justify-end">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => removeItem(index)}
+                      disabled={loading}
+                    >
+                      Remove Item
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold mb-4">Payment Options</h3>
+            
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox
+                id="cod"
+                checked={cod}
+                onCheckedChange={(checked) => setCod(checked as boolean)}
+                disabled={loading}
+              />
+              <Label htmlFor="cod">Cash on Delivery (COD)</Label>
+            </div>
+            
+            {cod && (
+              <div className="space-y-2">
+                <Label htmlFor="cod-amount">COD Amount *</Label>
+                <Input
+                  id="cod-amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={codAmount}
+                  onChange={(e) => setCodAmount(e.target.value)}
+                  required={cod}
+                  disabled={loading}
+                />
+              </div>
+            )}
+          </div>
+          
+          {(error || success) && (
+            <div>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              {success && (
+                <Alert>
+                  <AlertDescription>
+                    <div className="flex justify-between items-center">
+                      <span>{success}</span>
+                      {success.includes("Waybill:") && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const waybill = success.split("Waybill: ")[1];
+                            if (waybill) verifyShipment(waybill);
+                          }}
+                        >
+                          Verify Shipment
+                        </Button>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+          
+          <div className="flex justify-end">
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Shipment...
+                </>
+              ) : (
+                "Create Shipment"
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
