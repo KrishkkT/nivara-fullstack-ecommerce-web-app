@@ -99,7 +99,7 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-serif mb-4">Contact Us</h2>
           <p className="mb-4">If you have questions about this Privacy Policy, please contact us at:</p>
           <p className="mb-2"><strong>Email:</strong> <a href="mailto:nivarajewel@gmail.com" className="text-primary hover:underline">nivarajewel@gmail.com</a></p>
-          <p className="mb-2"><strong>Phone:</strong> <a href="tel:+916352192939" className="text-primary hover:underline">+91 63521 92939</a></p>
+          <p className="mb-2"><strong>Phone:</strong> <a href="tel:+916351049574" className="text-primary hover:underline">+91 63510 49574</a></p>
         </section>
       </div>
     </div>

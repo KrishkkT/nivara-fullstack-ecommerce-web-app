@@ -17,14 +17,9 @@ export default function AboutPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Our Story</h2>
             <p className="leading-relaxed text-muted-foreground">
-              Founded with a passion for timeless elegance, NIVARA brings you exquisite premium silver jewellery that
-              celebrates the art of subtle luxury. Each piece in our collection is meticulously crafted by skilled
-              artisans who pour their heart and soul into creating jewellery that transcends trends.
-            </p>
+              With over 30 years of excellence in gold and diamond jewellery, Yug Diamonds and Jewel has built a legacy of trust and craftsmanship. From this rich experience comes Nivara, our dedicated silver jewellery brand.            </p>
             <p className="leading-relaxed text-muted-foreground">
-              Our name, NIVARA, symbolizes shelter and protection – a reflection of how we view our jewellery as more
-              than mere accessories. They are treasured companions that accompany you through life's precious moments,
-              creating memories that last forever.
+              Rooted in heritage yet designed for modern elegance, Nivara reflects three decades of expertise, bringing refined silver creations that carry the same quality, authenticity, and timeless appeal.
             </p>
           </div>
 

@@ -28,7 +28,7 @@ export function Footer() {
             <p className="text-sm text-muted-foreground">Handcrafted sterling silver jewellery.</p>
             <div className="flex gap-3">
               <Link
-                href="https://wa.me/+916352192939"
+                href="https://wa.me/+916351049574"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Chat with NIVARA on WhatsApp"
@@ -169,7 +169,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="tel:+916352192939"
+                  href="tel:+916351049574"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Call Us

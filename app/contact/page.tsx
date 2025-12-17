@@ -31,7 +31,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-medium">Phone</h3>
-                    <p className="text-muted-foreground">+91 98765 43210</p>
+                    <p className="text-muted-foreground">+91 63510 49574</p>
+                    <p className="text-muted-foreground">+91 98252 64115</p>
                   </div>
                 </div>
 
@@ -42,9 +43,11 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-medium">Address</h3>
                     <p className="text-muted-foreground">
-                      123 Jewellery Lane
+                      YUG DIAMONDS AND JEWEL
                       <br />
-                      Mumbai, Maharashtra 400001
+                      208, Nanu prema market, Near Tower
+                      <br />
+                      Navsari 396445
                       <br />
                       India
                     </p>

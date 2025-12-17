@@ -67,5 +67,5 @@ ON CONFLICT (slug) DO UPDATE SET
 
 -- Insert an admin user (password: admin123)
 INSERT INTO users (email, password_hash, full_name, phone, role) VALUES
-('admin@nivara.com', 'f6e0a1e2ac41945a9aa7ff8a8aaa0cebc12a3bcc981a929ad5cf810a090e11ae', 'NIVARA Admin', '+91 9876543210', 'admin')
+('admin@nivara.com', 'f6e0a1e2ac41945a9aa7ff8a8aaa0cebc12a3bcc981a929ad5cf810a090e11ae', 'NIVARA Admin', '+91 6351049574', 'admin')
 ON CONFLICT (email) DO NOTHING;

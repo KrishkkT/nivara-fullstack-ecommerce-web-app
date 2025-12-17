@@ -117,3 +117,5 @@ CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured);
 CREATE INDEX IF NOT EXISTS idx_cart_user ON cart_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+-- Add index for OTP table to improve query performance
+CREATE INDEX IF NOT EXISTS idx_otps_email ON otps(email);
