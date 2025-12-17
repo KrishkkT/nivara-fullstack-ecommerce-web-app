@@ -114,15 +114,15 @@ export async function POST(request: Request) {
         }
         
         // Get an available waybill
-        const waybill = await getAvailableWaybill();
-        if (!waybill) {
+        const availableWaybill = await getAvailableWaybill();
+        if (!availableWaybill) {
           return NextResponse.json({ error: "No available waybills. Please prefetch waybills first." }, { status: 400 });
         }
         
         // Add waybill to shipment data
         const shipmentData = {
           ...data,
-          waybill: waybill
+          waybill: availableWaybill
         };
         
         const shipmentResult = await createShipment(shipmentData);
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
         if (shipmentResult && shipmentResult.success && data.orderId) {
           await sql`
             INSERT INTO delhivery_shipments (waybill_number, order_id, status)
-            VALUES (${waybill}, ${data.orderId}, 'created')
+            VALUES (${availableWaybill}, ${data.orderId}, 'created')
             ON CONFLICT (waybill_number) 
             DO UPDATE SET 
               order_id = EXCLUDED.order_id,

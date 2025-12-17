@@ -80,7 +80,7 @@ const nextConfig = {
   },
   // Performance optimizations
   reactStrictMode: true,
-  swcMinify: true,
+  // swcMinify option removed as it's not compatible with Next.js 16
   // Compress responses
   compress: true,
   // Optimize static assets
