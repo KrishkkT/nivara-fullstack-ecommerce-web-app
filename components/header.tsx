@@ -13,7 +13,7 @@ export async function Header() {
   const session = await getSession()
   
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-background">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <MobileNav />
@@ -30,20 +30,26 @@ export async function Header() {
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <Link href="/shop" className="text-sm font-medium hover:text-primary transition-colors">
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          <Link href="/shop" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Shop
           </Link>
-          <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link href="/categories" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Categories
           </Link>
-          <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link href="/about" className="transition-colors hover:text-foreground/80 text-foreground/60">
             About
           </Link>
-          <Link href="/care" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link href="/care" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Care
           </Link>
-          <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link 
+            href="/shipping/pincode" 
+            className="transition-colors hover:text-foreground/80 text-foreground/60"
+          >
+            Shipping
+          </Link>
+          <Link href="/contact" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Contact
           </Link>
         </nav>
@@ -75,9 +81,6 @@ export async function Header() {
                   </Link>
                   <Link href="/orders" className="block px-4 py-2 hover:bg-accent">
                     Orders
-                  </Link>
-                  <Link href="/profile/settings" className="block px-4 py-2 hover:bg-accent">
-                    Settings
                   </Link>
                   <Link href="/profile/change-password" className="block px-4 py-2 hover:bg-accent rounded-b-lg">
                     Change Password

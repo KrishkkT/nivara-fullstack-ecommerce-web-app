@@ -548,3 +548,192 @@ export function generateWelcomeEmail(user: any): string {
     </html>
   `
 }
+
+// Generate HTML email template for shipment creation notification
+export function generateShipmentCreationEmail(order: any, customer: any, waybill: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Shipment Created</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Your Order Has Been Shipped!</h1>
+        
+        <p>Dear ${customer.full_name},</p>
+        
+        <p>Great news! Your order #${order.order_number} has been shipped and is on its way to you.</p>
+        
+        <p><strong>Shipment Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+        </ul>
+        
+        <p>You can track your shipment using the waybill number above or by visiting our <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://your-site.com"}/shipping/track">order tracking page</a>.</p>
+        
+        <p>Thank you for shopping with us!</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate HTML email template for admin shipment creation notification
+export function generateAdminShipmentCreationEmail(order: any, customer: any, waybill: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New Shipment Created</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">New Shipment Created</h1>
+        
+        <p>A new shipment has been created in the admin panel.</p>
+        
+        <p><strong>Shipment Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+        </ul>
+        
+        <p>You can manage this shipment in the admin panel.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate HTML email template for shipment cancellation notification
+export function generateShipmentCancellationEmail(order: any, customer: any, waybill: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Shipment Cancelled</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Shipment Cancelled</h1>
+        
+        <p>Dear ${customer.full_name},</p>
+        
+        <p>Your shipment for order #${order.order_number} has been cancelled.</p>
+        
+        <p><strong>Shipment Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+        </ul>
+        
+        <p>A refund will be processed according to our refund policy. Please allow 5-7 business days for the refund to appear in your account.</p>
+        
+        <p>If you have any questions, please contact our customer support team.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate HTML email template for admin shipment cancellation notification
+export function generateAdminShipmentCancellationEmail(order: any, customer: any, waybill: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Shipment Cancelled</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Shipment Cancelled</h1>
+        
+        <p>A shipment has been cancelled by an administrator.</p>
+        
+        <p><strong>Shipment Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
+          <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
+        </ul>
+        
+        <p>You can view this order in the admin panel.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate HTML email template for NDR notification to customer
+export function generateNdrNotificationEmail(order: any, customer: any, waybill: string, remarks: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Action Required for Your Shipment</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Action Required for Your Shipment</h1>
+        
+        <p>Dear ${customer.full_name},</p>
+        
+        <p>There was an issue delivering your order #${order.order_number}.</p>
+        
+        <p><strong>Shipment Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Issue:</strong> ${remarks}</li>
+        </ul>
+        
+        <p>Please contact our customer support team to resolve this issue or update your delivery information.</p>
+        
+        <p>You can reach us at support@nivara.in or call us at +91-XXXXXXXXXX.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate HTML email template for admin NDR notification
+export function generateAdminNdrNotificationEmail(order: any, customer: any, waybill: string, remarks: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>NDR Alert - Action Required</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">NDR Alert - Action Required</h1>
+        
+        <p>An NDR (Not Delivered Response) alert has been received for a shipment.</p>
+        
+        <p><strong>Shipment Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>Order Number:</strong> ${order.order_number}</li>
+          <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
+          <li><strong>Issue:</strong> ${remarks}</li>
+        </ul>
+        
+        <p>Please take appropriate action in the admin panel.</p>
+      </div>
+    </body>
+    </html>
+  `
+}
