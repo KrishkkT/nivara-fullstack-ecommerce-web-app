@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { generalRateLimiter } from "@/lib/rate-limit"
 
 export function securityHeaders(request: NextRequest) {
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  
+  // Apply rate limiting
+  const rateLimitResult = generalRateLimiter.isAllowed(`req_${ip}`)
+  if (!rateLimitResult.allowed) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+        },
+      }
+    )
+  }
+  
   const response = NextResponse.next()
   
   // Security headers
@@ -23,6 +41,13 @@ export function securityHeaders(request: NextRequest) {
   `.replace(/\s{2,}/g, ' ').trim()
   
   response.headers.set('Content-Security-Policy', csp)
+  
+  // Additional security headers
+  response.headers.set('X-DNS-Prefetch-Control', 'off')
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+  response.headers.set('X-Download-Options', 'noopen')
+  response.headers.set('X-Permitted-Cross-Domain-Policies', 'none')
+  response.headers.set('X-XSS-Protection', '0') // Disabled because CSP is preferred
   
   return response
 }

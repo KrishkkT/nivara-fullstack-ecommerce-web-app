@@ -6,6 +6,8 @@ import { signUp } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 export function RegisterForm() {
   const router = useRouter()
@@ -23,6 +25,13 @@ export function RegisterForm() {
     // Simple validation
     if (!fullName || !email || !password) {
       setError("All fields are required")
+      setLoading(false)
+      return
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Invalid email format")
       setLoading(false)
       return
     }
@@ -99,9 +108,10 @@ export function RegisterForm() {
       </div>
 
       {error && (
-        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <Button type="submit" className="w-full" disabled={loading}>

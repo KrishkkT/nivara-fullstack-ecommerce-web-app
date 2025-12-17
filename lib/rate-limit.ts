@@ -1,56 +1,92 @@
-// Simple in-memory rate limiter for API routes
-// Note: For production, use Redis or a database for distributed rate limiting
+// Simple in-memory rate limiter
+// Note: For production, use Redis or another distributed cache
 
 interface RateLimitEntry {
-  count: number;
-  resetTime: number;
+  count: number
+  resetTime: number
 }
 
-const rateLimits = new Map<string, RateLimitEntry>();
+class RateLimiter {
+  private limits: Map<string, RateLimitEntry> = new Map()
+  private readonly windowMs: number
+  private readonly maxRequests: number
 
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX_REQUESTS = 100; // Max requests per window
-
-export function rateLimit(ip: string, maxRequests: number = RATE_LIMIT_MAX_REQUESTS): { success: boolean; remaining: number; resetTime: number } {
-  const now = Date.now();
-  const key = ip;
-  
-  let entry = rateLimits.get(key);
-  
-  // Reset if window has expired
-  if (!entry || entry.resetTime < now) {
-    entry = {
-      count: 0,
-      resetTime: now + RATE_LIMIT_WINDOW
-    };
-    rateLimits.set(key, entry);
+  constructor(windowMs: number, maxRequests: number) {
+    this.windowMs = windowMs
+    this.maxRequests = maxRequests
+    // Clean up expired entries periodically
+    setInterval(() => this.cleanup(), 60000) // Every minute
   }
-  
-  // Increment request count
-  entry.count++;
-  
-  // Check if limit exceeded
-  if (entry.count > maxRequests) {
+
+  // Check if identifier is allowed to make a request
+  isAllowed(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+    const now = Date.now()
+    const entry = this.limits.get(identifier)
+
+    // If no entry or expired, create new entry
+    if (!entry || entry.resetTime <= now) {
+      const resetTime = now + this.windowMs
+      this.limits.set(identifier, {
+        count: 1,
+        resetTime
+      })
+      return {
+        allowed: true,
+        remaining: this.maxRequests - 1,
+        resetTime
+      }
+    }
+
+    // Increment count
+    if (entry.count < this.maxRequests) {
+      entry.count++
+      return {
+        allowed: true,
+        remaining: this.maxRequests - entry.count,
+        resetTime: entry.resetTime
+      }
+    }
+
+    // Rate limit exceeded
     return {
-      success: false,
+      allowed: false,
       remaining: 0,
       resetTime: entry.resetTime
-    };
-  }
-  
-  return {
-    success: true,
-    remaining: maxRequests - entry.count,
-    resetTime: entry.resetTime
-  };
-}
-
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimits.entries()) {
-    if (entry.resetTime < now) {
-      rateLimits.delete(key);
     }
   }
-}, 60 * 1000); // Clean up every minute
+
+  // Clean up expired entries
+  private cleanup() {
+    const now = Date.now()
+    for (const [key, entry] of this.limits.entries()) {
+      if (entry.resetTime <= now) {
+        this.limits.delete(key)
+      }
+    }
+  }
+
+  // Get current rate limit status
+  getStatus(identifier: string) {
+    const now = Date.now()
+    const entry = this.limits.get(identifier)
+
+    if (!entry || entry.resetTime <= now) {
+      return {
+        remaining: this.maxRequests,
+        resetTime: now + this.windowMs,
+        total: this.maxRequests
+      }
+    }
+
+    return {
+      remaining: this.maxRequests - entry.count,
+      resetTime: entry.resetTime,
+      total: this.maxRequests
+    }
+  }
+}
+
+// Create rate limiters for different purposes
+export const otpRateLimiter = new RateLimiter(5 * 60 * 1000, 3) // 3 requests per 5 minutes
+export const authRateLimiter = new RateLimiter(15 * 60 * 1000, 10) // 10 requests per 15 minutes
+export const generalRateLimiter = new RateLimiter(60 * 1000, 100) // 100 requests per minute

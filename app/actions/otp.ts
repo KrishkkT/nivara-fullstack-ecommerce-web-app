@@ -2,6 +2,7 @@
 
 import { sql } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
+import { otpRateLimiter } from "@/lib/rate-limit"
 
 // Generate a 6-digit OTP
 function generateOTP(): string {
@@ -14,13 +15,28 @@ function generateOTP(): string {
 // Send OTP to user's email
 export async function sendOTP(email: string) {
   try {
+    // Validate email format
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { error: "Invalid email format" }
+    }
+
+    // Rate limiting check
+    const rateLimitResult = otpRateLimiter.isAllowed(`otp_${email}`)
+    if (!rateLimitResult.allowed) {
+      const resetTime = new Date(rateLimitResult.resetTime).toLocaleTimeString()
+      return { error: `Too many requests. Please try again after ${resetTime}.` }
+    }
+
     // Check if user exists
     const userResult: any = await sql`
       SELECT id, email, full_name FROM users WHERE email = ${email}
     `
 
     if (userResult.length === 0) {
-      return { error: "User not found" }
+      // For security reasons, don't reveal if user exists
+      console.log(`[v0] OTP request for non-existent email: ${email}`)
+      // Still return success to prevent email enumeration
+      return { success: true }
     }
 
     const user = userResult[0]
@@ -70,23 +86,49 @@ export async function sendOTP(email: string) {
       </html>
     `
     
-    await sendEmail({
-      to: email,
-      subject: "Password Reset OTP - NIVARA",
-      html: emailHtml
-    })
+    // Import sendEmail here to ensure fresh environment variables
+    const { sendEmail } = await import("@/lib/email")
     
-    console.log(`[v0] OTP sent to ${email}: ${otp}`)
-    return { success: true }
+    try {
+      const emailResult = await sendEmail({
+        to: email,
+        subject: "Password Reset OTP - NIVARA",
+        html: emailHtml
+      })
+      
+      if (emailResult.error) {
+        console.error("[v0] Email sending failed:", emailResult.error)
+        return { error: "Failed to send OTP email. Please try again." }
+      }
+      
+      console.log(`[v0] OTP sent to ${email}: ${otp}`)
+      return { success: true }
+    } catch (emailError) {
+      console.error("[v0] Failed to send OTP email:", emailError)
+      return { error: "Failed to send OTP email. Please try again." }
+    }
   } catch (error) {
     console.error("[v0] Failed to send OTP:", error)
-    return { error: "Failed to send OTP" }
+    return { error: "Failed to process OTP request. Please try again." }
   }
 }
 
 // Verify OTP
 export async function verifyOTP(email: string, otp: string) {
   try {
+    // Validate inputs
+    if (!email || !otp) {
+      return { error: "Email and OTP are required" }
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { error: "Invalid email format" }
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+      return { error: "Invalid OTP format" }
+    }
+
     // Get OTP from database
     const otpResult: any = await sql`
       SELECT otp, expires_at FROM otps WHERE email = ${email}
@@ -126,6 +168,10 @@ export async function resetPasswordWithOTP(email: string, newPassword: string) {
     // Validation
     if (!email || !newPassword) {
       return { error: "Email and password are required" }
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { error: "Invalid email format" }
     }
 
     if (newPassword.length < 8) {

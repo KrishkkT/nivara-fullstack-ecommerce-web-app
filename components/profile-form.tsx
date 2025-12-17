@@ -1,46 +1,68 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle } from "lucide-react"
 
-export function ProfileForm({ user }: { user: any }) {
-  const router = useRouter()
-  const { toast } = useToast()
+interface UserData {
+  full_name: string
+  email: string
+  phone: string | null
+}
+
+export function ProfileForm({ initialData }: { initialData: UserData }) {
+  const [formData, setFormData] = useState<UserData>(initialData)
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    full_name: user.full_name || "",
-    email: user.email || "",
-    phone: user.phone || "",
-  })
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  // Update form data when initialData changes
+  useEffect(() => {
+    setFormData(initialData)
+  }, [initialData])
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    setError("")
+    setSuccess(false)
     setLoading(true)
 
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Invalid email format")
+      setLoading(false)
+      return
+    }
+
+    // Validate phone number if provided
+    if (formData.phone && !/^[+]?[\d\s\-()]{10,15}$/.test(formData.phone)) {
+      setError("Invalid phone number format")
+      setLoading(false)
+      return
+    }
+
     try {
-      const response = await fetch("/api/profile/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch("/api/profile/information", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(formData),
       })
 
-      if (!response.ok) throw new Error("Failed to update profile")
+      const data = await response.json()
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      })
-      router.refresh()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-      })
+      if (response.ok) {
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 5000)
+      } else {
+        setError(data.error || "Failed to update profile")
+      }
+    } catch (err) {
+      setError("Failed to update profile. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -67,10 +89,26 @@ export function ProfileForm({ user }: { user: any }) {
         <Input
           id="phone"
           type="tel"
-          value={formData.phone}
+          value={formData.phone || ""}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          placeholder="+1 (555) 123-4567"
         />
       </div>
+      
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {success && (
+        <Alert variant="default" className="border-green-500 text-green-700">
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>Profile updated successfully!</AlertDescription>
+        </Alert>
+      )}
+      
       <Button type="submit" disabled={loading}>
         {loading ? "Updating..." : "Update Profile"}
       </Button>

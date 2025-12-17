@@ -19,6 +19,12 @@ export async function signIn(formData: FormData) {
       return { error: "Email and password are required" }
     }
 
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.log("Validation failed: Invalid email format")
+      return { error: "Invalid email format" }
+    }
+
     // Get user from database
     const result = await sql`
       SELECT id, email, password_hash, full_name, role FROM users WHERE email = ${email}
@@ -49,7 +55,7 @@ export async function signIn(formData: FormData) {
     }
 
     // Create and set session
-    const token = createSessionToken(user.id, user.email, user.full_name, user.role)
+    const token = await createSessionToken(user.id, user.email, user.full_name, user.role)
     console.log("Created session token")
     
     await setSessionCookie(token)
@@ -76,6 +82,12 @@ export async function signUp(formData: FormData) {
     if (!email || !password || !fullName) {
       console.log("Validation failed: Missing required fields")
       return { error: "All fields are required" }
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.log("Validation failed: Invalid email format")
+      return { error: "Invalid email format" }
     }
 
     if (password.length < 8) {
@@ -125,7 +137,7 @@ export async function signUp(formData: FormData) {
     }
 
     // Create and set session
-    const token = createSessionToken(user.id, user.email, user.full_name, user.role)
+    const token = await createSessionToken(user.id, user.email, user.full_name, user.role)
     console.log("Created session token for new user")
     
     await setSessionCookie(token)

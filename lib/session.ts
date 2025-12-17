@@ -1,7 +1,61 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import { SignJWT, jwtVerify } from "jose"
 
-// Simple session management with cookie handling
+// Secret key for signing JWT tokens (should be at least 256 bits)
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.SESSION_SECRET || process.env.NEXT_PUBLIC_SITE_URL || "fallback_secret_key_for_development_only_do_not_use_in_production"
+)
+
+// Session expiration time (7 days)
+const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000
+
+// Session interface
+interface SessionData {
+  userId: number
+  email: string
+  fullName: string
+  role: string
+  iat: number
+  exp: number
+}
+
+// Create a signed session token with enhanced security
+export async function createSessionToken(userId: number, email: string, fullName: string, role: string = 'customer'): Promise<string> {
+  const sessionData = {
+    userId,
+    email,
+    fullName,
+    role,
+  }
+  
+  console.log("Creating signed session token for user:", sessionData)
+  
+  // Create JWT token with expiration
+  const iat = Math.floor(Date.now() / 1000)
+  const exp = iat + (SESSION_DURATION / 1000)
+  
+  const jwt = await new SignJWT(sessionData)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt(iat)
+    .setExpirationTime(exp)
+    .sign(JWT_SECRET)
+  
+  return jwt
+}
+
+// Verify session token
+export async function verifySessionToken(token: string): Promise<SessionData | null> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET)
+    return payload as SessionData
+  } catch (err) {
+    console.log("Error verifying session token:", err)
+    return null
+  }
+}
+
+// Get current session
 export async function getSession() {
   try {
     let token = null
@@ -19,20 +73,16 @@ export async function getSession() {
       return null
     }
 
-    // Parse the session token
-    const sessionData = JSON.parse(atob(token))
-    console.log("Parsed session data:", sessionData)
-    
-    // Check if session is still valid
-    if (sessionData.expires && new Date(sessionData.expires) < new Date()) {
-      console.log("Session expired, removing cookie")
-      // Session expired, remove the cookie
+    // Verify the session token
+    const sessionData = await verifySessionToken(token)
+    if (!sessionData) {
+      console.log("Invalid session token, removing cookie")
+      // Remove invalid cookie
       try {
         const cookieStore = await cookies()
         cookieStore.delete("session")
       } catch (e) {
-        // Ignore errors
-        console.log("Error deleting expired session cookie:", e)
+        console.log("Error deleting invalid session cookie:", e)
       }
       return null
     }
@@ -51,7 +101,6 @@ export async function getSession() {
       const cookieStore = await cookies()
       cookieStore.delete("session")
     } catch (e) {
-      // Ignore errors
       console.log("Error deleting invalid session cookie:", e)
     }
     return null
@@ -68,13 +117,10 @@ export async function verifyAuth(token: string) {
 
     console.log("Verifying auth token:", token)
 
-    // Parse the session token
-    const sessionData = JSON.parse(atob(token))
-    console.log("Parsed token data:", sessionData)
-    
-    // Check if session is still valid
-    if (sessionData.expires && new Date(sessionData.expires) < new Date()) {
-      console.log("Token expired")
+    // Verify the session token
+    const sessionData = await verifySessionToken(token)
+    if (!sessionData) {
+      console.log("Invalid auth token")
       return null
     }
 
@@ -91,24 +137,6 @@ export async function verifyAuth(token: string) {
   }
 }
 
-// Create a session token with enhanced security
-export function createSessionToken(userId: number, email: string, fullName: string, role: string = 'customer'): string {
-  const sessionData = {
-    userId,
-    email,
-    fullName,
-    role,
-    // Add a timestamp for session creation
-    createdAt: new Date().toISOString(),
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-  }
-  
-  console.log("Creating session token for user:", sessionData)
-  
-  // Encode as base64 JSON string
-  return btoa(JSON.stringify(sessionData))
-}
-
 // Set session cookie with improved security settings
 export async function setSessionCookie(token: string) {
   try {
@@ -119,7 +147,7 @@ export async function setSessionCookie(token: string) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: SESSION_DURATION / 1000, // Convert to seconds
     })
     console.log("Session cookie set successfully")
   } catch (e) {
@@ -146,7 +174,7 @@ export async function refreshSession() {
     if (!session) return null
 
     // Create a new token with extended expiration
-    const newToken = createSessionToken(
+    const newToken = await createSessionToken(
       session.userId,
       session.email,
       session.fullName,

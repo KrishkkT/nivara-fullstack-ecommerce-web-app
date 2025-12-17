@@ -8,6 +8,8 @@ import { sendOTP, verifyOTP, resetPasswordWithOTP } from "@/app/actions/otp"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle } from "lucide-react"
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -34,6 +36,8 @@ export function ResetPasswordForm() {
       } else {
         setEmail(email)
         setStep("otp")
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 5000)
       }
     } catch (err) {
       setError("Failed to send OTP. Please try again.")
@@ -54,6 +58,8 @@ export function ResetPasswordForm() {
         setError(result.error)
       } else {
         setStep("reset")
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 5000)
       }
     } catch (err) {
       setError("Failed to verify OTP. Please try again.")
@@ -135,12 +141,24 @@ export function ResetPasswordForm() {
           <p className="text-xs text-muted-foreground">We've sent a 6-digit code to your email</p>
         </div>
 
-        {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         
+        {success && (
+          <Alert variant="default" className="border-green-500 text-green-700">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>OTP sent successfully! Please check your email.</AlertDescription>
+          </Alert>
+        )}
+
         <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
           {loading ? "Verifying..." : "Verify Code"}
         </Button>
-
+        
         <Button 
           type="button" 
           variant="outline" 
@@ -192,12 +210,18 @@ export function ResetPasswordForm() {
           />
         </div>
 
-        {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         
         {success && (
-          <div className="bg-green-100 text-green-800 text-sm p-3 rounded-md">
-            Password reset successfully! Redirecting to login...
-          </div>
+          <Alert variant="default" className="border-green-500 text-green-700">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>Password reset successfully! Redirecting to login...</AlertDescription>
+          </Alert>
         )}
 
         <Button type="submit" className="w-full" disabled={loading}>
@@ -231,7 +255,19 @@ export function ResetPasswordForm() {
         />
       </div>
 
-      {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {success && (
+        <Alert variant="default" className="border-green-500 text-green-700">
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>OTP sent successfully! Please check your email.</AlertDescription>
+        </Alert>
+      )}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Sending..." : "Send Verification Code"}
