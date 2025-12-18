@@ -144,13 +144,13 @@ export async function POST(request: Request) {
         // Store order data in our database
         if (orderResult && orderResult.order_id) {
           const orderId = orderResult.order_id;
-          const shipmentId = orderResult.shipment_id;
+          const orderShipmentId = orderResult.shipment_id;
           const awbCode = orderResult.awb_code;
 
           // Store the order mapping in our database
           await sql`
             INSERT INTO shiprocket_orders (order_id, shiprocket_order_id, shipment_id, awb_code, status, created_at)
-            VALUES (${data.order_id}, ${orderId}, ${shipmentId || null}, ${awbCode || null}, 'placed', NOW())
+            VALUES (${data.order_id}, ${orderId}, ${orderShipmentId || null}, ${awbCode || null}, 'placed', NOW())
             ON CONFLICT (order_id) 
             DO UPDATE SET 
               shiprocket_order_id = EXCLUDED.shiprocket_order_id,
@@ -188,12 +188,12 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: adminCheck3.error }, { status: 401 });
         }
         
-        const { shipmentId } = data;
-        if (!shipmentId) {
+        const { shipmentId: labelShipmentId } = data;
+        if (!labelShipmentId) {
           return NextResponse.json({ error: "Missing required field: shipmentId" }, { status: 400 });
         }
         
-        const labelResult = await generateShippingLabel(shipmentId);
+        const labelResult = await generateShippingLabel(labelShipmentId);
         return NextResponse.json(labelResult);
 
       case "request-pickup":
@@ -216,12 +216,12 @@ export async function POST(request: Request) {
         return NextResponse.json(pickupResult);
 
       case "track-shipment":
-        const { awbCode, shipmentId, orderId } = data;
-        if (!awbCode && !shipmentId && !orderId) {
+        const { awbCode, shipmentId: trackShipmentId, orderId: trackOrderId } = data;
+        if (!awbCode && !trackShipmentId && !trackOrderId) {
           return NextResponse.json({ error: "Either awbCode, shipmentId, or orderId is required for tracking" }, { status: 400 });
         }
         
-        const trackingResult = await trackShipment(awbCode, shipmentId, orderId);
+        const trackingResult = await trackShipment(awbCode, trackShipmentId, trackOrderId);
         return NextResponse.json(trackingResult);
 
       case "cancel-order":
