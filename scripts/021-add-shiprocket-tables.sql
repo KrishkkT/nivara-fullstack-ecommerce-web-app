@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS shiprocket_pickup_locations (
   state VARCHAR(100) NOT NULL,
   country VARCHAR(100) DEFAULT 'India',
   pin_code VARCHAR(20) NOT NULL,
-  primary BOOLEAN DEFAULT false,
+  "primary" BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -58,7 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_shiprocket_orders_shiprocket_id ON shiprocket_ord
 CREATE INDEX IF NOT EXISTS idx_shiprocket_orders_shipment_id ON shiprocket_orders(shipment_id);
 CREATE INDEX IF NOT EXISTS idx_shiprocket_orders_awb ON shiprocket_orders(awb_code);
 CREATE INDEX IF NOT EXISTS idx_shiprocket_orders_status ON shiprocket_orders(status);
-CREATE INDEX IF NOT EXISTS idx_shiprocket_pickup_locations_primary ON shiprocket_pickup_locations(primary);
+CREATE INDEX IF NOT EXISTS idx_shiprocket_pickup_locations_primary ON shiprocket_pickup_locations("primary");
 CREATE INDEX IF NOT EXISTS idx_shiprocket_pickup_locations_location_id ON shiprocket_pickup_locations(shiprocket_location_id);
 CREATE INDEX IF NOT EXISTS idx_shiprocket_couriers_status ON shiprocket_couriers(status);
 CREATE INDEX IF NOT EXISTS idx_shiprocket_tracking_events_awb ON shiprocket_tracking_events(awb_code);
