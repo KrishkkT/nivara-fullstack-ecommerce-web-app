@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, ShoppingCart, Users, DollarSign, FolderTree, Mail } from "lucide-react"
+import { Package, ShoppingCart, Users, DollarSign, FolderTree, Mail, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"

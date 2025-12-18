@@ -6,6 +6,10 @@ const __dirname = dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizeCss: true,
+    webpackBuildWorker: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -31,10 +35,6 @@ const nextConfig = {
     ],
   },
   // Add performance optimizations
-  experimental: {
-    optimizeCss: true,
-    webpackBuildWorker: true,
-  },
   // Reduce bundle size
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
