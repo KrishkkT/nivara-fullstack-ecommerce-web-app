@@ -328,43 +328,67 @@ export async function addProduct(data: any) {
   }
 
   try {
-    const result: any = await sql`
-      INSERT INTO products (
-        name, 
-        slug, 
-        description, 
-        price, 
-        compare_at_price, 
-        category_id, 
-        image_url, 
-        images, 
-        metal_purity, 
-        design_number, 
-        is_featured, 
-        is_active
-      )
-      VALUES (
-        ${data.name},
-        ${data.slug},
-        ${data.description},
-        ${data.price},
-        ${data.compareAtPrice},
-        ${data.categoryId},
-        ${data.imageUrl},
-        ${JSON.stringify(data.images)},
-        ${data.metalPurity},
-        ${data.designNumber},
-        ${data.isFeatured},
-        ${data.isActive}
-      )
-      RETURNING id
-    `
-
-    const productId = result[0].id
-
-    revalidatePath("/admin/products")
-    revalidatePath("/shop")
-    return { success: true, productId }
+    // Ensure slug is unique by appending a timestamp if needed
+    let slug = data.slug;
+    let isUnique = false;
+    let attempts = 0;
+    
+    while (!isUnique && attempts < 10) {
+      try {
+        const result: any = await sql`
+          INSERT INTO products (
+            name, 
+            slug, 
+            description, 
+            price, 
+            compare_at_price, 
+            category_id, 
+            image_url, 
+            images, 
+            metal_purity, 
+            design_number, 
+            is_featured, 
+            is_active
+          )
+          VALUES (
+            ${data.name},
+            ${slug},
+            ${data.description},
+            ${data.price},
+            ${data.compareAtPrice},
+            ${data.categoryId},
+            ${data.imageUrl},
+            ${JSON.stringify(data.images)},
+            ${data.metalPurity},
+            ${data.designNumber},
+            ${data.isFeatured},
+            ${data.isActive}
+          )
+          RETURNING id
+        `
+        
+        const productId = result[0].id
+        
+        revalidatePath("/admin/products")
+        revalidatePath("/shop")
+        return { success: true, productId }
+      } catch (insertError) {
+        // If it's a duplicate key error, modify the slug and try again
+        if (insertError.code === '23505' && (insertError.constraint === 'products_slug_key' || insertError.detail?.includes('Key (slug)=') || insertError.message?.includes('duplicate key value violates unique constraint'))) {
+          attempts++;
+          slug = `${data.slug}-${Date.now()}-${attempts}`;
+          console.log(`Slug conflict detected, trying new slug: ${slug}`);
+          continue;
+        } else {
+          // If it's a different error, log it and re-throw it
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+      }
+    }
+    
+    // If we've tried 10 times and still failed, return an error
+    return { success: false, error: "Failed to generate unique slug after 10 attempts" };
   } catch (error) {
     console.error("[v0] Add product error:", error)
     return { success: false, error: "Failed to add product" }

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       await sql`
         INSERT INTO shiprocket_pickup_locations (
           shiprocket_location_id, name, email, phone, address, 
-          city, state, country, pin_code, primary
+          city, state, country, pin_code, "primary"
         )
         VALUES (
           ${location.id}, ${location.name}, ${location.email || null}, ${location.phone || null}, 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
           state = EXCLUDED.state,
           country = EXCLUDED.country,
           pin_code = EXCLUDED.pin_code,
-          primary = EXCLUDED.primary,
+          "primary" = EXCLUDED."primary",
           updated_at = NOW()
       `;
     }

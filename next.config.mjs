@@ -10,6 +10,7 @@ const nextConfig = {
     optimizeCss: true,
     webpackBuildWorker: true,
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },

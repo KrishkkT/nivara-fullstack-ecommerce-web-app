@@ -3,9 +3,7 @@ import { redirect } from "next/navigation"
 import { verifyAuth } from "@/lib/session"
 import { sql } from "@/lib/db"
 import { AdminProductsList } from "@/components/admin-products-list"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+
 
 export default async function AdminProductsPage() {
   const cookieStore = await cookies()
@@ -35,14 +33,6 @@ export default async function AdminProductsPage() {
 
   return (
     <div>
-      <div>
-        <Link href="/admin">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-        </Link>
-      </div>
       <AdminProductsList products={products} />
     </div>
   )

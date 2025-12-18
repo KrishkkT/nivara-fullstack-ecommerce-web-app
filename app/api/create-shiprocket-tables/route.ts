@@ -19,6 +19,7 @@ export async function GET() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log("✓ Created shiprocket_orders table");
     
     // Create shiprocket_pickup_locations table
     await sql`
@@ -38,6 +39,7 @@ export async function GET() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log("✓ Created shiprocket_pickup_locations table");
     
     // Create shiprocket_couriers table
     await sql`
@@ -50,6 +52,7 @@ export async function GET() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log("✓ Created shiprocket_couriers table");
     
     // Create shiprocket_tracking_events table
     await sql`
@@ -66,6 +69,7 @@ export async function GET() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log("✓ Created shiprocket_tracking_events table");
     
     // Create indexes
     await sql`CREATE INDEX IF NOT EXISTS idx_shiprocket_orders_order ON shiprocket_orders(order_id);`;
@@ -79,10 +83,11 @@ export async function GET() {
     await sql`CREATE INDEX IF NOT EXISTS idx_shiprocket_tracking_events_awb ON shiprocket_tracking_events(awb_code);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_shiprocket_tracking_events_order ON shiprocket_tracking_events(shiprocket_order_id);`;
     await sql`CREATE INDEX IF NOT EXISTS idx_shiprocket_tracking_events_type ON shiprocket_tracking_events(event_type);`;
+    console.log("✓ Created indexes");
     
-    console.log("✅ Shiprocket tables created successfully!");
+    console.log("✅ All Shiprocket tables created successfully!");
     
-    return NextResponse.json({ success: true, message: "Shiprocket tables created successfully!" });
+    return NextResponse.json({ success: true, message: "All Shiprocket tables created successfully!" });
   } catch (error) {
     console.error("❌ Error creating Shiprocket tables:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

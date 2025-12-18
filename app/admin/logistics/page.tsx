@@ -1,67 +1,60 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WarehouseManagement } from "@/components/admin/warehouse-management";
-import { WaybillPrefetch } from "@/components/admin/waybill-prefetch";
-import { ShiprocketShipmentCreation } from "@/components/admin/shiprocket-shipment-creation";
-import { ShiprocketShipmentManagement } from "@/components/admin/shiprocket-shipment-management";
-import { ShiprocketPickupManagement } from "@/components/admin/shiprocket-pickup-management";
-import { NdrManagement } from "@/components/admin/ndr-management";
-import { PickupLocationManagement } from "@/components/admin/pickup-location-management";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+import { verifyAuth } from "@/lib/session"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
+import { 
+  ShiprocketShipmentCreation,
+  ShiprocketPickupManagement,
+  ShiprocketOrderDetails,
+  ShiprocketTrackingEvents
+} from "@/components/admin/shiprocket-components"
 
-export default function LogisticsPage() {
+export default async function AdminLogisticsPage() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("session")?.value
+
+  if (!token) {
+    redirect("/login?redirect=/admin/logistics")
+  }
+
+  const user = await verifyAuth(token)
+  if (!user || user.role !== "admin") {
+    redirect("/")
+  }
+
   return (
-    <div className="container py-8">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Logistics Management</CardTitle>
-          <CardDescription>Manage shipping and logistics with Shiprocket</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Manage pickup locations, warehouses, shipments, and handle NDR (Not Delivered Response) cases.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-6">
+          <Link href="/admin">
+            <Button variant="ghost" size="sm" className="mb-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Logistics Management</h1>
+              <p className="text-muted-foreground">Manage your Shiprocket integration</p>
+            </div>
+          </div>
+        </div>
 
-      <Tabs defaultValue="shipments" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="shipments">Shipments</TabsTrigger>
-          <TabsTrigger value="create">Create Order</TabsTrigger>
-          <TabsTrigger value="pickup-locations">Pickup Locations</TabsTrigger>
-          <TabsTrigger value="pickups">Request Pickup</TabsTrigger>
-          <TabsTrigger value="warehouses">Warehouses</TabsTrigger>
-          <TabsTrigger value="waybills">Waybills</TabsTrigger>
-          <TabsTrigger value="ndr">NDR Management</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="shipments">
-          <ShiprocketShipmentManagement />
-        </TabsContent>
-        
-        <TabsContent value="create">
+        <div className="grid gap-6 md:grid-cols-2">
           <ShiprocketShipmentCreation />
-        </TabsContent>
-        
-        <TabsContent value="warehouses">
-          <WarehouseManagement />
-        </TabsContent>
-        
-        <TabsContent value="waybills">
-          <WaybillPrefetch />
-        </TabsContent>
-        
-        <TabsContent value="pickup-locations">
-          <PickupLocationManagement />
-        </TabsContent>
-        
-        <TabsContent value="pickups">
           <ShiprocketPickupManagement />
-        </TabsContent>
+        </div>
         
-        <TabsContent value="ndr">
-          <NdrManagement />
-        </TabsContent>
-      </Tabs>
+        <div className="mt-6">
+          <ShiprocketOrderDetails />
+        </div>
+        
+        <div className="mt-6">
+          <ShiprocketTrackingEvents />
+        </div>
+      </div>
     </div>
-  );
+  )
 }

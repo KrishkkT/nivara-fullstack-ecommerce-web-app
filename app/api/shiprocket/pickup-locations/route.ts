@@ -18,9 +18,9 @@ export async function GET(request: Request) {
 
     // First try to get pickup locations from our cache
     const cachedLocations: any = await sql`
-      SELECT shiprocket_location_id as id, name, email, phone, address, city, state, country, pin_code, primary
+      SELECT shiprocket_location_id as id, name, email, phone, address, city, state, country, pin_code, "primary"
       FROM shiprocket_pickup_locations
-      ORDER BY primary DESC, name ASC
+      ORDER BY "primary" DESC, name ASC
     `;
 
     // If we have cached locations, return them
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
       await sql`
         INSERT INTO shiprocket_pickup_locations (
           shiprocket_location_id, name, email, phone, address, 
-          city, state, country, pin_code, primary
+          city, state, country, pin_code, "primary"
         )
         VALUES (
           ${location.id}, ${location.name}, ${location.email || null}, ${location.phone || null}, 
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
           state = EXCLUDED.state,
           country = EXCLUDED.country,
           pin_code = EXCLUDED.pin_code,
-          primary = EXCLUDED.primary,
+          "primary" = EXCLUDED."primary",
           updated_at = NOW()
       `;
     }
