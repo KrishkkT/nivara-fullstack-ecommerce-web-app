@@ -339,8 +339,7 @@ export async function addProduct(data: any) {
         image_url, 
         images, 
         metal_purity, 
-        weight, 
-        dimensions, 
+        design_number, 
         is_featured, 
         is_active
       )
@@ -354,8 +353,7 @@ export async function addProduct(data: any) {
         ${data.imageUrl},
         ${JSON.stringify(data.images)},
         ${data.metalPurity},
-        ${data.weight},
-        ${data.dimensions},
+        ${data.designNumber},
         ${data.isFeatured},
         ${data.isActive}
       )
@@ -387,11 +385,21 @@ export async function updateProduct(productId: number, data: any) {
   }
 
   try {
+    // Generate slug if not provided
+    let slug = data.slug;
+    if (!slug && data.name) {
+      slug = data.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+    
     await sql`
       UPDATE products
       SET 
         name = ${data.name},
-        slug = ${data.slug},
+        slug = ${slug},
         description = ${data.description},
         price = ${data.price},
         compare_at_price = ${data.compareAtPrice},
@@ -399,8 +407,7 @@ export async function updateProduct(productId: number, data: any) {
         image_url = ${data.imageUrl},
         images = ${JSON.stringify(data.images)},
         metal_purity = ${data.metalPurity},
-        weight = ${data.weight},
-        dimensions = ${data.dimensions},
+        design_number = ${data.designNumber},
         is_featured = ${data.isFeatured},
         is_active = ${data.isActive},
         updated_at = CURRENT_TIMESTAMP
@@ -410,7 +417,7 @@ export async function updateProduct(productId: number, data: any) {
     revalidatePath("/admin/products")
     revalidatePath(`/admin/products/${productId}`)
     revalidatePath("/shop")
-    revalidatePath(`/products/${data.slug}`)
+    revalidatePath(`/products/${slug}`)
     return { success: true }
   } catch (error) {
     console.error("[v0] Update product error:", error)
@@ -432,9 +439,19 @@ export async function addCategory(data: any) {
   }
 
   try {
+    // Generate slug if not provided
+    let slug = data.slug;
+    if (!slug) {
+      slug = data.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+    
     const result: any = await sql`
       INSERT INTO categories (name, slug, description, image_url)
-      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.imageUrl})
+      VALUES (${data.name}, ${slug}, ${data.description}, ${data.imageUrl})
       RETURNING id
     `
 
@@ -463,11 +480,21 @@ export async function updateCategory(categoryId: number, data: any) {
   }
 
   try {
+    // Generate slug if not provided
+    let slug = data.slug;
+    if (!slug && data.name) {
+      slug = data.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+    
     await sql`
       UPDATE categories
       SET 
         name = ${data.name},
-        slug = ${data.slug},
+        slug = ${slug},
         description = ${data.description},
         image_url = ${data.imageUrl}
       WHERE id = ${categoryId}

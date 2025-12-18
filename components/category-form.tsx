@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,6 +25,7 @@ interface CategoryFormProps {
 export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps) {
   const [formData, setFormData] = useState({
     name: category?.name || "",
+    slug: category?.slug || "",
     description: category?.description || "",
     image_url: category?.image_url || "",
     seo_title: category?.seo_title || "",
@@ -32,10 +33,29 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Auto-generate slug from name
+  useEffect(() => {
+    if (!category && formData.name && !formData.slug) {
+      const generatedSlug = formData.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      setFormData(prev => ({ ...prev, slug: generatedSlug }));
+    }
+  }, [formData.name, category, formData.slug]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await onSubmit(formData)
+    
+    // Prepare data for submission
+    const submitData = {
+      ...formData,
+      imageUrl: formData.image_url
+    };
+    
+    await onSubmit(submitData)
     setIsSubmitting(false)
   }
 
@@ -55,6 +75,17 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 placeholder="e.g., Necklace"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug *</Label>
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                required
+                placeholder="e.g., necklace"
               />
             </div>
 

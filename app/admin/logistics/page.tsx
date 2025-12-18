@@ -1,9 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WarehouseManagement } from "@/components/admin/warehouse-management";
 import { WaybillPrefetch } from "@/components/admin/waybill-prefetch";
-import { ShipmentCreation } from "@/components/admin/shipment-creation";
-import { ShipmentManagement } from "@/components/admin/shipment-management";
+import { ShiprocketShipmentCreation } from "@/components/admin/shiprocket-shipment-creation";
+import { ShiprocketShipmentManagement } from "@/components/admin/shiprocket-shipment-management";
+import { ShiprocketPickupManagement } from "@/components/admin/shiprocket-pickup-management";
 import { NdrManagement } from "@/components/admin/ndr-management";
+import { PickupLocationManagement } from "@/components/admin/pickup-location-management";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LogisticsPage() {
@@ -12,30 +14,32 @@ export default function LogisticsPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Logistics Management</CardTitle>
-          <CardDescription>Manage shipping and logistics with Delhivery</CardDescription>
+          <CardDescription>Manage shipping and logistics with Shiprocket</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Manage warehouses, waybills, shipments, and handle NDR (Not Delivered Response) cases.
+            Manage pickup locations, warehouses, shipments, and handle NDR (Not Delivered Response) cases.
           </p>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="shipments" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="shipments">Shipments</TabsTrigger>
-          <TabsTrigger value="create">Create Shipment</TabsTrigger>
+          <TabsTrigger value="create">Create Order</TabsTrigger>
+          <TabsTrigger value="pickup-locations">Pickup Locations</TabsTrigger>
+          <TabsTrigger value="pickups">Request Pickup</TabsTrigger>
           <TabsTrigger value="warehouses">Warehouses</TabsTrigger>
           <TabsTrigger value="waybills">Waybills</TabsTrigger>
           <TabsTrigger value="ndr">NDR Management</TabsTrigger>
         </TabsList>
         
         <TabsContent value="shipments">
-          <ShipmentManagement />
+          <ShiprocketShipmentManagement />
         </TabsContent>
         
         <TabsContent value="create">
-          <ShipmentCreation />
+          <ShiprocketShipmentCreation />
         </TabsContent>
         
         <TabsContent value="warehouses">
@@ -44,6 +48,14 @@ export default function LogisticsPage() {
         
         <TabsContent value="waybills">
           <WaybillPrefetch />
+        </TabsContent>
+        
+        <TabsContent value="pickup-locations">
+          <PickupLocationManagement />
+        </TabsContent>
+        
+        <TabsContent value="pickups">
+          <ShiprocketPickupManagement />
         </TabsContent>
         
         <TabsContent value="ndr">

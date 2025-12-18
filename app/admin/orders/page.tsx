@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import { verifyAuth } from "@/lib/session"
 import { sql } from "@/lib/db"
 import { AdminOrdersList } from "@/components/admin-orders-list"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 export default async function AdminOrdersPage() {
   const cookieStore = await cookies()
@@ -37,5 +40,17 @@ export default async function AdminOrdersPage() {
     ORDER BY o.created_at DESC
   `
 
-  return <AdminOrdersList orders={orders} />
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/admin">
+          <Button variant="ghost" size="sm" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
+      </div>
+      <AdminOrdersList orders={orders} />
+    </div>
+  )
 }

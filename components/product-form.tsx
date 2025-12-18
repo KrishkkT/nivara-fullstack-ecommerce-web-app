@@ -124,15 +124,24 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
 
     const formData = new FormData(e.currentTarget)
 
+    // Generate slug from product name
+    const productName = formData.get("name") as string;
+    const slug = productName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
     const data = {
-      name: formData.get("name") as string,
+      name: productName,
+      slug: slug,
       description: formData.get("description") as string,
       price: formData.get("price") as string,
       category_id: Number.parseInt(selectedCategory),
       image_url: imageUrls[0] || "",
       images: imageUrls.length > 0 ? imageUrls : [],
       metal_purity: formData.get("metal_purity") as string,
-      design_number: formData.get("design_number") as string,
+      designNumber: formData.get("design_number") as string,
     }
 
     const result = product ? await updateProduct(product.id, data) : await addProduct(data)

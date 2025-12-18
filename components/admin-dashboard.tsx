@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, ShoppingCart, Users, DollarSign, TrendingUp, FolderTree, Mail } from "lucide-react"
+import { Package, ShoppingCart, Users, DollarSign, FolderTree, Mail } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
@@ -89,12 +89,7 @@ export function AdminDashboard({ stats, recentOrders, topProducts }: AdminDashbo
               Email Notifications
             </Button>
           </Link>
-          <Link href="/admin/diagnostics">
-            <Button variant="outline">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Diagnostics
-            </Button>
-          </Link>
+
         </div>
 
         {/* Stats Grid */}

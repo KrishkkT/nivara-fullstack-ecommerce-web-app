@@ -1,5 +1,8 @@
 import { sql } from "@/lib/db"
 import { AdminCategoriesList } from "@/components/admin-categories-list"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 export default async function AdminCategoriesPage() {
   const categories = await sql`
@@ -21,6 +24,12 @@ export default async function AdminCategoriesPage() {
   return (
     <div className="space-y-6">
       <div>
+        <Link href="/admin">
+          <Button variant="ghost" size="sm" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </Link>
         <h1 className="text-3xl font-serif font-bold text-foreground">Category Management</h1>
         <p className="text-muted-foreground mt-2">Manage product categories and their SEO settings</p>
       </div>

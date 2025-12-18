@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fab48a58-9784-4767-bbad-1ba362e5ae01" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/app/categories/[slug]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/categories/[slug]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/admin/shipment-creation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/shipment-creation.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.tsbuildinfo" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.tsbuildinfo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/admin/logistics/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/logistics/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/order-tracker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/order-tracker.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +63,11 @@
     ]
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="V:\Github\nivara-fullstack-ecommerce-web-app" />
+    </key>
+  </component>
   <component name="RunManager" selected="npm.Next.js: server-side">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
@@ -99,6 +103,7 @@
       <workItem from="1765951408403" duration="33000" />
       <workItem from="1765974382074" duration="6848000" />
       <workItem from="1765983334316" duration="5791000" />
+      <workItem from="1766061248544" duration="2986000" />
     </task>
     <servers />
   </component>
