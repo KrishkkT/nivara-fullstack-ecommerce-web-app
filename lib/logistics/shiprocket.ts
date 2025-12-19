@@ -133,27 +133,33 @@ export async function getPickupLocations() {
 // 3. Order Creation
 export async function createOrder(orderData: any) {
   try {
-    // Validate required fields for adhoc order creation
+    // Validate required fields for adhoc order creation (according to API specification)
     const requiredFields = [
       'order_id',
       'order_date',
+      'pickup_location',
       'billing_customer_name',
       'billing_address',
+      'billing_city',
       'billing_pincode',
+      'billing_state',
+      'billing_country',
+      'billing_email',
       'billing_phone',
+      'shipping_is_billing',
+      'order_items',
       'payment_method',
-      'order_items'
+      'sub_total',
+      'length',
+      'breadth',
+      'height',
+      'weight'
     ];
     
     for (const field of requiredFields) {
-      if (!orderData[field]) {
+      if (orderData[field] === undefined || orderData[field] === null || orderData[field] === '') {
         throw new Error(`Missing required field: ${field}`);
       }
-    }
-    
-    // Check for pickup location (can be either pickup_location or pickup_address_id)
-    if (!orderData.pickup_location && !orderData.pickup_address_id) {
-      throw new Error("Missing required field: pickup_location or pickup_address_id");
     }
     
     // Validate order_items array
@@ -165,8 +171,23 @@ export async function createOrder(orderData: any) {
     for (const item of orderData.order_items) {
       const itemRequiredFields = ['name', 'sku', 'units', 'selling_price'];
       for (const field of itemRequiredFields) {
-        if (item[field] === undefined || item[field] === null) {
+        if (item[field] === undefined || item[field] === null || item[field] === '') {
           throw new Error(`Missing required field in order_items: ${field}`);
+        }
+      }
+    }
+    
+    // Additional validations
+    if (typeof orderData.shipping_is_billing !== 'boolean') {
+      throw new Error("shipping_is_billing must be a boolean value");
+    }
+    
+    if (!orderData.shipping_is_billing) {
+      // If shipping is not billing, these fields are required
+      const shippingFields = ['shipping_customer_name', 'shipping_address', 'shipping_city', 'shipping_pincode', 'shipping_state', 'shipping_country'];
+      for (const field of shippingFields) {
+        if (!orderData[field]) {
+          throw new Error(`Missing required field for separate shipping address: ${field}`);
         }
       }
     }

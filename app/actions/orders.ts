@@ -4,6 +4,7 @@ import { sql } from "@/lib/db"
 import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 import { sendEmail, generateCancellationConfirmationEmail } from "@/lib/email"
+import { createOrder as createShiprocketOrder, getPickupLocations } from "@/lib/logistics/shiprocket"
 
 interface OrderItem {
   productId: number
@@ -155,6 +156,14 @@ export async function createOrder(data: OrderData) {
       // Don't fail the order creation if address saving fails
     }
 
+    // Automatically create order in Shiprocket
+    try {
+      await createShiprocketOrderAutomatically(orderId, orderNumber, data);
+    } catch (shiprocketError) {
+      console.error("[v0] Failed to create Shiprocket order:", shiprocketError);
+      // Don't fail the order creation if Shiprocket sync fails
+    }
+
     // Email notifications will be sent after successful payment verification
 
     return { success: true, orderId, orderNumber }
@@ -283,5 +292,162 @@ export async function cancelOrder(orderId: number) {
   } catch (error) {
     console.error("[v0] Failed to cancel order:", error);
     return { error: "Failed to cancel order" }
+  }
+}
+
+// Helper function to automatically create orders in Shiprocket
+async function createShiprocketOrderAutomatically(orderId: number, orderNumber: string, data: OrderData) {
+  try {
+    // Get user details for the order
+    const userResult: any = await sql`
+      SELECT u.full_name, u.email, u.phone, a.*
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      LEFT JOIN addresses a ON o.shipping_address_id = a.id
+      WHERE o.id = ${orderId}
+    `;
+
+    if (userResult.length === 0) {
+      throw new Error("User not found for order");
+    }
+
+    const user = userResult[0];
+    
+    // Get shipping address
+    let shippingAddress = null;
+    if (data.shippingAddressId) {
+      const addressResult: any = await sql`
+        SELECT * FROM addresses WHERE id = ${data.shippingAddressId}
+      `;
+      if (addressResult.length > 0) {
+        shippingAddress = addressResult[0];
+      }
+    } else if (data.shippingAddress) {
+      shippingAddress = data.shippingAddress;
+    }
+
+    if (!shippingAddress) {
+      throw new Error("Shipping address not found");
+    }
+
+    // Get order items with product details
+    const orderItemsResult: any = await sql`
+      SELECT oi.*, p.name as product_name, p.sku as product_sku
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      WHERE oi.order_id = ${orderId}
+    `;
+
+    // Transform order items to Shiprocket format
+    const shiprocketItems = orderItemsResult.map((item: any) => ({
+      name: item.product_name,
+      sku: item.product_sku || `SKU-${item.product_id}`,
+      units: item.quantity,
+      selling_price: parseFloat(item.product_price),
+      discount: 0, // No discount by default
+      tax: 0, // No tax by default
+      hsn: "", // HSN code can be added if available
+      weight: 0.5 // Default weight in kg, you might want to get this from product data
+    }));
+
+    // Get pickup location
+    let pickupLocation = null;
+    try {
+      const pickupLocations = await getPickupLocations();
+      
+      // Handle different response structures
+      let locationsData = [];
+      if (pickupLocations && pickupLocations.data) {
+        // Check for shipping_address array (new API structure)
+        if (Array.isArray(pickupLocations.data.shipping_address)) {
+          locationsData = pickupLocations.data.shipping_address;
+        } 
+        // Check for pickup_locations array (old API structure)
+        else if (Array.isArray(pickupLocations.data.pickup_locations)) {
+          locationsData = pickupLocations.data.pickup_locations;
+        } 
+        // Check for nested data arrays
+        else if (Array.isArray(pickupLocations.data.data)) {
+          locationsData = pickupLocations.data.data;
+        } 
+        // Check for pickup_location array (singular form)
+        else if (Array.isArray(pickupLocations.data.pickup_location)) {
+          locationsData = pickupLocations.data.pickup_location;
+        } 
+        // Handle single object
+        else if (typeof pickupLocations.data === 'object' && !Array.isArray(pickupLocations.data)) {
+          locationsData = [pickupLocations.data];
+        }
+      }
+      
+      // Use primary pickup location or first available
+      const primaryLocation = locationsData.find((loc: any) => loc.is_primary_location || loc.primary) || locationsData[0];
+      if (primaryLocation) {
+        pickupLocation = primaryLocation.name || primaryLocation.pickup_location || primaryLocation.id;
+      }
+    } catch (pickupError) {
+      console.warn("Failed to fetch pickup locations for Shiprocket order:", pickupError);
+    }
+
+    if (!pickupLocation) {
+      throw new Error("No pickup location configured");
+    }
+
+    // Prepare order data for Shiprocket (following the exact API specification)
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const shiprocketOrderData = {
+      order_id: orderNumber,
+      order_date: currentDate,
+      pickup_location: pickupLocation,
+      billing_customer_name: user.full_name.split(' ')[0] || user.full_name, // First name only
+      billing_last_name: user.full_name.split(' ').slice(1).join(' ') || "", // Last name
+      billing_address: shippingAddress.address_line1,
+      billing_address_2: shippingAddress.address_line2 || "",
+      billing_city: shippingAddress.city,
+      billing_pincode: parseInt(shippingAddress.postal_code),
+      billing_state: shippingAddress.state,
+      billing_country: shippingAddress.country || "India",
+      billing_email: user.email,
+      billing_phone: parseInt(user.phone.replace(/[^0-9]/g, '')), // Remove non-numeric characters
+      billing_alternate_phone: "",
+      shipping_is_billing: true,
+      order_items: shiprocketItems,
+      payment_method: data.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
+      sub_total: Math.round(data.totalAmount), // Integer value as required
+      length: 15, // Default dimensions in cm
+      breadth: 10,
+      height: 5,
+      weight: Math.max(0.1, shiprocketItems.reduce((sum: number, item: any) => sum + (item.weight * item.units), 0)), // Minimum 0.1 kg
+      shipping_charges: 0,
+      giftwrap_charges: 0,
+      transaction_charges: 0,
+      total_discount: 0
+    };
+
+    // Create the order in Shiprocket
+    const orderResult = await createShiprocketOrder(shiprocketOrderData);
+    
+    if (!orderResult || !orderResult.order_id) {
+      throw new Error("Failed to create order in Shiprocket");
+    }
+
+    // Store the order mapping in our database
+    await sql`
+      INSERT INTO shiprocket_orders (order_id, shiprocket_order_id, shipment_id, awb_code, status, created_at)
+      VALUES (${orderNumber}, ${orderResult.order_id.toString()}, ${orderResult.shipment_id ? orderResult.shipment_id.toString() : null}, ${orderResult.awb_code || null}, 'placed', NOW())
+      ON CONFLICT (order_id) 
+      DO UPDATE SET 
+        shiprocket_order_id = EXCLUDED.shiprocket_order_id,
+        shipment_id = EXCLUDED.shipment_id,
+        awb_code = EXCLUDED.awb_code,
+        status = EXCLUDED.status,
+        updated_at = NOW()
+    `;
+
+    console.log(`[v0] Successfully created Shiprocket order for order #${orderNumber}`);
+  } catch (error) {
+    console.error(`[v0] Error creating Shiprocket order for order #${orderNumber}:`, error);
+    throw error;
   }
 }

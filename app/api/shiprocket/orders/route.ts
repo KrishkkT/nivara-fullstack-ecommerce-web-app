@@ -18,13 +18,15 @@ export async function POST(request: Request) {
 
     const data = await request.json();
     
-    // Validate required fields
-    if (!data.order_id || !data.billing_customer_name || !data.billing_address || 
-        !data.billing_city || !data.billing_state || !data.billing_pincode || 
-        !data.billing_phone || !data.shipping_is_billing || !data.order_items || 
-        !data.payment_method || !data.sub_total) {
+    // Validate required fields (according to Shiprocket API specification)
+    if (!data.order_id || !data.order_date || !data.pickup_location || 
+        !data.billing_customer_name || !data.billing_address || !data.billing_city || 
+        !data.billing_pincode || !data.billing_state || !data.billing_country || 
+        !data.billing_email || !data.billing_phone || data.shipping_is_billing === undefined || 
+        !data.order_items || !data.payment_method || !data.sub_total || 
+        !data.length || !data.breadth || !data.height || !data.weight) {
       return NextResponse.json({ 
-        error: "Missing required fields" 
+        error: "Missing required fields for Shiprocket order creation" 
       }, { status: 400 });
     }
     
@@ -91,13 +93,35 @@ export async function POST(request: Request) {
       // Continue with order creation even if serviceability check fails
     }
 
-    // Prepare order data with pickup location
-    // Use pickup location from frontend if provided, otherwise use fetched location
-    // Shiprocket expects either pickup_location (name) or pickup_address_id (ID), not both
+    // Prepare order data according to Shiprocket API specification
+    // Ensure all required fields are properly formatted
     const orderData = {
       ...data,
-      pickup_location: data.pickup_location || pickupLocation
+      order_date: data.order_date || new Date().toISOString().split('T')[0],
+      pickup_location: data.pickup_location || pickupLocation,
+      billing_pincode: parseInt(data.billing_pincode),
+      billing_phone: parseInt(data.billing_phone.toString().replace(/[^0-9]/g, '')),
+      sub_total: Math.round(parseFloat(data.sub_total)),
+      length: parseFloat(data.length),
+      breadth: parseFloat(data.breadth),
+      height: parseFloat(data.height),
+      weight: Math.max(0.1, parseFloat(data.weight)),
+      shipping_charges: data.shipping_charges ? parseFloat(data.shipping_charges) : 0,
+      giftwrap_charges: data.giftwrap_charges ? parseFloat(data.giftwrap_charges) : 0,
+      transaction_charges: data.transaction_charges ? parseFloat(data.transaction_charges) : 0,
+      total_discount: data.total_discount ? parseFloat(data.total_discount) : 0
     };
+    
+    // Process order items to ensure proper formatting
+    orderData.order_items = data.order_items.map((item: any) => ({
+      name: item.name,
+      sku: item.sku,
+      units: parseInt(item.units),
+      selling_price: parseFloat(item.selling_price),
+      discount: item.discount ? parseFloat(item.discount) : 0,
+      tax: item.tax ? parseFloat(item.tax) : 0,
+      hsn: item.hsn || ""
+    }));
     
     // Create the order in Shiprocket
     const orderResult = await createOrder(orderData);
