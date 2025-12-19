@@ -21,6 +21,7 @@ export async function GET(request: Request) {
       const cachedLocations: any = await sql`
         SELECT shiprocket_location_id as id, name, email, phone, address, city, state, country, pin_code, "primary"
         FROM shiprocket_pickup_locations
+        WHERE shiprocket_location_id IS NOT NULL AND name IS NOT NULL AND name != ''
         ORDER BY "primary" DESC, name ASC
       `;
 
@@ -55,6 +56,11 @@ export async function GET(request: Request) {
       }
     }
     
+    // Filter out locations without valid IDs
+    locationsData = locationsData.filter((location: any) => 
+      location && (location.id || location.shiprocket_location_id)
+    );
+    
     console.log("Processed pickup locations data:", JSON.stringify(locationsData, null, 2));
     
     // Cache the locations
@@ -67,6 +73,13 @@ export async function GET(request: Request) {
       
       const locationId = location.id || location.shiprocket_location_id;
       const name = location.name || 'Unknown Location';
+      
+      // Skip locations with missing names
+      if (!name || name === 'Unknown Location') {
+        console.warn('Skipping pickup location with missing name:', location);
+        continue;
+      }
+      
       const address = location.address || 'Unknown Address';
       const city = location.city || 'Unknown City';
       const state = location.state || 'Unknown State';
@@ -105,7 +118,12 @@ export async function GET(request: Request) {
       `;
     }
 
-    return NextResponse.json({ pickup_locations: locationsData });
+    // Filter one more time before returning
+    const validLocations = locationsData.filter((location: any) => 
+      location && (location.id || location.shiprocket_location_id) && location.name
+    );
+    
+    return NextResponse.json({ pickup_locations: validLocations });
   } catch (error) {
     console.error("Error fetching pickup locations:", error);
     return NextResponse.json({ error: "Failed to fetch pickup locations" }, { status: 500 });

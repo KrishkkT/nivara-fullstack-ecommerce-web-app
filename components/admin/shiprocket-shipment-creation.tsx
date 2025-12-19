@@ -65,12 +65,18 @@ export function ShiprocketShipmentCreation() {
       const data = await response.json();
       
       if (response.ok) {
-        const locations = data.pickup_locations || [];
+        // Filter out locations without valid IDs
+        const locations = (data.pickup_locations || [])
+          .filter((loc: any) => loc.id || loc.shiprocket_location_id);
+        
         setPickupLocations(locations);
-        // Set default to primary location
+        
+        // Set default to primary location, or first location if no primary
         const primaryLocation = locations.find((loc: any) => loc.primary);
-        if (primaryLocation) {
-          setPickupLocation((primaryLocation.id || primaryLocation.shiprocket_location_id)?.toString() || '');
+        const defaultLocation = primaryLocation || locations[0];
+        
+        if (defaultLocation) {
+          setPickupLocation((defaultLocation.id || defaultLocation.shiprocket_location_id).toString());
         }
       }
     } catch (error) {
@@ -108,7 +114,7 @@ export function ShiprocketShipmentCreation() {
 
     try {
       // Validate required fields
-      if (!orderId || !pickupLocation || !billingCustomerName || !billingAddress || 
+      if (!orderId || !pickupLocation || pickupLocation === '' || !billingCustomerName || !billingAddress || 
           !billingCity || !billingState || !billingPincode || !billingPhone) {
         throw new Error("Please fill in all required billing fields");
       }
@@ -139,7 +145,7 @@ export function ShiprocketShipmentCreation() {
       const selectedLocation = pickupLocations.find(loc => 
         (loc.id || loc.shiprocket_location_id)?.toString() === pickupLocation
       );
-      const pickupLocationName = selectedLocation ? selectedLocation.name : pickupLocation;
+      const pickupLocationName = selectedLocation ? selectedLocation.name : (pickupLocations[0] ? pickupLocations[0].name : pickupLocation);
       
       // Prepare order data according to Shiprocket requirements
       const orderData = {
@@ -249,10 +255,12 @@ export function ShiprocketShipmentCreation() {
                     <SelectValue placeholder="Select pickup location" />
                   </SelectTrigger>
                   <SelectContent>
-                    {pickupLocations.map((location) => (
+                    {pickupLocations
+                      .filter(location => (location.id || location.shiprocket_location_id))
+                      .map((location) => (
                       <SelectItem 
                         key={location.id || location.shiprocket_location_id} 
-                        value={(location.id || location.shiprocket_location_id)?.toString() || ''}
+                        value={(location.id || location.shiprocket_location_id).toString()}
                       >
                         {location.name} {location.primary && "(Primary)"}
                       </SelectItem>
