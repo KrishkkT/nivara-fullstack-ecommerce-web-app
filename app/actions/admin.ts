@@ -342,6 +342,11 @@ export async function addProduct(data: any) {
     
     while (!isUnique && attempts < 10) {
       try {
+        // Ensure numeric values are properly formatted
+        const price = data.price ? parseFloat(data.price) : 0;
+        const compareAtPrice = data.compareAtPrice ? parseFloat(data.compareAtPrice) : null;
+        const categoryId = data.categoryId ? parseInt(data.categoryId) : null;
+        
         const result: any = await sql`
           INSERT INTO products (
             name, 
@@ -361,13 +366,13 @@ export async function addProduct(data: any) {
             ${data.name},
             ${slug},
             ${data.description},
-            ${data.price},
-            ${data.compareAtPrice},
-            ${data.categoryId},
+            ${price},
+            ${compareAtPrice},
+            ${categoryId},
             ${data.imageUrl},
             ${JSON.stringify(data.images)},
-            ${data.metalPurity},
-            ${data.designNumber},
+            ${data.metalPurity || null},
+            ${data.designNumber || null},
             ${data.isFeatured},
             ${data.isActive}
           )
@@ -436,19 +441,24 @@ export async function updateProduct(productId: number, data: any) {
         .replace(/^-+|-+$/g, '');
     }
     
+    // Ensure numeric values are properly formatted
+    const price = data.price ? parseFloat(data.price) : 0;
+    const compareAtPrice = data.compareAtPrice ? parseFloat(data.compareAtPrice) : null;
+    const categoryId = data.categoryId ? parseInt(data.categoryId) : null;
+    
     await sql`
       UPDATE products
       SET 
         name = ${data.name},
         slug = ${slug},
         description = ${data.description},
-        price = ${data.price},
-        compare_at_price = ${data.compareAtPrice},
-        category_id = ${data.categoryId},
+        price = ${price},
+        compare_at_price = ${compareAtPrice},
+        category_id = ${categoryId},
         image_url = ${data.imageUrl},
         images = ${JSON.stringify(data.images)},
-        metal_purity = ${data.metalPurity},
-        design_number = ${data.designNumber},
+        metal_purity = ${data.metalPurity || null},
+        design_number = ${data.designNumber || null},
         is_featured = ${data.isFeatured},
         is_active = ${data.isActive},
         updated_at = CURRENT_TIMESTAMP

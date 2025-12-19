@@ -56,21 +56,35 @@ export async function GET(request: Request) {
     
     // Cache the locations
     for (const location of locationsData) {
+      // Skip locations with missing required fields
+      if (!location.id && !location.shiprocket_location_id) {
+        console.warn('Skipping pickup location with missing ID:', location);
+        continue;
+      }
+      
+      const locationId = location.id || location.shiprocket_location_id;
+      const name = location.name || 'Unknown Location';
+      const address = location.address || 'Unknown Address';
+      const city = location.city || 'Unknown City';
+      const state = location.state || 'Unknown State';
+      const country = location.country || 'India';
+      const pinCode = location.pin_code || location.pincode || location['pin_code'] || '000000';
+      
       await sql`
         INSERT INTO shiprocket_pickup_locations (
           shiprocket_location_id, name, email, phone, address, 
           city, state, country, pin_code, "primary"
         )
         VALUES (
-          ${location.id || location.shiprocket_location_id}, 
-          ${location.name}, 
+          ${locationId}, 
+          ${name}, 
           ${location.email || null}, 
           ${location.phone || null}, 
-          ${location.address}, 
-          ${location.city}, 
-          ${location.state}, 
-          ${location.country}, 
-          ${location.pin_code || location.pincode || location['pin_code']}, 
+          ${address}, 
+          ${city}, 
+          ${state}, 
+          ${country}, 
+          ${pinCode}, 
           ${location.primary || location['primary'] || false}
         )
         ON CONFLICT (shiprocket_location_id) 

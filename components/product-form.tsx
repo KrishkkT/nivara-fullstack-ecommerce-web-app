@@ -183,13 +183,13 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       name: productName.trim(),
       slug: slug,
       description: description.trim(),
-      price: parseFloat(price).toString(), // Ensure price is a valid number
-      categoryId: Number.parseInt(selectedCategory),
+      price: price ? parseFloat(price) : 0, // Ensure price is a valid number
+      categoryId: selectedCategory ? parseInt(selectedCategory) : null,
       imageUrl: imageUrls[0] || "",
       images: imageUrls.length > 0 ? imageUrls : [],
       metalPurity: metalPurity?.trim() || null,
       designNumber: designNumber?.trim() || null,
-      compareAtPrice: '',
+      compareAtPrice: null, // Set to null instead of empty string
       isFeatured: false,
       isActive: true
     }
