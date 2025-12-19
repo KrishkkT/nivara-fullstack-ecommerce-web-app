@@ -3,50 +3,98 @@ import { sql } from "@/lib/db";
 // Shiprocket API base URL
 const SHIPROCKET_API_URL = "https://apiv2.shiprocket.in/v1/external";
 
-// Get Shiprocket API token from environment variables
-function getShiprocketToken(): string {
-  const token = process.env.SHIPROCKET_API_TOKEN;
-  if (!token) {
-    throw new Error("SHIPROCKET_API_TOKEN environment variable is not set");
+let shiprocketToken: string | null = null;
+let tokenExpiry: number | null = null;
+
+// Authenticate with Shiprocket and get token
+async function authenticateAndGetToken(): Promise<string> {
+  // Return cached token if still valid
+  if (shiprocketToken && tokenExpiry && Date.now() < tokenExpiry) {
+    return shiprocketToken;
   }
-  return token;
+
+  const email = process.env.SHIPROCKET_EMAIL;
+  const password = process.env.SHIPROCKET_PASSWORD;
+  
+  if (!email || !password) {
+    throw new Error("SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD environment variables are not set");
+  }
+
+  try {
+    const response = await fetch(`${SHIPROCKET_API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Authentication failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    shiprocketToken = data.token;
+    // Token usually expires in 24 hours, set expiry to 23 hours for safety
+    tokenExpiry = Date.now() + (23 * 60 * 60 * 1000);
+    
+    return shiprocketToken;
+  } catch (error) {
+    console.error("Error authenticating with Shiprocket:", error);
+    throw error;
+  }
 }
 
 // Common headers for Shiprocket API requests
-function getHeaders() {
+async function getHeaders() {
+  const token = await authenticateAndGetToken();
   return {
-    "Authorization": `Bearer ${getShiprocketToken()}`,
+    "Authorization": `Bearer ${token}`,
     "Content-Type": "application/json",
   };
 }
 
 // Generic function to make GET requests to Shiprocket API
 async function shiprocketGet(endpoint: string) {
-  const response = await fetch(`${SHIPROCKET_API_URL}${endpoint}`, {
-    method: "GET",
-    headers: getHeaders(),
-  });
+  try {
+    const headers = await getHeaders();
+    const response = await fetch(`${SHIPROCKET_API_URL}${endpoint}`, {
+      method: "GET",
+      headers: headers,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Shiprocket API error: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Shiprocket API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error in shiprocketGet for ${endpoint}:`, error);
+    throw error;
   }
-
-  return await response.json();
 }
 
 // Generic function to make POST requests to Shiprocket API
 async function shiprocketPost(endpoint: string, data: any) {
-  const response = await fetch(`${SHIPROCKET_API_URL}${endpoint}`, {
-    method: "POST",
-    headers: getHeaders(),
-    body: JSON.stringify(data),
-  });
+  try {
+    const headers = await getHeaders();
+    const response = await fetch(`${SHIPROCKET_API_URL}${endpoint}`, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(data),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Shiprocket API error: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Shiprocket API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error in shiprocketPost for ${endpoint}:`, error);
+    throw error;
   }
-
-  return await response.json();
 }
 
 // 1. Authentication - Login to get token
@@ -76,9 +124,9 @@ export async function getPickupLocations() {
   try {
     const response = await shiprocketGet("/settings/company/pickup");
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching pickup locations:", error);
-    throw error;
+    throw new Error(`Failed to fetch pickup locations: ${error.message || error}`);
   }
 }
 
@@ -121,9 +169,9 @@ export async function createOrder(orderData: any) {
     
     const response = await shiprocketPost("/orders/create/adhoc", orderData);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating order:", error);
-    throw error;
+    throw new Error(`Failed to create order: ${error.message || error}`);
   }
 }
 
@@ -156,9 +204,9 @@ export async function checkCourierServiceability(data: {
     
     const response = await shiprocketPost("/courier/serviceability", data);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error checking courier serviceability:", error);
-    throw error;
+    throw new Error(`Failed to check courier serviceability: ${error.message || error}`);
   }
 }
 
@@ -170,9 +218,9 @@ export async function assignAWB(shipmentData: {
   try {
     const response = await shiprocketPost("/courier/assign/awb", shipmentData);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error assigning AWB:", error);
-    throw error;
+    throw new Error(`Failed to assign AWB: ${error.message || error}`);
   }
 }
 
@@ -183,9 +231,9 @@ export async function generateShippingLabel(shipmentId: number) {
       shipment_id: [shipmentId]
     });
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating shipping label:", error);
-    throw error;
+    throw new Error(`Failed to generate shipping label: ${error.message || error}`);
   }
 }
 
@@ -197,9 +245,9 @@ export async function requestPickup(shipmentData: {
   try {
     const response = await shiprocketPost("/courier/generate/pickup", shipmentData);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error requesting pickup:", error);
-    throw error;
+    throw new Error(`Failed to request pickup: ${error.message || error}`);
   }
 }
 
@@ -220,9 +268,9 @@ export async function trackShipment(awbCode?: string, shipmentId?: number, order
     
     const response = await shiprocketGet(endpoint);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error tracking shipment:", error);
-    throw error;
+    throw new Error(`Failed to track shipment: ${error.message || error}`);
   }
 }
 
@@ -240,9 +288,9 @@ export async function getAllOrders(page?: number, perPage?: number) {
     
     const response = await shiprocketGet(endpoint);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching orders:", error);
-    throw error;
+    throw new Error(`Failed to fetch orders: ${error.message || error}`);
   }
 }
 
@@ -251,9 +299,9 @@ export async function getOrderDetails(orderId: number) {
   try {
     const response = await shiprocketGet(`/orders/show/${orderId}`);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching order details:", error);
-    throw error;
+    throw new Error(`Failed to fetch order details: ${error.message || error}`);
   }
 }
 
@@ -262,9 +310,9 @@ export async function updateOrder(orderData: any) {
   try {
     const response = await shiprocketPost("/orders/update/adhoc", orderData);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating order:", error);
-    throw error;
+    throw new Error(`Failed to update order: ${error.message || error}`);
   }
 }
 
@@ -273,9 +321,9 @@ export async function cancelOrder(data: { order_id: number[] }) {
   try {
     const response = await shiprocketPost("/orders/cancel", data);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error cancelling order:", error);
-    throw error;
+    throw new Error(`Failed to cancel order: ${error.message || error}`);
   }
 }
 
@@ -284,9 +332,9 @@ export async function getCouriers() {
   try {
     const response = await shiprocketGet("/courier/courierListWithCounts");
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching couriers:", error);
-    throw error;
+    throw new Error(`Failed to fetch couriers: ${error.message || error}`);
   }
 }
 
