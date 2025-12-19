@@ -137,11 +137,14 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       slug: slug,
       description: formData.get("description") as string,
       price: formData.get("price") as string,
-      category_id: Number.parseInt(selectedCategory),
-      image_url: imageUrls[0] || "",
+      categoryId: Number.parseInt(selectedCategory),
+      imageUrl: imageUrls[0] || "",
       images: imageUrls.length > 0 ? imageUrls : [],
-      metal_purity: formData.get("metal_purity") as string,
+      metalPurity: formData.get("metal_purity") as string,
       designNumber: formData.get("design_number") as string,
+      compareAtPrice: '',
+      isFeatured: false,
+      isActive: true
     }
 
     const result = product ? await updateProduct(product.id, data) : await addProduct(data)

@@ -43,12 +43,6 @@ export async function Header() {
           <Link href="/care" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Care
           </Link>
-          <Link 
-            href="/shipping/pincode" 
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Shipping
-          </Link>
           <Link href="/contact" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Contact
           </Link>

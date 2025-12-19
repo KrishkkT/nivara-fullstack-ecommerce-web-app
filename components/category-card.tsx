@@ -27,7 +27,9 @@ export function CategoryCard({ category, index }: { category: Category; index: n
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
         <h3 className="text-2xl font-serif mb-2">{category.name}</h3>
-        <p className="text-sm text-white/90">{category.description}</p>
+        {category.description && (
+          <p className="text-sm text-white/90">{category.description}</p>
+        )}
       </div>
     </Link>
   )

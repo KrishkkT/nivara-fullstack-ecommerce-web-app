@@ -93,66 +93,7 @@ export default function ShippingPage() {
           </div>
         </div>
 
-        <div className="bg-card border rounded-2xl p-8 shadow-sm">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-serif font-semibold mb-4">Privacy Policy</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2">1. Information We Collect</h3>
-                  <p className="text-muted-foreground">
-                    We may collect your name, email, phone number, address, and order details. Payment details are processed by secure payment gateways.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">2. How We Use Your Information</h3>
-                  <p className="text-muted-foreground">
-                    We use your data to process orders, improve the website, and provide customer support. Marketing communication is sent only with your permission.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">3. Sharing Your Information</h3>
-                  <p className="text-muted-foreground">
-                    We share required information with courier partners, payment gateways, and trusted service providers. We never sell personal data.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">4. Cookies</h3>
-                  <p className="text-muted-foreground">
-                    Cookies help us improve user experience. You can disable cookies through your browser settings.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">5. Data Security</h3>
-                  <p className="text-muted-foreground">
-                    We follow industry standards to protect your personal information.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">6. Your Rights</h3>
-                  <p className="text-muted-foreground">
-                    You may request data correction or deletion at any time.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-2">7. Contact</h3>
-                  <p className="text-muted-foreground">
-                    For privacy-related concerns, contact: <a href="mailto:nivarajewel@gmail.com" className="text-primary hover:underline">nivarajewel@gmail.com</a>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   )

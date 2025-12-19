@@ -139,7 +139,9 @@ export function AdminCategoriesList({ categories }: AdminCategoriesListProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
+              {category.description && (
+                <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
+              )}
               {category.seo_title && (
                 <div className="space-y-1">
                   <Badge variant="outline" className="text-xs">

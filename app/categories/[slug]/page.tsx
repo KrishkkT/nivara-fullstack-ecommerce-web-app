@@ -68,7 +68,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     <div className="container px-4 py-12">
       <div className="text-center space-y-4 mb-12">
         <h1 className="text-4xl md:text-5xl font-serif tracking-tight">{category[0].name}</h1>
-        <p className="text-lg text-muted-foreground">{category[0].description}</p>
+        {category[0].description && (
+          <p className="text-lg text-muted-foreground">{category[0].description}</p>
+        )}
       </div>
 
       {products.length > 0 ? (

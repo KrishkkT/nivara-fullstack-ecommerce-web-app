@@ -102,7 +102,9 @@ export default async function CategoriesPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   <div className="absolute bottom-6 left-6">
                     <h2 className="text-3xl font-serif font-bold text-white mb-2 drop-shadow-lg">{category.name}</h2>
-                    <p className="text-white/90 text-sm drop-shadow">{category.description}</p>
+                    {category.description && (
+                      <p className="text-white/90 text-sm drop-shadow">{category.description}</p>
+                    )}
                   </div>
                 </div>
                 <div className="p-6 space-y-4">
