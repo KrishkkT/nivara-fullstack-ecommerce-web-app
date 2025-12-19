@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createOrder, checkCourierServiceability } from "@/lib/logistics/shiprocket";
+import { createOrder, checkCourierServiceability, getPickupLocations } from "@/lib/logistics/shiprocket";
 import { sql } from "@/lib/db";
 import { verifyAuth } from "@/lib/session";
 
@@ -28,6 +28,46 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
+    // Get pickup location
+    let pickupLocation = data.pickup_location;
+    if (!pickupLocation) {
+      try {
+        const pickupLocations = await getPickupLocations();
+        
+        // Handle different response structures
+        let locationsData = [];
+        if (Array.isArray(pickupLocations.data)) {
+          locationsData = pickupLocations.data;
+        } else if (pickupLocations.data && typeof pickupLocations.data === 'object') {
+          // Check if it's an object with a pickup_locations array
+          if (Array.isArray(pickupLocations.data.pickup_locations)) {
+            locationsData = pickupLocations.data.pickup_locations;
+          } else if (Array.isArray((pickupLocations.data as any).data)) {
+            // Some APIs nest data in data.data
+            locationsData = (pickupLocations.data as any).data;
+          } else {
+            // Convert single object to array
+            locationsData = [pickupLocations.data];
+          }
+        }
+        
+        // Use primary pickup location or first available
+        const primaryLocation = locationsData.find((loc: any) => loc.primary) || locationsData[0];
+        if (primaryLocation) {
+          pickupLocation = primaryLocation.name || primaryLocation.id;
+        }
+      } catch (pickupError) {
+        console.warn("Failed to fetch pickup locations:", pickupError);
+      }
+    }
+    
+    // If we still don't have a pickup location, return an error
+    if (!pickupLocation) {
+      return NextResponse.json({ 
+        error: "No pickup location configured. Please configure a pickup location in your Shiprocket account." 
+      }, { status: 400 });
+    }
+
     // Check courier serviceability before creating order
     const serviceabilityData = {
       pickup_postcode: data.pickup_postcode || "110001", // Default to Delhi pincode
@@ -44,8 +84,15 @@ export async function POST(request: Request) {
       // Continue with order creation even if serviceability check fails
     }
 
+    // Prepare order data with pickup location
+    // Use pickup location from frontend if provided, otherwise use fetched location
+    const orderData = {
+      ...data,
+      pickup_location: data.pickup_location || data.pickup_address_id || pickupLocation
+    };
+    
     // Create the order in Shiprocket
-    const orderResult = await createOrder(data);
+    const orderResult = await createOrder(orderData);
     
     if (!orderResult || !orderResult.order_id) {
       throw new Error("Failed to create order in Shiprocket");

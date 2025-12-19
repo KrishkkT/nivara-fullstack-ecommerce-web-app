@@ -137,7 +137,8 @@ export function ShiprocketShipmentCreation() {
       // Prepare order data according to Shiprocket requirements
       const orderData = {
         order_id: orderId,
-        pickup_location_id: pickupLocation,
+        pickup_location: pickupLocation, // Using pickup_location (name) as fallback if ID is not working
+        pickup_address_id: pickupLocation, // Also send as ID for compatibility
         billing_customer_name: billingCustomerName,
         billing_last_name: "",
         billing_address: billingAddress + (billingAddress2 ? `, ${billingAddress2}` : ""),

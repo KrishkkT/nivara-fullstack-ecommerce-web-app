@@ -124,8 +124,55 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
 
     const formData = new FormData(e.currentTarget)
 
-    // Generate slug from product name
+    // Get form values
     const productName = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const price = formData.get("price") as string;
+    const metalPurity = formData.get("metal_purity") as string;
+    const designNumber = formData.get("design_number") as string;
+
+    // Form validation
+    if (!productName?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Product name is required",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    if (!description?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Description is required",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Valid price is required",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    if (!selectedCategory) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a category",
+        variant: "destructive",
+      })
+      setLoading(false)
+      return
+    }
+
+    // Generate slug from product name
     const slug = productName
       .toLowerCase()
       .trim()
@@ -133,36 +180,46 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       .replace(/^-+|-+$/g, '');
     
     const data = {
-      name: productName,
+      name: productName.trim(),
       slug: slug,
-      description: formData.get("description") as string,
-      price: formData.get("price") as string,
+      description: description.trim(),
+      price: parseFloat(price).toString(), // Ensure price is a valid number
       categoryId: Number.parseInt(selectedCategory),
       imageUrl: imageUrls[0] || "",
       images: imageUrls.length > 0 ? imageUrls : [],
-      metalPurity: formData.get("metal_purity") as string,
-      designNumber: formData.get("design_number") as string,
+      metalPurity: metalPurity?.trim() || null,
+      designNumber: designNumber?.trim() || null,
       compareAtPrice: '',
       isFeatured: false,
       isActive: true
     }
 
-    const result = product ? await updateProduct(product.id, data) : await addProduct(data)
+    try {
+      const result = product ? await updateProduct(product.id, data) : await addProduct(data)
 
-    setLoading(false)
+      setLoading(false)
 
-    if (result.success) {
-      toast({
-        title: product ? "Product updated" : "Product added",
-        description: product ? "Product has been updated successfully." : "Product has been added successfully.",
-      })
-      onSuccess()
-    } else {
+      if (result.success) {
+        toast({
+          title: product ? "Product updated" : "Product added",
+          description: product ? "Product has been updated successfully." : "Product has been added successfully.",
+        })
+        onSuccess()
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to save product",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      setLoading(false)
       toast({
         title: "Error",
-        description: result.error || "Failed to save product",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
+      console.error("Form submission error:", error)
     }
   }
 

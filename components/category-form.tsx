@@ -45,18 +45,46 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
     }
   }, [formData.name, category, formData.slug]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) {
     e.preventDefault()
+      
+    // Form validation
+    if (!formData.name?.trim()) {
+      alert("Category name is required");
+      return;
+    }
+      
+    if (!formData.slug?.trim()) {
+      alert("Slug is required");
+      return;
+    }
+      
+    if (!formData.image_url?.trim()) {
+      alert("Image URL is required");
+      return;
+    }
+      
+    if (!formData.description?.trim()) {
+      alert("Description is required");
+      return;
+    }
+      
     setIsSubmitting(true)
-    
-    // Prepare data for submission
-    const submitData = {
-      ...formData,
-      imageUrl: formData.image_url
-    };
-    
-    await onSubmit(submitData)
-    setIsSubmitting(false)
+      
+    try {
+      // Prepare data for submission
+      const submitData = {
+        ...formData,
+        imageUrl: formData.image_url
+      };
+        
+      await onSubmit(submitData)
+    } catch (error) {
+      console.error("Category form submission error:", error);
+      alert("An error occurred while saving the category. Please try again.");
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

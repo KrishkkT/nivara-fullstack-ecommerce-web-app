@@ -309,8 +309,15 @@ export async function deleteProduct(productId: number) {
     revalidatePath("/admin/products")
     revalidatePath("/shop")
     return { success: true }
-  } catch (error) {
-    return { success: false, error: "Failed to delete product" }
+  } catch (error: any) {
+    console.error("[v0] Delete product error:", error)
+    
+    // Handle specific database errors
+    if (error.code === '23503') {
+      return { success: false, error: 'Cannot delete product. It may be referenced by orders.' }
+    }
+    
+    return { success: false, error: error.message || 'Failed to delete product' }
   }
 }
 
@@ -389,9 +396,19 @@ export async function addProduct(data: any) {
     
     // If we've tried 10 times and still failed, return an error
     return { success: false, error: "Failed to generate unique slug after 10 attempts" };
-  } catch (error) {
-    console.error("[v0] Add product error:", error)
-    return { success: false, error: "Failed to add product" }
+  } catch (error: any) {
+    console.error('[v0] Add product error:', error)
+      
+    // Handle specific database errors
+    if (error.code === '22P02') {
+      return { success: false, error: 'Invalid data format. Please check all numeric fields are valid numbers.' }
+    } else if (error.code === '23505') {
+      return { success: false, error: 'A product with this name or slug already exists.' }
+    } else if (error.code === '23503') {
+      return { success: false, error: 'Invalid category selected.' }
+    }
+      
+    return { success: false, error: error.message || 'Failed to add product' }
   }
 }
 
@@ -443,9 +460,19 @@ export async function updateProduct(productId: number, data: any) {
     revalidatePath("/shop")
     revalidatePath(`/products/${slug}`)
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     console.error("[v0] Update product error:", error)
-    return { success: false, error: "Failed to update product" }
+    
+    // Handle specific database errors
+    if (error.code === '22P02') {
+      return { success: false, error: 'Invalid data format. Please check all numeric fields are valid numbers.' }
+    } else if (error.code === '23505') {
+      return { success: false, error: 'A product with this name or slug already exists.' }
+    } else if (error.code === '23503') {
+      return { success: false, error: 'Invalid category selected.' }
+    }
+    
+    return { success: false, error: error.message || 'Failed to update product' }
   }
 }
 
@@ -484,9 +511,17 @@ export async function addCategory(data: any) {
     revalidatePath("/admin/categories")
     revalidatePath("/shop")
     return { success: true, categoryId }
-  } catch (error) {
+  } catch (error: any) {
     console.error("[v0] Add category error:", error)
-    return { success: false, error: "Failed to add category" }
+    
+    // Handle specific database errors
+    if (error.code === '22P02') {
+      return { success: false, error: 'Invalid data format.' }
+    } else if (error.code === '23505') {
+      return { success: false, error: 'A category with this name or slug already exists.' }
+    }
+    
+    return { success: false, error: error.message || 'Failed to add category' }
   }
 }
 
@@ -528,9 +563,17 @@ export async function updateCategory(categoryId: number, data: any) {
     revalidatePath(`/admin/categories/${categoryId}`)
     revalidatePath("/shop")
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     console.error("[v0] Update category error:", error)
-    return { success: false, error: "Failed to update category" }
+    
+    // Handle specific database errors
+    if (error.code === '22P02') {
+      return { success: false, error: 'Invalid data format.' }
+    } else if (error.code === '23505') {
+      return { success: false, error: 'A category with this name or slug already exists.' }
+    }
+    
+    return { success: false, error: error.message || 'Failed to update category' }
   }
 }
 
@@ -567,8 +610,14 @@ export async function deleteCategory(categoryId: number) {
     revalidatePath("/admin/categories")
     revalidatePath("/shop")
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     console.error("[v0] Delete category error:", error)
-    return { success: false, error: "Failed to delete category" }
+    
+    // Handle specific database errors
+    if (error.code === '23503') {
+      return { success: false, error: 'Cannot delete category. Products are still associated with this category.' }
+    }
+    
+    return { success: false, error: error.message || 'Failed to delete category' }
   }
 }

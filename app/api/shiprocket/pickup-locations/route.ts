@@ -17,31 +17,61 @@ export async function GET(request: Request) {
     }
 
     // First try to get pickup locations from our cache
-    const cachedLocations: any = await sql`
-      SELECT shiprocket_location_id as id, name, email, phone, address, city, state, country, pin_code, "primary"
-      FROM shiprocket_pickup_locations
-      ORDER BY "primary" DESC, name ASC
-    `;
+    try {
+      const cachedLocations: any = await sql`
+        SELECT shiprocket_location_id as id, name, email, phone, address, city, state, country, pin_code, "primary"
+        FROM shiprocket_pickup_locations
+        ORDER BY "primary" DESC, name ASC
+      `;
 
-    // If we have cached locations, return them
-    if (cachedLocations.length > 0) {
-      return NextResponse.json({ pickup_locations: cachedLocations });
+      // If we have cached locations, return them
+      if (cachedLocations && cachedLocations.length > 0) {
+        return NextResponse.json({ pickup_locations: cachedLocations });
+      }
+    } catch (cacheError) {
+      console.warn("Failed to fetch cached pickup locations, fetching from Shiprocket API:", cacheError);
     }
 
     // Otherwise, fetch from Shiprocket API
     const pickupLocations = await getPickupLocations();
     
+    // Handle different response structures
+    let locationsData = [];
+    if (Array.isArray(pickupLocations.data)) {
+      locationsData = pickupLocations.data;
+    } else if (pickupLocations.data && typeof pickupLocations.data === 'object') {
+      // Check if it's an object with a pickup_locations array
+      if (Array.isArray(pickupLocations.data.pickup_locations)) {
+        locationsData = pickupLocations.data.pickup_locations;
+      } else if (Array.isArray((pickupLocations.data as any).data)) {
+        // Some APIs nest data in data.data
+        locationsData = (pickupLocations.data as any).data;
+      } else {
+        // Convert single object to array
+        locationsData = [pickupLocations.data];
+      }
+    }
+    
+    console.log("Processed pickup locations data:", JSON.stringify(locationsData, null, 2));
+    
     // Cache the locations
-    for (const location of pickupLocations.data) {
+    for (const location of locationsData) {
       await sql`
         INSERT INTO shiprocket_pickup_locations (
           shiprocket_location_id, name, email, phone, address, 
           city, state, country, pin_code, "primary"
         )
         VALUES (
-          ${location.id}, ${location.name}, ${location.email || null}, ${location.phone || null}, 
-          ${location.address}, ${location.city}, ${location.state}, ${location.country}, 
-          ${location.pin_code}, ${location.primary || false}
+          ${location.id || location.shiprocket_location_id}, 
+          ${location.name}, 
+          ${location.email || null}, 
+          ${location.phone || null}, 
+          ${location.address}, 
+          ${location.city}, 
+          ${location.state}, 
+          ${location.country}, 
+          ${location.pin_code || location.pincode || location['pin_code']}, 
+          ${location.primary || location['primary'] || false}
         )
         ON CONFLICT (shiprocket_location_id) 
         DO UPDATE SET
@@ -58,7 +88,7 @@ export async function GET(request: Request) {
       `;
     }
 
-    return NextResponse.json({ pickup_locations: pickupLocations.data });
+    return NextResponse.json({ pickup_locations: locationsData });
   } catch (error) {
     console.error("Error fetching pickup locations:", error);
     return NextResponse.json({ error: "Failed to fetch pickup locations" }, { status: 500 });

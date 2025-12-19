@@ -137,7 +137,6 @@ export async function createOrder(orderData: any) {
     const requiredFields = [
       'order_id',
       'order_date',
-      'pickup_location',
       'billing_customer_name',
       'billing_address',
       'billing_pincode',
@@ -150,6 +149,11 @@ export async function createOrder(orderData: any) {
       if (!orderData[field]) {
         throw new Error(`Missing required field: ${field}`);
       }
+    }
+    
+    // Check for pickup location (can be either pickup_location or pickup_address_id)
+    if (!orderData.pickup_location && !orderData.pickup_address_id) {
+      throw new Error("Missing required field: pickup_location or pickup_address_id");
     }
     
     // Validate order_items array
