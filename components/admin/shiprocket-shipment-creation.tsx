@@ -67,12 +67,12 @@ export function ShiprocketShipmentCreation() {
       if (response.ok) {
         // Filter out locations without valid IDs
         const locations = (data.pickup_locations || [])
-          .filter((loc: any) => loc.id || loc.shiprocket_location_id);
+          .filter((loc: any) => (loc.id || loc.shiprocket_location_id) && (loc.name || loc.pickup_location));
         
         setPickupLocations(locations);
         
         // Set default to primary location, or first location if no primary
-        const primaryLocation = locations.find((loc: any) => loc.primary);
+        const primaryLocation = locations.find((loc: any) => loc.primary || loc.is_primary_location);
         const defaultLocation = primaryLocation || locations[0];
         
         if (defaultLocation) {
@@ -145,7 +145,7 @@ export function ShiprocketShipmentCreation() {
       const selectedLocation = pickupLocations.find(loc => 
         (loc.id || loc.shiprocket_location_id)?.toString() === pickupLocation
       );
-      const pickupLocationName = selectedLocation ? selectedLocation.name : (pickupLocations[0] ? pickupLocations[0].name : pickupLocation);
+      const pickupLocationName = selectedLocation ? (selectedLocation.name || selectedLocation.pickup_location) : (pickupLocations[0] ? (pickupLocations[0].name || pickupLocations[0].pickup_location) : pickupLocation);
       
       // Prepare order data according to Shiprocket requirements
       const orderData = {
@@ -250,24 +250,24 @@ export function ShiprocketShipmentCreation() {
               
               <div className="space-y-2">
                 <Label htmlFor="pickup-location">Pickup Location *</Label>
-                <Select value={pickupLocation} onValueChange={setPickupLocation} disabled={loading}>
+                <Select value={pickupLocation} onValueChange={setPickupLocation} disabled={loading || (pickupLocations.length === 0)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select pickup location" />
                   </SelectTrigger>
                   <SelectContent>
                     {pickupLocations
-                      .filter(location => (location.id || location.shiprocket_location_id))
+                      .filter(location => (location.id || location.shiprocket_location_id) && (location.name || location.pickup_location))
                       .map((location) => (
                       <SelectItem 
                         key={location.id || location.shiprocket_location_id} 
                         value={(location.id || location.shiprocket_location_id).toString()}
                       >
-                        {location.name} {location.primary && "(Primary)"}
+                        {location.name || location.pickup_location} {location.primary && "(Primary)"}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {pickupLocations.length === 0 && (
+                {pickupLocations.length === 0 && !loading && (
                   <p className="text-sm text-muted-foreground">No pickup locations configured in Shiprocket.</p>
                 )}
               </div>

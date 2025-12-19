@@ -36,22 +36,27 @@ export async function GET(request: Request) {
     // Otherwise, fetch from Shiprocket API
     const pickupLocations = await getPickupLocations();
     
-    // Handle different response structures
+    // Handle different response structures based on Shiprocket API response
     let locationsData = [];
-    if (pickupLocations && Array.isArray(pickupLocations.data)) {
-      locationsData = pickupLocations.data;
-    } else if (pickupLocations && pickupLocations.data && typeof pickupLocations.data === 'object') {
-      // Check if it's an object with a pickup_locations array
-      if (Array.isArray(pickupLocations.data.pickup_locations)) {
+    if (pickupLocations && pickupLocations.data) {
+      // Check for shipping_address array (new API structure)
+      if (Array.isArray(pickupLocations.data.shipping_address)) {
+        locationsData = pickupLocations.data.shipping_address;
+      } 
+      // Check for pickup_locations array (old API structure)
+      else if (Array.isArray(pickupLocations.data.pickup_locations)) {
         locationsData = pickupLocations.data.pickup_locations;
-      } else if (Array.isArray((pickupLocations.data as any).data)) {
-        // Some APIs nest data in data.data
-        locationsData = (pickupLocations.data as any).data;
-      } else if (pickupLocations.data.pickup_location && Array.isArray(pickupLocations.data.pickup_location)) {
-        // Handle pickup_location array (singular form)
+      } 
+      // Check for nested data arrays
+      else if (Array.isArray(pickupLocations.data.data)) {
+        locationsData = pickupLocations.data.data;
+      } 
+      // Check for pickup_location array (singular form)
+      else if (Array.isArray(pickupLocations.data.pickup_location)) {
         locationsData = pickupLocations.data.pickup_location;
-      } else {
-        // Convert single object to array
+      } 
+      // Handle single object
+      else if (typeof pickupLocations.data === 'object' && !Array.isArray(pickupLocations.data)) {
         locationsData = [pickupLocations.data];
       }
     }
@@ -71,8 +76,9 @@ export async function GET(request: Request) {
         continue;
       }
       
+      // Map fields from Shiprocket response to our database schema
       const locationId = location.id || location.shiprocket_location_id;
-      const name = location.name || 'Unknown Location';
+      const name = location.name || location.pickup_location || 'Unknown Location';
       
       // Skip locations with missing names
       if (!name || name === 'Unknown Location') {
@@ -80,11 +86,12 @@ export async function GET(request: Request) {
         continue;
       }
       
-      const address = location.address || 'Unknown Address';
+      const address = location.address || location.address_2 || 'Unknown Address';
       const city = location.city || 'Unknown City';
       const state = location.state || 'Unknown State';
       const country = location.country || 'India';
       const pinCode = location.pin_code || location.pincode || location['pin_code'] || '000000';
+      const isPrimary = location.is_primary_location || location.primary || location['primary'] || false;
       
       await sql`
         INSERT INTO shiprocket_pickup_locations (
@@ -101,7 +108,7 @@ export async function GET(request: Request) {
           ${state}, 
           ${country}, 
           ${pinCode}, 
-          ${location.primary || location['primary'] || false}
+          ${isPrimary}
         )
         ON CONFLICT (shiprocket_location_id) 
         DO UPDATE SET
