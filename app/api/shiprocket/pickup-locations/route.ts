@@ -37,15 +37,18 @@ export async function GET(request: Request) {
     
     // Handle different response structures
     let locationsData = [];
-    if (Array.isArray(pickupLocations.data)) {
+    if (pickupLocations && Array.isArray(pickupLocations.data)) {
       locationsData = pickupLocations.data;
-    } else if (pickupLocations.data && typeof pickupLocations.data === 'object') {
+    } else if (pickupLocations && pickupLocations.data && typeof pickupLocations.data === 'object') {
       // Check if it's an object with a pickup_locations array
       if (Array.isArray(pickupLocations.data.pickup_locations)) {
         locationsData = pickupLocations.data.pickup_locations;
       } else if (Array.isArray((pickupLocations.data as any).data)) {
         // Some APIs nest data in data.data
         locationsData = (pickupLocations.data as any).data;
+      } else if (pickupLocations.data.pickup_location && Array.isArray(pickupLocations.data.pickup_location)) {
+        // Handle pickup_location array (singular form)
+        locationsData = pickupLocations.data.pickup_location;
       } else {
         // Convert single object to array
         locationsData = [pickupLocations.data];

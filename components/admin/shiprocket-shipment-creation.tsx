@@ -65,11 +65,12 @@ export function ShiprocketShipmentCreation() {
       const data = await response.json();
       
       if (response.ok) {
-        setPickupLocations(data.pickup_locations || []);
+        const locations = data.pickup_locations || [];
+        setPickupLocations(locations);
         // Set default to primary location
-        const primaryLocation = data.pickup_locations?.find((loc: PickupLocation) => loc.primary);
+        const primaryLocation = locations.find((loc: any) => loc.primary);
         if (primaryLocation) {
-          setPickupLocation(primaryLocation.id.toString());
+          setPickupLocation((primaryLocation.id || primaryLocation.shiprocket_location_id)?.toString() || '');
         }
       }
     } catch (error) {
@@ -135,7 +136,9 @@ export function ShiprocketShipmentCreation() {
       }
 
       // Find the selected pickup location name
-      const selectedLocation = pickupLocations.find(loc => loc.id.toString() === pickupLocation);
+      const selectedLocation = pickupLocations.find(loc => 
+        (loc.id || loc.shiprocket_location_id)?.toString() === pickupLocation
+      );
       const pickupLocationName = selectedLocation ? selectedLocation.name : pickupLocation;
       
       // Prepare order data according to Shiprocket requirements
@@ -241,13 +244,16 @@ export function ShiprocketShipmentCreation() {
               
               <div className="space-y-2">
                 <Label htmlFor="pickup-location">Pickup Location *</Label>
-                <Select value={pickupLocation} onValueChange={setPickupLocation} disabled={loading || pickupLocations.length === 0}>
+                <Select value={pickupLocation} onValueChange={setPickupLocation} disabled={loading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select pickup location" />
                   </SelectTrigger>
                   <SelectContent>
                     {pickupLocations.map((location) => (
-                      <SelectItem key={location.id} value={location.id.toString()}>
+                      <SelectItem 
+                        key={location.id || location.shiprocket_location_id} 
+                        value={(location.id || location.shiprocket_location_id)?.toString() || ''}
+                      >
                         {location.name} {location.primary && "(Primary)"}
                       </SelectItem>
                     ))}
