@@ -134,11 +134,14 @@ export function ShiprocketShipmentCreation() {
         total += item.selling_price * item.units;
       }
 
+      // Find the selected pickup location name
+      const selectedLocation = pickupLocations.find(loc => loc.id.toString() === pickupLocation);
+      const pickupLocationName = selectedLocation ? selectedLocation.name : pickupLocation;
+      
       // Prepare order data according to Shiprocket requirements
       const orderData = {
         order_id: orderId,
-        pickup_location: pickupLocation, // Using pickup_location (name) as fallback if ID is not working
-        pickup_address_id: pickupLocation, // Also send as ID for compatibility
+        pickup_location: pickupLocationName, // Send the name of the pickup location
         billing_customer_name: billingCustomerName,
         billing_last_name: "",
         billing_address: billingAddress + (billingAddress2 ? `, ${billingAddress2}` : ""),

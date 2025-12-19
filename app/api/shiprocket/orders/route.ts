@@ -27,6 +27,13 @@ export async function POST(request: Request) {
         error: "Missing required fields" 
       }, { status: 400 });
     }
+    
+    // Validate pickup location
+    if (!data.pickup_location && !pickupLocation) {
+      return NextResponse.json({ 
+        error: "Pickup location is required" 
+      }, { status: 400 });
+    }
 
     // Get pickup location
     let pickupLocation = data.pickup_location;
@@ -86,9 +93,10 @@ export async function POST(request: Request) {
 
     // Prepare order data with pickup location
     // Use pickup location from frontend if provided, otherwise use fetched location
+    // Shiprocket expects either pickup_location (name) or pickup_address_id (ID), not both
     const orderData = {
       ...data,
-      pickup_location: data.pickup_location || data.pickup_address_id || pickupLocation
+      pickup_location: data.pickup_location || pickupLocation
     };
     
     // Create the order in Shiprocket
