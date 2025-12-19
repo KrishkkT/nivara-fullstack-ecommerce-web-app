@@ -13,6 +13,7 @@ interface CategoryFormProps {
   category?: {
     id: number
     name: string
+    slug?: string
     description: string
     image_url: string
     seo_title?: string
@@ -45,8 +46,8 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
     }
   }, [formData.name, category, formData.slug]);
 
-  const handleSubmit = async (e: React.FormEvent) {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
       
     // Form validation
     if (!formData.name?.trim()) {
@@ -69,7 +70,7 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
       return;
     }
       
-    setIsSubmitting(true)
+    setIsSubmitting(true);
       
     try {
       // Prepare data for submission
@@ -78,14 +79,14 @@ export function CategoryForm({ category, onSubmit, onCancel }: CategoryFormProps
         imageUrl: formData.image_url
       };
         
-      await onSubmit(submitData)
+      await onSubmit(submitData);
     } catch (error) {
       console.error("Category form submission error:", error);
       alert("An error occurred while saving the category. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Card>
