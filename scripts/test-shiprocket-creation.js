@@ -1,14 +1,18 @@
 // Script to manually trigger Shiprocket order creation for an existing order
-// Run this from your project root: node scripts/manual-shiprocket-trigger.js
+// Run this from your project root: node scripts/test-shiprocket-creation.js
 
-require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 
-async function triggerShiprocketOrder() {
+// Load environment variables
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.local') });
+
+async function testShiprocketCreation() {
   try {
     // Replace with an actual order ID from your database
     const orderId = 1; // Change this to a real order ID
     
-    console.log(`Triggering Shiprocket order creation for order ID: ${orderId}`);
+    console.log(`Testing Shiprocket order creation for order ID: ${orderId}`);
     
     // Make API call to trigger Shiprocket order creation
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/shiprocket/create-order`, {
@@ -27,9 +31,9 @@ async function triggerShiprocketOrder() {
       console.error('Error:', result);
     }
   } catch (error) {
-    console.error('Failed to trigger Shiprocket order creation:', error);
+    console.error('Failed to test Shiprocket order creation:', error);
   }
 }
 
-// Run the function
-triggerShiprocketOrder();
+// Run the test
+testShiprocketCreation();
