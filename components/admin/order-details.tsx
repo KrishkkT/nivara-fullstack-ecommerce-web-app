@@ -34,7 +34,11 @@ interface OrderItem {
 }
 
 interface Shipment {
-  waybill_number: string;
+  id: number;
+  awb_code: string | null;
+  order_id: number;
+  shiprocket_order_id: number;
+  shipment_id: number | null;
   status: string;
   event_data: any;
   created_at: string;
@@ -75,7 +79,7 @@ export function AdminOrderDetails({ orderId }: { orderId: string }) {
   }, [orderId]);
 
   const fetchTrackingData = async () => {
-    if (!shipment?.waybill_number) return;
+    if (!shipment?.awb_code) return;
 
     try {
       setTrackingLoading(true);
@@ -86,7 +90,7 @@ export function AdminOrderDetails({ orderId }: { orderId: string }) {
         },
         body: JSON.stringify({
           action: "track-shipment",
-          waybill: shipment.waybill_number,
+          awb_code: shipment.awb_code,
         }),
       });
 
@@ -310,7 +314,7 @@ export function AdminOrderDetails({ orderId }: { orderId: string }) {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Waybill Number</p>
-                  <p className="font-medium">{shipment.waybill_number}</p>
+                  <p className="font-medium">{shipment.awb_code || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>

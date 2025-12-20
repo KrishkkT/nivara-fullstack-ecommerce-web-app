@@ -41,11 +41,18 @@ export async function GET(
     `;
 
     // Fetch shipment details if exists
-    const shipmentResult: any = await sql`
-      SELECT *
-      FROM delhivery_shipments
-      WHERE order_id = ${id}
-    `;
+    let shipmentResult: any = [];
+    try {
+      shipmentResult = await sql`
+        SELECT *
+        FROM shiprocket_orders
+        WHERE order_id = ${id}
+      `;
+    } catch (error) {
+      // Handle case where shiprocket_orders table doesn't exist
+      console.warn("Shiprocket orders table not found, continuing without shipment data");
+      shipmentResult = [];
+    }
 
     return NextResponse.json({
       order: orderResult[0],

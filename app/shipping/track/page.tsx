@@ -11,7 +11,7 @@ export default function OrderTrackPage() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Enter your waybill number or order ID to track your shipment status.
+Enter your AWB code or order ID to track your shipment status.
           </p>
         </CardContent>
       </Card>

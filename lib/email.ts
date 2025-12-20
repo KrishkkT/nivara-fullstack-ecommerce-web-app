@@ -655,7 +655,7 @@ export function generateWelcomeEmail(user: any): string {
 }
 
 // Generate HTML email template for shipment creation notification
-export function generateShipmentCreationEmail(order: any, customer: any, waybill: string): string {
+export function generateShipmentCreationEmail(order: any, customer: any, awb_code: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -673,12 +673,12 @@ export function generateShipmentCreationEmail(order: any, customer: any, waybill
         
         <p><strong>Shipment Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>AWB Code:</strong> ${awb_code}</li>
           <li><strong>Order Number:</strong> ${order.order_number}</li>
           <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
         </ul>
         
-        <p>You can track your shipment using the waybill number above or by visiting our <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://your-site.com"}/shipping/track">order tracking page</a>.</p>
+        <p>You can track your shipment using the AWB code above or by visiting our <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://your-site.com"}/shipping/track">order tracking page</a>.</p>
         
         <p>Thank you for shopping with us!</p>
       </div>
@@ -688,7 +688,7 @@ export function generateShipmentCreationEmail(order: any, customer: any, waybill
 }
 
 // Generate HTML email template for admin shipment creation notification
-export function generateAdminShipmentCreationEmail(order: any, customer: any, waybill: string): string {
+export function generateAdminShipmentCreationEmail(order: any, customer: any, awb_code: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -704,7 +704,7 @@ export function generateAdminShipmentCreationEmail(order: any, customer: any, wa
         
         <p><strong>Shipment Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>AWB Code:</strong> ${awb_code}</li>
           <li><strong>Order Number:</strong> ${order.order_number}</li>
           <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
           <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
@@ -718,7 +718,7 @@ export function generateAdminShipmentCreationEmail(order: any, customer: any, wa
 }
 
 // Generate HTML email template for shipment cancellation notification
-export function generateShipmentCancellationEmail(order: any, customer: any, waybill: string): string {
+export function generateShipmentCancellationEmail(order: any, customer: any, awb_code: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -736,7 +736,7 @@ export function generateShipmentCancellationEmail(order: any, customer: any, way
         
         <p><strong>Shipment Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>AWB Code:</strong> ${awb_code}</li>
           <li><strong>Order Number:</strong> ${order.order_number}</li>
           <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
         </ul>
@@ -751,7 +751,7 @@ export function generateShipmentCancellationEmail(order: any, customer: any, way
 }
 
 // Generate HTML email template for admin shipment cancellation notification
-export function generateAdminShipmentCancellationEmail(order: any, customer: any, waybill: string): string {
+export function generateAdminShipmentCancellationEmail(order: any, customer: any, awb_code: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -767,7 +767,7 @@ export function generateAdminShipmentCancellationEmail(order: any, customer: any
         
         <p><strong>Shipment Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>AWB Code:</strong> ${awb_code}</li>
           <li><strong>Order Number:</strong> ${order.order_number}</li>
           <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
           <li><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN')}</li>
@@ -781,7 +781,7 @@ export function generateAdminShipmentCancellationEmail(order: any, customer: any
 }
 
 // Generate HTML email template for NDR notification to customer
-export function generateNdrNotificationEmail(order: any, customer: any, waybill: string, remarks: string): string {
+export function generateNdrNotificationEmail(order: any, customer: any, awb_code: string, remarks: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -799,7 +799,7 @@ export function generateNdrNotificationEmail(order: any, customer: any, waybill:
         
         <p><strong>Shipment Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>AWB Code:</strong> ${awb_code}</li>
           <li><strong>Order Number:</strong> ${order.order_number}</li>
           <li><strong>Issue:</strong> ${remarks}</li>
         </ul>
@@ -814,7 +814,7 @@ export function generateNdrNotificationEmail(order: any, customer: any, waybill:
 }
 
 // Generate HTML email template for admin NDR notification
-export function generateAdminNdrNotificationEmail(order: any, customer: any, waybill: string, remarks: string): string {
+export function generateAdminNdrNotificationEmail(order: any, customer: any, awb_code: string, remarks: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -830,7 +830,7 @@ export function generateAdminNdrNotificationEmail(order: any, customer: any, way
         
         <p><strong>Shipment Details:</strong></p>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li><strong>Waybill Number:</strong> ${waybill}</li>
+          <li><strong>AWB Code:</strong> ${awb_code}</li>
           <li><strong>Order Number:</strong> ${order.order_number}</li>
           <li><strong>Customer:</strong> ${customer.full_name} (${customer.email})</li>
           <li><strong>Issue:</strong> ${remarks}</li>

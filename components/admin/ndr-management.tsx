@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface NdrShipment {
   id: number;
-  waybill_number: string;
+  awb_code: string;
   order_id: number;
   status: string;
   remarks: string;
@@ -46,8 +46,8 @@ export function NdrManagement() {
     fetchNdrShipments();
   }, []);
 
-  const handleNdrAction = async (waybill: string, action: string, remarks?: string) => {
-    setActionLoading(`${action}-${waybill}`);
+  const handleNdrAction = async (awb_code: string, action: string, remarks?: string) => {
+    setActionLoading(`${action}-${awb_code}`);
     setError(null);
     setSuccess(null);
 
@@ -59,7 +59,7 @@ export function NdrManagement() {
         },
         body: JSON.stringify({
           action: "handle-ndr",
-          waybill: waybill,
+          awb_code: awb_code,
           action: action,
           remarks: remarks
         }),
@@ -121,7 +121,7 @@ export function NdrManagement() {
                     <div className="flex flex-wrap justify-between items-start gap-4">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">Waybill: {shipment.waybill_number}</h3>
+                          <h3 className="font-semibold">AWB: {shipment.awb_code}</h3>
                           <Badge variant="outline">NDR</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">Order ID: #{shipment.order_id}</p>
@@ -134,10 +134,10 @@ export function NdrManagement() {
                       <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
-                          onClick={() => handleNdrAction(shipment.waybill_number, "reattempt")}
-                          disabled={actionLoading === `reattempt-${shipment.waybill_number}`}
+                          onClick={() => handleNdrAction(shipment.awb_code, "reattempt")}
+                          disabled={actionLoading === `reattempt-${shipment.awb_code}`}
                         >
-                          {actionLoading === `reattempt-${shipment.waybill_number}` ? (
+                          {actionLoading === `reattempt-${shipment.awb_code}` ? (
                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : (
                             <RotateCcw className="h-4 w-4 mr-2" />
@@ -147,10 +147,10 @@ export function NdrManagement() {
                         
                         <Button
                           variant="outline"
-                          onClick={() => handleNdrAction(shipment.waybill_number, "rto")}
-                          disabled={actionLoading === `rto-${shipment.waybill_number}`}
+                          onClick={() => handleNdrAction(shipment.awb_code, "rto")}
+                          disabled={actionLoading === `rto-${shipment.awb_code}`}
                         >
-                          {actionLoading === `rto-${shipment.waybill_number}` ? (
+                          {actionLoading === `rto-${shipment.awb_code}` ? (
                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : (
                             <Undo className="h-4 w-4 mr-2" />
@@ -160,7 +160,7 @@ export function NdrManagement() {
                         
                         <Select 
                           onValueChange={(value) => 
-                            handleNdrAction(shipment.waybill_number, "custom", value)
+                            handleNdrAction(shipment.awb_code, "custom", value)
                           }
                           disabled={actionLoading !== null}
                         >

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { verifyAuth } from "@/lib/session";
 
-// GET /api/admin/waybills - Get all waybills
+// GET /api/admin/shiprocket-orders - Get recent Shiprocket orders
 export async function GET(request: Request) {
   try {
     // Verify admin access
@@ -16,14 +16,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch waybills
-    const waybills: any = await sql`
-      SELECT * FROM delhivery_waybills ORDER BY created_at DESC LIMIT 100
+    // Fetch recent Shiprocket orders
+    const orders: any = await sql`
+      SELECT * FROM shiprocket_orders ORDER BY created_at DESC LIMIT 100
     `;
 
-    return NextResponse.json({ waybills });
+    return NextResponse.json({ orders });
   } catch (error) {
-    console.error("Error fetching waybills:", error);
+    console.error("Error fetching Shiprocket orders:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

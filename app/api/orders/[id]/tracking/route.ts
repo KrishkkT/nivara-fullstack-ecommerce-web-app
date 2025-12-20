@@ -20,20 +20,27 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch the waybill number for this order
+    // Fetch the AWB code for this order from Shiprocket
     // Make sure the order belongs to the current user
-    const result: any = await sql`
-      SELECT ds.waybill_number
-      FROM delhivery_shipments ds
-      JOIN orders o ON ds.order_id = o.id
-      WHERE o.id = ${id} AND o.user_id = ${user.userId}
-    `;
+    let result: any = [];
+    try {
+      result = await sql`
+        SELECT so.awb_code
+        FROM shiprocket_orders so
+        JOIN orders o ON so.order_id = o.id
+        WHERE o.id = ${id} AND o.user_id = ${user.userId}
+      `;
+    } catch (error) {
+      // Handle case where shiprocket_orders table doesn't exist
+      console.warn("Shiprocket orders table not found, continuing without tracking data");
+      result = [];
+    }
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Shipment not found for this order" }, { status: 404 });
     }
 
-    return NextResponse.json({ waybill: result[0].waybill_number });
+    return NextResponse.json({ awb_code: result[0].awb_code });
   } catch (error) {
     console.error("Error fetching tracking data:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

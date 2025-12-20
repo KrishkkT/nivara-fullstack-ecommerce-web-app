@@ -16,9 +16,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch warehouses
+    // Fetch Shiprocket pickup locations
     const warehouses: any = await sql`
-      SELECT * FROM delhivery_warehouses ORDER BY created_at DESC
+      SELECT * FROM shiprocket_pickup_locations ORDER BY created_at DESC
     `;
 
     return NextResponse.json({ warehouses });
@@ -50,16 +50,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Create warehouse
+    // Create Shiprocket pickup location
+    // Note: This is a simplified version. In practice, you'd sync with Shiprocket API
     const result: any = await sql`
-      INSERT INTO delhivery_warehouses (
-        warehouse_name, warehouse_code, address_line1, address_line2, 
-        city, state, postal_code, country, phone, email, is_active
+      INSERT INTO shiprocket_pickup_locations (
+        shiprocket_location_id, name, email, phone, address, 
+        city, state, pin_code, country, "primary"
       )
       VALUES (
-        ${data.warehouse_name}, ${data.warehouse_code}, ${data.address_line1}, ${data.address_line2 || ''},
+        ${Math.floor(Math.random() * 1000000)}, ${data.warehouse_name}, ${data.email || ''}, ${data.phone || ''}, ${data.address_line1},
         ${data.city}, ${data.state}, ${data.postal_code}, ${data.country || 'India'},
-        ${data.phone || ''}, ${data.email || ''}, ${data.is_active !== undefined ? data.is_active : true}
+        ${data.is_active !== undefined ? data.is_active : true}
       )
       RETURNING *
     `;

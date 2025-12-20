@@ -16,10 +16,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch shipments
-    const shipments: any = await sql`
-      SELECT * FROM delhivery_shipments ORDER BY created_at DESC
-    `;
+    // Fetch Shiprocket shipments
+    let shipments: any = [];
+    try {
+      shipments = await sql`
+        SELECT * FROM shiprocket_orders ORDER BY created_at DESC
+      `;
+    } catch (error) {
+      // Handle case where shiprocket_orders table doesn't exist
+      console.warn("Shiprocket orders table not found, continuing without shipment data");
+      shipments = [];
+    }
 
     return NextResponse.json({ shipments });
   } catch (error) {

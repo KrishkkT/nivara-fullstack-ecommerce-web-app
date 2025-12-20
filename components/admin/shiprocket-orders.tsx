@@ -10,12 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { sql } from "@/lib/db";
 
-interface Waybill {
+interface ShiprocketOrder {
   id: number;
-  waybill_number: string;
+  order_id: number;
+  shiprocket_order_id: number;
+  shipment_id: number | null;
+  awb_code: string | null;
   status: string;
   created_at: string;
-  used_at: string | null;
+  updated_at: string;
 }
 
 export function WaybillPrefetch() {
@@ -24,28 +27,28 @@ export function WaybillPrefetch() {
   const [prefetching, setPrefetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [waybills, setWaybills] = useState<Waybill[]>([]);
+  const [shiprocketOrders, setShiprocketOrders] = useState<ShiprocketOrder[]>([]);
   
-  const fetchWaybills = async () => {
+  const fetchShiprocketOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/waybills");
+      const response = await fetch("/api/admin/shiprocket-orders");
       const data = await response.json();
       
       if (response.ok) {
-        setWaybills(data.waybills || []);
+        setShiprocketOrders(data.orders || []);
       } else {
-        throw new Error(data.error || "Failed to fetch waybills");
+        throw new Error(data.error || "Failed to fetch Shiprocket orders");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch waybills");
+      setError(err instanceof Error ? err.message : "Failed to fetch Shiprocket orders");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchWaybills();
+    fetchShiprocketOrders();
   }, []);
 
   const handlePrefetch = async () => {
@@ -59,16 +62,9 @@ export function WaybillPrefetch() {
     setSuccess(null);
 
     try {
-      const response = await fetch("/api/logistics", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "fetch-waybills",
-          count: count
-        }),
-      });
+      // For Shiprocket, we don't prefetch waybills. Instead, we create orders directly.
+      // This component is repurposed to show recent Shiprocket orders.
+      setSuccess("This section now shows recent Shiprocket orders.");
 
       const data = await response.json();
 
@@ -76,10 +72,10 @@ export function WaybillPrefetch() {
         throw new Error(data.error || "Failed to prefetch waybills");
       }
 
-      setSuccess(`Successfully prefetched ${data.waybills?.length || 0} waybills!`);
+      setSuccess("Displaying recent Shiprocket orders.");
       
-      // Refresh the waybill list
-      fetchWaybills();
+      // Refresh the Shiprocket orders list
+      fetchShiprocketOrders();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
@@ -88,43 +84,48 @@ export function WaybillPrefetch() {
   };
 
   const getStatusBadge = (status: string) => {
+    // Shiprocket order statuses
     switch (status) {
-      case "available":
-        return <Badge className="bg-green-500">Available</Badge>;
-      case "used":
-        return <Badge className="bg-blue-500">Used</Badge>;
-      case "expired":
-        return <Badge variant="destructive">Expired</Badge>;
+      case "placed":
+        return <Badge className="bg-blue-500">Placed</Badge>;
+      case "confirmed":
+        return <Badge className="bg-indigo-500">Confirmed</Badge>;
+      case "picked":
+        return <Badge className="bg-purple-500">Picked</Badge>;
+      case "packed":
+        return <Badge className="bg-yellow-500">Packed</Badge>;
+      case "shipped":
+        return <Badge className="bg-orange-500">Shipped</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-500">Delivered</Badge>;
+      case "cancelled":
+        return <Badge variant="destructive">Cancelled</Badge>;
+      case "returned":
+        return <Badge className="bg-red-500">Returned</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const availableCount = waybills.filter(w => w.status === "available").length;
-  const usedCount = waybills.filter(w => w.status === "used").length;
-  const expiredCount = waybills.filter(w => w.status === "expired").length;
+  // Stats for Shiprocket orders
+  const placedCount = shiprocketOrders.filter(o => o.status === "placed").length;
+  const shippedCount = shiprocketOrders.filter(o => o.status === "shipped").length;
+  const deliveredCount = shiprocketOrders.filter(o => o.status === "delivered").length;
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Waybill Prefetch</CardTitle>
-          <CardDescription>Pre-fetch waybills for shipment creation</CardDescription>
+          <CardTitle>Recent Shiprocket Orders</CardTitle>
+          <CardDescription>View recent orders processed through Shiprocket</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[200px]">
-                <Label htmlFor="count">Number of Waybills</Label>
-                <Input
-                  id="count"
-                  type="number"
-                  min="1"
-                  max="1000"
-                  value={count}
-                  onChange={(e) => setCount(parseInt(e.target.value) || 0)}
-                  disabled={prefetching}
-                />
+                <p className="text-sm text-muted-foreground">
+                  This section now displays recent Shiprocket orders instead of prefetching waybills.
+                </p>
               </div>
               <div className="self-end">
                 <Button 
@@ -135,10 +136,10 @@ export function WaybillPrefetch() {
                   {prefetching ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Prefetching...
+                      Refreshing...
                     </>
                   ) : (
-                    "Prefetch Waybills"
+                    "Refresh Orders"
                   )}
                 </Button>
               </div>
@@ -146,16 +147,16 @@ export function WaybillPrefetch() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-lg">Available</h3>
-                <p className="text-2xl font-bold text-green-600">{availableCount}</p>
+                <h3 className="font-semibold text-lg">Placed</h3>
+                <p className="text-2xl font-bold text-blue-600">{placedCount}</p>
               </div>
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-lg">Used</h3>
-                <p className="text-2xl font-bold text-blue-600">{usedCount}</p>
+                <h3 className="font-semibold text-lg">Shipped</h3>
+                <p className="text-2xl font-bold text-orange-600">{shippedCount}</p>
               </div>
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-lg">Expired</h3>
-                <p className="text-2xl font-bold text-red-600">{expiredCount}</p>
+                <h3 className="font-semibold text-lg">Delivered</h3>
+                <p className="text-2xl font-bold text-green-600">{deliveredCount}</p>
               </div>
             </div>
             
@@ -175,36 +176,36 @@ export function WaybillPrefetch() {
             )}
             
             <div>
-              <h3 className="font-semibold mb-2">Recent Activity</h3>
+              <h3 className="font-semibold mb-2">Recent Shiprocket Orders</h3>
               {loading ? (
                 <div className="flex justify-center py-4">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
-              ) : waybills.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No waybills found</p>
+              ) : shiprocketOrders.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No Shiprocket orders found</p>
               ) : (
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-muted">
                       <tr>
-                        <th className="text-left p-3">Waybill Number</th>
+                        <th className="text-left p-3">Order ID</th>
+                        <th className="text-left p-3">AWB Code</th>
                         <th className="text-left p-3">Status</th>
                         <th className="text-left p-3">Created At</th>
-                        <th className="text-left p-3">Used At</th>
+                        <th className="text-left p-3">Updated At</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {waybills.slice(0, 10).map((waybill) => (
-                        <tr key={waybill.id} className="border-b">
-                          <td className="p-3 font-mono text-sm">{waybill.waybill_number}</td>
-                          <td className="p-3">{getStatusBadge(waybill.status)}</td>
+                      {shiprocketOrders.slice(0, 10).map((order) => (
+                        <tr key={order.id} className="border-b">
+                          <td className="p-3 font-mono text-sm">{order.shiprocket_order_id}</td>
+                          <td className="p-3 font-mono text-sm">{order.awb_code || 'N/A'}</td>
+                          <td className="p-3">{getStatusBadge(order.status)}</td>
                           <td className="p-3 text-sm">
-                            {new Date(waybill.created_at).toLocaleString()}
+                            {new Date(order.created_at).toLocaleString()}
                           </td>
                           <td className="p-3 text-sm">
-                            {waybill.used_at 
-                              ? new Date(waybill.used_at).toLocaleString()
-                              : '-'}
+                            {new Date(order.updated_at).toLocaleString()}
                           </td>
                         </tr>
                       ))}

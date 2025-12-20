@@ -16,12 +16,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch NDR shipments
-    const shipments: any = await sql`
-      SELECT * FROM delhivery_shipments 
-      WHERE status = 'ndr' 
-      ORDER BY updated_at DESC
-    `;
+    // For Shiprocket, NDR is handled differently and tracked in shiprocket_tracking_events
+    // Returning empty array as placeholder
+    const shipments: any = [];
 
     return NextResponse.json({ shipments });
   } catch (error) {

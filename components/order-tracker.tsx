@@ -81,7 +81,7 @@ export function OrderTracker() {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Track Your Order</CardTitle>
-        <CardDescription>Enter your waybill number or order ID to track your shipment</CardDescription>
+        <CardDescription>Enter your AWB number or order ID to track your shipment</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">

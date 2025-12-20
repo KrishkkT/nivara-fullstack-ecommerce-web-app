@@ -11,23 +11,22 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { sql } from "@/lib/db";
 
-interface Warehouse {
+interface PickupLocation {
   id: number;
-  warehouse_name: string;
-  warehouse_code: string;
-  address_line1: string;
-  address_line2: string;
+  name: string;
+  shiprocket_location_id: number;
+  address: string;
   city: string;
   state: string;
-  postal_code: string;
+  pin_code: string;
   country: string;
   phone: string;
   email: string;
-  is_active: boolean;
+  primary: boolean;
 }
 
 export function WarehouseManagement() {
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [pickupLocations, setPickupLocations] = useState<PickupLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,12 +53,12 @@ export function WarehouseManagement() {
       const data = await response.json();
       
       if (response.ok) {
-        setWarehouses(data.warehouses || []);
+        setPickupLocations(data.warehouses || []);
       } else {
-        throw new Error(data.error || "Failed to fetch warehouses");
+        throw new Error(data.error || "Failed to fetch pickup locations");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch warehouses");
+      setError(err instanceof Error ? err.message : "Failed to fetch pickup locations");
     } finally {
       setLoading(false);
     }
@@ -76,15 +75,12 @@ export function WarehouseManagement() {
     setSuccess(null);
 
     try {
-      const response = await fetch("/api/logistics", {
+      const response = await fetch("/api/admin/warehouses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          action: "create-warehouse",
-          ...formData
-        }),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
@@ -93,10 +89,10 @@ export function WarehouseManagement() {
         throw new Error(data.error || "Failed to create warehouse");
       }
 
-      setSuccess("Warehouse created successfully!");
+      setSuccess("Pickup location created successfully!");
       setFormData({
         warehouse_name: "",
-        warehouse_code: "",
+        warehouse_code: "", // Not used in Shiprocket but kept for compatibility
         address_line1: "",
         address_line2: "",
         city: "",
@@ -105,7 +101,7 @@ export function WarehouseManagement() {
         country: "India",
         phone: "",
         email: "",
-        is_active: true
+        is_active: true // Maps to 'primary' in Shiprocket
       });
       
       // Refresh the warehouse list
@@ -136,14 +132,14 @@ export function WarehouseManagement() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Create New Warehouse</CardTitle>
-          <CardDescription>Add a new warehouse for shipping operations</CardDescription>
+          <CardTitle>Create New Pickup Location</CardTitle>
+          <CardDescription>Add a new pickup location for Shiprocket shipping operations</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="warehouse_name">Warehouse Name *</Label>
+                <Label htmlFor="warehouse_name">Location Name *</Label>
                 <Input
                   id="warehouse_name"
                   value={formData.warehouse_name}
@@ -154,7 +150,7 @@ export function WarehouseManagement() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="warehouse_code">Warehouse Code *</Label>
+                <Label htmlFor="warehouse_code">Location Code</Label>
                 <Input
                   id="warehouse_code"
                   value={formData.warehouse_code}
@@ -296,25 +292,25 @@ export function WarehouseManagement() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Existing Warehouses</CardTitle>
-          <CardDescription>Manage your warehouse locations</CardDescription>
+          <CardTitle>Existing Pickup Locations</CardTitle>
+          <CardDescription>Manage your Shiprocket pickup locations</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
-          ) : warehouses.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No warehouses found</p>
+          ) : pickupLocations.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No pickup locations found</p>
           ) : (
             <div className="space-y-4">
-              {warehouses.map((warehouse) => (
-                <div key={warehouse.id} className="border rounded-lg p-4">
+              {pickupLocations.map((location) => (
+                <div key={location.id} className="border rounded-lg p-4">
                   <div className="flex justify-between">
                     <div>
-                      <h3 className="font-semibold">{warehouse.warehouse_name}</h3>
+                      <h3 className="font-semibold">{location.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Code: {warehouse.warehouse_code}
+                        ID: {location.shiprocket_location_id}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -332,12 +328,20 @@ export function WarehouseManagement() {
                   </div>
                   
                   <div className="mt-2 text-sm">
-                    <p>{warehouse.address_line1}</p>
-                    {warehouse.address_line2 && <p>{warehouse.address_line2}</p>}
-                    <p>{warehouse.city}, {warehouse.state} {warehouse.postal_code}</p>
-                    <p>{warehouse.country}</p>
-                    {warehouse.phone && <p>Phone: {warehouse.phone}</p>}
-                    {warehouse.email && <p>Email: {warehouse.email}</p>}
+                    <p>{location.address}</p>
+                    <p>{location.city}, {location.state} {location.pin_code}</p>
+                    <p>{location.country}</p>
+                    {location.phone && <p>Phone: {location.phone}</p>}
+                    {location.email && <p>Email: {location.email}</p>}
+                    <p className="mt-1">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        location.primary 
+                          ? "bg-green-100 text-green-800" 
+                          : "bg-gray-100 text-gray-800"
+                      }`}>
+                        {location.primary ? "Primary Location" : "Secondary Location"}
+                      </span>
+                    </p>
                   </div>
                 </div>
               ))}

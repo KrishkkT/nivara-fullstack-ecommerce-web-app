@@ -19,24 +19,24 @@ interface ShipmentItem {
   weight: number;
 }
 
-interface Warehouse {
+interface PickupLocation {
   id: number;
-  warehouse_name: string;
-  warehouse_code: string;
-  address_line1: string;
-  address_line2: string | null;
+  name: string;
+  shiprocket_location_id: number;
+  address: string;
   city: string;
   state: string;
-  postal_code: string;
+  pin_code: string;
   country: string;
   phone: string | null;
   email: string | null;
+  primary: boolean;
 }
 
 export function ShipmentCreation() {
   const [orderId, setOrderId] = useState("");
   const [warehouse, setWarehouse] = useState("");
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [warehouses, setWarehouses] = useState<PickupLocation[]>([]);
   const [deliveryName, setDeliveryName] = useState("");
   const [deliveryAddress1, setDeliveryAddress1] = useState("");
   const [deliveryAddress2, setDeliveryAddress2] = useState("");
@@ -106,11 +106,11 @@ export function ShipmentCreation() {
       
       // Validate warehouse
       if (warehouses.length === 0) {
-        throw new Error("No warehouses configured. Please add warehouses first.");
+        throw new Error("No pickup locations configured. Please add pickup locations first.");
       }
       
-      if (!warehouses.some(w => w.warehouse_code === warehouse)) {
-        throw new Error("Selected warehouse not found.");
+      if (!warehouses.some(w => w.name === warehouse)) {
+        throw new Error("Selected pickup location not found.");
       }
 
       if (deliveryPincode.length !== 6) {
@@ -124,79 +124,50 @@ export function ShipmentCreation() {
         }
       }
 
-      // Prepare shipment data according to Delhivery requirements
-      const selectedWarehouse = warehouses.find(w => w.warehouse_code === warehouse);
+      // Prepare shipment data according to Shiprocket requirements
+      const selectedWarehouse = warehouses.find(w => w.name === warehouse);
+      
+      // Calculate total weight and value
+      const totalWeight = items.reduce((sum, item) => sum + (item.weight * item.units), 0);
+      const totalValue = items.reduce((sum, item) => sum + (item.unit_price * item.units), 0);
+      const totalPieces = items.reduce((sum, item) => sum + item.units, 0);
       
       const shipmentData = {
         orderId: parseInt(orderId),
-        pickup_location: selectedWarehouse?.warehouse_name || warehouse,
-        client: process.env.DELHIVERY_CLIENT_CODE || "", // Add client code if required
-        order_date: new Date().toISOString().split('T')[0], // Add order date in ISO format
-        shipments: [
-          {
-            name: deliveryName,
-            add: `${deliveryAddress1}${deliveryAddress2 ? `, ${deliveryAddress2}` : ""}`,
-            city: deliveryCity,
-            state: deliveryState,
-            pin: deliveryPincode,
-            phone: deliveryPhone,
-            email: deliveryEmail,
-            payment_mode: cod ? "COD" : "Prepaid",
-            cod_amount: cod ? parseFloat(codAmount) || 0 : 0,
-            order: orderId,
-            products_desc: items.map(item => item.name).join(", "),
-            pieces: items.reduce((sum, item) => sum + item.units, 0),
-            weight: items.reduce((sum, item) => sum + (item.weight * item.units), 0),
-            declared_value: items.reduce((sum, item) => sum + (item.unit_price * item.units), 0),
-            return_address: {
-              name: selectedWarehouse?.warehouse_name || warehouse,
-              add: selectedWarehouse?.address_line1 || "123 Main Street",
-              city: selectedWarehouse?.city || "New Delhi",
-              state: selectedWarehouse?.state || "Delhi",
-              pin: selectedWarehouse?.postal_code || "110001",
-              phone: selectedWarehouse?.phone || "9876543210"
-            },
-            ship_details: {
-              waybill: "", // Will be filled by the API
-              products_desc: items.map(item => ({
-                hsn: "",
-                name: item.name,
-                sku: item.sku,
-                units: item.units,
-                unit_price: item.unit_price,
-                weight: item.weight
-              })),
-              box_packing: [
-                {
-                  purpose: "Delivery",
-                  name: deliveryName,
-                  add: `${deliveryAddress1}${deliveryAddress2 ? `, ${deliveryAddress2}` : ""}`,
-                  city: deliveryCity,
-                  state: deliveryState,
-                  pin: deliveryPincode,
-                  phone: deliveryPhone,
-                  email: deliveryEmail,
-                  payment_mode: cod ? "COD" : "Prepaid",
-                  cod_amount: cod ? parseFloat(codAmount) || 0 : 0,
-                  client_ref_id: orderId,
-                  products_desc: items.map(item => ({
-                    hsn: "",
-                    name: item.name,
-                    sku: item.sku,
-                    units: item.units,
-                    unit_price: item.unit_price,
-                    weight: item.weight
-                  })),
-                  pieces: items.reduce((sum, item) => sum + item.units, 0),
-                  weight: items.reduce((sum, item) => sum + (item.weight * item.units), 0),
-                  declared_value: items.reduce((sum, item) => sum + (item.unit_price * item.units), 0),
-                  freight_charge: 0,
-                  courier_partner: ""
-                }
-              ]
-            }
-          }
-        ]
+        shipment: {
+          order_id: orderId,
+          shipment_date: new Date().toISOString(),
+          pickup_location: selectedWarehouse?.warehouse_name || warehouse,
+          billing_customer_name: deliveryName,
+          billing_address: deliveryAddress1,
+          billing_address_2: deliveryAddress2 || "",
+          billing_city: deliveryCity,
+          billing_pincode: deliveryPincode,
+          billing_state: deliveryState,
+          billing_country: "India",
+          billing_email: deliveryEmail,
+          billing_phone: deliveryPhone,
+          shipping_is_billing: true,
+          order_items: items.map(item => ({
+            name: item.name,
+            sku: item.sku,
+            units: item.units,
+            selling_price: item.unit_price,
+            weight: item.weight
+          })),
+          payment_method: cod ? "COD" : "Prepaid",
+          total_amount: totalValue,
+          total_weight: totalWeight,
+          cod_amount: cod ? parseFloat(codAmount) || 0 : 0,
+          courier_partner: "",
+          package_length: 30,
+          package_breadth: 20,
+          package_height: 10,
+          // These will be filled by the API
+          awb_code: "",
+          courier_company_id: "",
+          shipment_id: ""
+        }
       };
 
       const response = await fetch("/api/logistics", {
@@ -216,17 +187,13 @@ export function ShipmentCreation() {
         throw new Error(data.error || "Failed to create shipment");
       }
 
-      // Check if the shipment was actually successful according to Delhivery
-      if (data.packages && data.packages.length > 0) {
-        const packageInfo = data.packages[0];
-        if (packageInfo.status === "Success") {
-          setSuccess(`Shipment created successfully! Waybill: ${packageInfo.waybill}`);
-        } else {
-          // Even if not successful, still show the waybill for debugging purposes
-          setSuccess(`Shipment attempt recorded with issues. Waybill: ${packageInfo.waybill}. Status: ${packageInfo.status}. Remarks: ${packageInfo.remarks || 'None'}`);
-        }
+      // Check if the shipment was actually successful according to Shiprocket
+      if (data.shipment && data.shipment.awb_code) {
+        setSuccess(`Shipment created successfully! AWB Code: ${data.shipment.awb_code}`);
+      } else if (data.error) {
+        throw new Error(data.error);
       } else {
-        throw new Error("Unexpected response format from Delhivery");
+        throw new Error("Unexpected response format from Shiprocket API");
       }
       
       // Reset form
@@ -250,7 +217,7 @@ export function ShipmentCreation() {
     }
   };
 
-  const verifyShipment = async (waybill: string) => {
+  const verifyShipment = async (awb_code: string) => {
     try {
       setLoading(true);
       const response = await fetch("/api/logistics", {
@@ -260,7 +227,7 @@ export function ShipmentCreation() {
         },
         body: JSON.stringify({
           action: "verify-shipment",
-          waybill: waybill
+          awb_code: awb_code
         }),
       });
 
@@ -270,12 +237,12 @@ export function ShipmentCreation() {
         throw new Error(data.error || "Failed to verify shipment");
       }
 
-      // Check if shipment exists in Delhivery system
+      // Check if shipment exists in Shiprocket system
       if (data.ShipmentData && data.ShipmentData.length > 0) {
         const shipment = data.ShipmentData[0];
-        alert(`Shipment verified!\nStatus: ${shipment.ScanDetail?.Scans?.[0]?.ScanType || 'Unknown'}\nLocation: ${shipment.ScanDetail?.Scans?.[0]?.ScannedLocation || 'Unknown'}`);
+        alert(`Shipment verified!\nStatus: ${shipment.ScanDetail?.Scans?.[0]?.ScanType || 'Unknown'}\nLocation: ${shipment.ScanDetail?.Scans?.[0]?.ScannedLocation || 'Unknown'}\nAWB: ${awb_code}`);
       } else {
-        alert("Shipment not found in Delhivery system. It may have been created but not properly linked to your account.");
+        alert("Shipment not found in Shiprocket system. It may have been created but not properly linked to your account.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
@@ -288,7 +255,7 @@ export function ShipmentCreation() {
     <Card>
       <CardHeader>
         <CardTitle>Create New Shipment</CardTitle>
-        <CardDescription>Manifest a new shipment with Delhivery</CardDescription>
+        <CardDescription>Manifest a new shipment with Shiprocket</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -314,14 +281,14 @@ export function ShipmentCreation() {
                   </SelectTrigger>
                   <SelectContent>
                     {warehouses.map((w) => (
-                      <SelectItem key={w.id} value={w.warehouse_code}>
-                        {w.warehouse_name}
+                      <SelectItem key={w.id} value={w.name}>
+                        {w.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {warehouses.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No warehouses configured. Please add warehouses first.</p>
+                  <p className="text-sm text-muted-foreground">No pickup locations configured. Please add pickup locations first.</p>
                 )}
               </div>
               
@@ -545,13 +512,13 @@ export function ShipmentCreation() {
                   <AlertDescription>
                     <div className="flex justify-between items-center">
                       <span>{success}</span>
-                      {success.includes("Waybill:") && (
+                      {success.includes("AWB Code:") && (
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            const waybill = success.split("Waybill: ")[1];
-                            if (waybill) verifyShipment(waybill);
+                            const awbMatch = success.match(/AWB Code: ([A-Z0-9]+)/);
+                            if (awbMatch && awbMatch[1]) verifyShipment(awbMatch[1]);
                           }}
                         >
                           Verify Shipment

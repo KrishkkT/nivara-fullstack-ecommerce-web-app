@@ -11,8 +11,10 @@ import { Loader2, Download, Truck, X } from "lucide-react";
 
 interface Shipment {
   id: number;
-  waybill_number: string;
+  awb_code: string;
   order_id: number;
+  shiprocket_order_id: number;
+  shipment_id: number | null;
   status: string;
   created_at: string;
   updated_at: string;
@@ -69,8 +71,8 @@ export function ShipmentManagement() {
     }
   };
 
-  const handleGenerateLabel = async (waybill: string) => {
-    setActionLoading(`label-${waybill}`);
+  const handleGenerateLabel = async (awb_code: string) => {
+    setActionLoading(`label-${awb_code}`);
     setError(null);
     setSuccess(null);
 
@@ -82,7 +84,7 @@ export function ShipmentManagement() {
         },
         body: JSON.stringify({
           action: "generate-label",
-          waybill: waybill
+          awb_code: awb_code
         }),
       });
 
@@ -96,7 +98,7 @@ export function ShipmentManagement() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `shipping-label-${waybill}.pdf`;
+      a.download = `shipping-label-${awb_code}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -110,8 +112,8 @@ export function ShipmentManagement() {
     }
   };
 
-  const handleCancelShipment = async (waybill: string) => {
-    setActionLoading(`cancel-${waybill}`);
+  const handleCancelShipment = async (awb_code: string) => {
+    setActionLoading(`cancel-${awb_code}`);
     setError(null);
     setSuccess(null);
 
@@ -123,7 +125,7 @@ export function ShipmentManagement() {
         },
         body: JSON.stringify({
           action: "cancel-shipment",
-          waybill: waybill
+          awb_code: awb_code
         }),
       });
 
@@ -145,7 +147,7 @@ export function ShipmentManagement() {
   };
 
   const filteredShipments = shipments.filter(shipment => 
-    shipment.waybill_number.includes(searchTerm) || 
+    shipment.awb_code.includes(searchTerm) || 
     shipment.order_id.toString().includes(searchTerm) ||
     shipment.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -164,7 +166,7 @@ export function ShipmentManagement() {
                 <Label htmlFor="search">Search Shipments</Label>
                 <Input
                   id="search"
-                  placeholder="Search by waybill, order ID, or status..."
+                  placeholder="Search by AWB code, order ID, or status..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -199,7 +201,7 @@ export function ShipmentManagement() {
                 <table className="w-full">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="text-left p-3">Waybill</th>
+                      <th className="text-left p-3">AWB Code</th>
                       <th className="text-left p-3">Order ID</th>
                       <th className="text-left p-3">Status</th>
                       <th className="text-left p-3">Created</th>
@@ -210,7 +212,7 @@ export function ShipmentManagement() {
                   <tbody>
                     {filteredShipments.map((shipment) => (
                       <tr key={shipment.id} className="border-b">
-                        <td className="p-3 font-mono text-sm">{shipment.waybill_number}</td>
+                        <td className="p-3 font-mono text-sm">{shipment.awb_code}</td>
                         <td className="p-3">#{shipment.order_id}</td>
                         <td className="p-3">{getStatusBadge(shipment.status)}</td>
                         <td className="p-3 text-sm">
@@ -224,10 +226,10 @@ export function ShipmentManagement() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleGenerateLabel(shipment.waybill_number)}
-                              disabled={actionLoading === `label-${shipment.waybill_number}`}
+                              onClick={() => handleGenerateLabel(shipment.awb_code)}
+                              disabled={actionLoading === `label-${shipment.awb_code}`}
                             >
-                              {actionLoading === `label-${shipment.waybill_number}` ? (
+                              {actionLoading === `label-${shipment.awb_code}` ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Download className="h-4 w-4" />
@@ -239,10 +241,10 @@ export function ShipmentManagement() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleCancelShipment(shipment.waybill_number)}
-                                disabled={actionLoading === `cancel-${shipment.waybill_number}`}
+                                onClick={() => handleCancelShipment(shipment.awb_code)}
+                                disabled={actionLoading === `cancel-${shipment.awb_code}`}
                               >
-                                {actionLoading === `cancel-${shipment.waybill_number}` ? (
+                                {actionLoading === `cancel-${shipment.awb_code}` ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
                                   <X className="h-4 w-4" />

@@ -40,7 +40,7 @@ interface OrderItem {
 
 // Add this interface for shipment data
 interface ShipmentData {
-  waybill: string;
+  awb_code: string;
   status: string;
   current_location?: string;
   scan_details?: {
@@ -67,8 +67,8 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
   const [trackingLoading, setTrackingLoading] = useState(false)
   const [trackingError, setTrackingError] = useState<string | null>(null)
 
-  // Simplified tracking function that works directly with waybill
-  const fetchTrackingByWaybill = async (waybill: string) => {
+  // Simplified tracking function that works directly with AWB code
+  const fetchTrackingByAwb = async (awb_code: string) => {
     setTrackingLoading(true);
     setTrackingError(null);
     
@@ -80,7 +80,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
         },
         body: JSON.stringify({
           action: "track-shipment",
-          waybill: waybill,
+          awb_code: awb_code,
         }),
       });
       
@@ -108,7 +108,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
       // Only fetch tracking data for shipped or delivered orders
       if ((order.status === "shipped" || order.status === "delivered") && order.id) {
         try {
-          // First, get the waybill number from the database
+          // First, get the AWB code from the database
           const response = await fetch(`/api/orders/${order.id}/tracking`);
           const data = await response.json();
           
@@ -116,9 +116,9 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
             throw new Error(data.error || "Failed to fetch tracking data");
           }
           
-          if (data.waybill) {
-            // Now fetch the tracking details from Delhivery
-            await fetchTrackingByWaybill(data.waybill);
+          if (data.awb_code) {
+            // Now fetch the tracking details from Shiprocket
+            await fetchTrackingByAwb(data.awb_code);
           }
         } catch (err) {
           setTrackingError(err instanceof Error ? err.message : "Failed to load tracking information");
@@ -447,7 +447,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
           <div className="bg-card border rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Shipment Tracking</h2>
-              <Button variant="outline" size="sm" onClick={() => trackingData.waybill && fetchTrackingByWaybill(trackingData.waybill)}>
+              <Button variant="outline" size="sm" onClick={() => trackingData.awb_code && fetchTrackingByAwb(trackingData.awb_code)}>
                 Refresh
               </Button>
             </div>
@@ -455,7 +455,7 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium">Waybill Number</p>
-                  <p className="text-sm text-muted-foreground">{trackingData.waybill}</p>
+                  <p className="text-sm text-muted-foreground">{trackingData.awb_code}</p>
                 </div>
                 <div>
                   {getStatusBadge(trackingData.status)}
@@ -513,10 +513,10 @@ export function OrderDetails({ order, items }: { order: Order; items: OrderItem[
             <Button variant="outline" onClick={() => {
               // Try to refetch tracking data
               if (order.id) {
-                // Get waybill and fetch tracking data
+                // Get AWB code and fetch tracking data
                 fetch(`/api/orders/${order.id}/tracking`).then(res => res.json()).then(data => {
-                  if (data.waybill) {
-                    fetchTrackingByWaybill(data.waybill);
+                  if (data.awb_code) {
+                    fetchTrackingByAwb(data.awb_code);
                   }
                 }).catch(err => {
                   setTrackingError(err instanceof Error ? err.message : "Failed to load tracking information");
