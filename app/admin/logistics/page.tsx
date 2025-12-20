@@ -5,7 +5,6 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { verifyAuth } from "@/lib/session"
 import { LogisticsDashboard } from "@/components/admin/logistics-dashboard"
-import { SimplePickupLocationManagement } from "@/components/admin/simple-pickup-location-management"
 
 export default async function LogisticsPage() {
   const cookieStore = await cookies()
@@ -29,9 +28,6 @@ export default async function LogisticsPage() {
       
       {/* Main Orders Dashboard */}
       <LogisticsDashboard />
-      
-      {/* Pickup Locations */}
-      <SimplePickupLocationManagement />
     </div>
   )
 }

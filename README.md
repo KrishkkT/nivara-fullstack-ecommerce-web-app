@@ -110,7 +110,6 @@ public/               # Static assets
 - Shiprocket integration for order fulfillment
 - Order tracking
 - Pickup management
-- See [Shiprocket Integration Documentation](SHIPROCKET_INTEGRATION.md) for details
 
 ## Deployment
 
@@ -119,14 +118,6 @@ The application can be deployed to Vercel with the following considerations:
 1. Set up environment variables in Vercel dashboard
 2. Configure PostgreSQL database connection
 3. Ensure all API keys are properly configured
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a pull request
 
 ## License
 

@@ -1,66 +1,0 @@
-     Couriers
-     Use these APIs to assign AWB to your order, check for courier serviceability, and request for the pickup of your order.
-     All available couriers, along with their codes, are mentioned below:
-     Table
-     COURIER ID     COURIER NAME          1     Blue Dart          4     Amazon Shipping 5Kg          6     DTDC Surface          10     Delhivery          14     Ecom Express Surface          18     DTDC 5kg          19     Ecom Express Surface 2kg          23     Xpressbees 1kg          24     Xpressbees 2kg          25     Xpressbees 5kg          29     Amazon Shipping 1Kg          32     Amazon Shipping 2Kg          33     Xpressbees          35     Aramex International          39     Delhivery Surface 5 Kgs          43     Delhivery Surface          45     Ecom Express Reverse          46     Shadowfax Reverse          48     Ekart Logistics          51     Xpressbees Surface          54     Ekart Logistics Surface          55     Blue Dart Surface          58     Shadowfax Surface          60     Ecom Premium and ROS          61     Delhivery Reverse          64     Delhivery 500G Savex (A)          65     Delhivery 500G Savex (S)          66     Ecom Exp Savex (A)          67     Ecom ROS Savex (A)          69     Kerry Indev Express Surface          71     Self Delivery          72     Bluedart Savex (A)          75     SRF Standard 500gm          76     Delhivery 5KG Savex (S)          77     Delhivery 10KG Savex (S)          78     Delhivery 20KG Savex (S)          79     SRF Standard 2kg          81     SRF Standard          82     DTDC 2kg          83     Delhivery 500G Savex RVP          84     Delhivery 500G Savex RVP-QC          85     Standard          86     Express          87     Delhivery 5KG Savex RVP (S)          88     Delhivery 10KG Savex RVP (S)          89     Delhivery 20KG Savex RVP (S)          90     Standard 500gm          91     Standard 2kg          92     Standard 5kg          93     Standard 10kg          94     Standard 20kg          95     Shadowfax Local          97     Dunzo Local          98     SRF Standard 5kg          99     Ecom Express ROS Reverse          100     Delhivery Surface 10 Kgs          101     Delhivery Surface 20 Kgs          106     Borzo          107     Borzo 5 Kg          114     SRF Standard 10kg          115     Shadowfax Savex          116     SRF Standard 20kg          117     SRF Express          118     Bluedart Savex Exchange          119     Identify Plus SDD Lite          120     Identify Plus SDD Standard          125     Xpressbees Reverse          126     Bluedart Savex TDD          130     Ekart 10kg          138     Delhivery Reverse 5kg          140     SRX Premium          141     SRF RUSH          142     Amazon Surface 500gm Prepaid          144     Xpressbees Reverse 2kg          145     Xpressbees Reverse 5 kg          146     Kerry Indev 2kg Surface          150     Xpressbees Reverse 1kg          154     Kerry Indev Express          159     Xpressbees 10kg          170     Ekart 2Kg          171     Ekart 5Kg          181     Amazon Shipping 10Kg          182     Amazon Shipping 20Kg          195     Amazon Surface 500gm COD          196     DTDC 500GMS          235     DTDC Express          240     SRX Priority          313     Wholemark          501     Bluedart CE Savex          524     Sm Shadowfax Surface 3Kg          777     Shadowfax DS          
-     
-     
-     POSTGenerate AWB for Shipment
-     https://apiv2.shiprocket.in/v1/external/courier/assign/awb
-     This API can be used to assign the AWB (Air Waybill Number) to your shipment. The AWB is a unique number that helps you track the shipment and get details about it.
-     Table
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          shipment_id     YES     integer     The shipment id of the order you want to create the AWB for.     16016920          courier_id     NO     integer     The courier id of the courier service you want to select. The default courier is selected in case no id is specified.     10          status     NO     string     Use this to change the courier of a shipment. Value: reassign. Note that this can be done only once in 24 hours.     reassign          
-     HEADERS
-     Content-Type
-     application/json
-     Bodyraw
-     {
-       "shipment_id": "",
-       "courier_id": "",
-       "status": ""}
-     GETList of Couriers
-     https://apiv2.shiprocket.in/v1/external/courier/courierListWithCounts
-     Use this API to check the list of couriers and the related information with Shiprocket based on the search criteria.
-Note:
-* This API will work on a company level.
-* You can use filters to sort your data. By default, all the couriers are shown if no filter is used.
-* total_courier_count will change based on the filter used.
-     Parameters:
-      PARAMS      REQUIRED      DATA TYPE      DESCRIPTION      EXAMPLE            type      NO      string      Use this as a parameter. Possible values are : active/inactive/all      https://apiv2.shiprocket.in/v1/external/courier/courierListWithCounts?type=active           HEADERS
-      Content-Type
-application/json
-
-
-GETCheck Courier Serviceability
-https://apiv2.shiprocket.in/v1/external/courier/serviceability/
-Use this API to check the availability of couriers between the pickup and delivery postal codes.
-Further details like the estimated time of delivery, the rates along with the ids are also shown.
-Note:
-* One of either the 'order_id' or 'cod' and 'weight' is required. If you specify the order id, the cod and weight fields are not required and vice versa.
-* You can add further fields to add the shipment details and filter the search.
-     Table
-      PARAMS      REQUIRED      DATA TYPE      DESCRIPTION      EXAMPLE            pickup_postcode      YES      integer      Postcode from where the order will be picked.      110030            delivery_postcode      YES      integer      Postcode where the order will be delivered      122002            order_id      NO      integer      If order id is already created in Shiprocket panel then you can use this shiprocket order id in servicibility      123456            cod      CONDITIONAL YES      boolean      1 for Cash on Delivery and 0 for Prepaid orders.      1            weight      CONDITIONAL YES      string      The weight of shipment in kgs.      2            length      NO      integer      The length of the shipment in cms.      15            breadth      NO      integer      The breadth of the shipment in cms.      10            height      NO      integer      The height of the shipment in cms.      5            declared_value      NO      integer      The price of the order shipment in rupees.      50            mode      NO      string      The mode of travel. Either: Surface or Air      Air            is_return      NO      integer      Whether the order is a return order or not. 1 in case of Yes and 0 for No. (declared_value field is required in case you use this parameter)      0            couriers_type      NO      integer      Use this to filter out and show only "documents" couriers like XB documents, etc. The only accepted value is 1.      1            only_local      NO      integer      Use this to filter out and show only Hyperlocal couriers. The only accepted value is 1.      1            qc_check      CONDITIONAL YES      integer      Use this filter to show only the QC-enabled couriers. is_return has to be set to 1      1      
-HEADERS
-Content-Type
-application/json
-
-
-POSTRequest for Shipment Pickup
-https://apiv2.shiprocket.in/v1/external/courier/generate/pickup
-Use this API to create a pickup request for your order shipment. The API returns the pickup status along with the estimated pickup time.
-You will have to call the 'Generate Manifest' API after the successful response of this API.
-Note:
-* The AWB must be already generated for the shipment id to generate the pickup request.
-* Only one shipment_id can be passed at a time.
-* In case the pickup_date falls on a holiday or Sunday, the shipment will be booked for the next available date.
-     Table
-      PARAMS      REQUIRED      DATA TYPE      DESCRIPTION      EXAMPLE            shipment_id      YES      integer      The shipment id of the shipment which is requested for pickup.      [16090109]            status      NO      string      Use this field to retry if the pickup request fails. Value: retry      retry            pickup_date      NO      Array of Dates      Use this field to schedule a pickup for a future date. The date format would be YYYY-MM-DD. You can reschedule the date till that date has not passed      ["2022-06-04"]      
-HEADERS
-Content-Type
-application/json
-Bodyraw
-{
-	"shipment_id": [16090109]
-}
-     
-     

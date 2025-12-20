@@ -23,19 +23,14 @@ interface OrderData {
 
 export async function createOrder(data: OrderData) {
   try {
-    console.log("[v0] Creating order with data:", JSON.stringify(data, null, 2));
-    
     const session = await getSession()
 
     if (!session) {
       return { error: "Please sign in to place an order" }
     }
-    
-    console.log(`[v0] User authenticated: ${session.userId}`);
 
     // Generate order number
-    const orderNumber = `NIVARA-${Date.now()}`
-    console.log(`[v0] Generated order number: ${orderNumber}`);
+    const orderNumber = `NIVARA-${Date.now()}`;
 
     const order: any = await sql`
       INSERT INTO orders (
@@ -62,7 +57,6 @@ export async function createOrder(data: OrderData) {
     `
 
     const orderId = order[0].id
-    console.log(`[v0] Created order in database with ID: ${orderId}`);
 
     // Insert order items
     for (const item of data.items) {
@@ -164,7 +158,6 @@ export async function createOrder(data: OrderData) {
     }
 
     // Automatically create order in Shiprocket
-    console.log(`[v0] Attempting to create Shiprocket order for order #${orderNumber} (ID: ${orderId})`);
     try {
       await createShiprocketOrderAutomatically(orderId, orderNumber, data);
     } catch (shiprocketError) {

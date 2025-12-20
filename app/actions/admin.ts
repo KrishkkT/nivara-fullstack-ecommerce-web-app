@@ -173,8 +173,6 @@ export async function cancelOrder(orderId: number) {
   }
 
   try {
-    console.log(`[v0] Admin attempting to cancel order ${orderId}`);
-    
     // Check if order exists
     const order: any = await sql`
       SELECT * FROM orders WHERE id = ${orderId}
@@ -206,9 +204,7 @@ export async function cancelOrder(orderId: number) {
       UPDATE orders
       SET status = 'cancelled'
       WHERE id = ${orderId}
-    `
-    
-    console.log(`[v0] Order ${orderId} cancelled successfully by admin`);
+    `;
 
     // Send cancellation email to customer
     if (orderDetails.length > 0) {
@@ -218,7 +214,7 @@ export async function cancelOrder(orderId: number) {
         email: order.customer_email,
         phone: order.customer_phone
       }
-
+  
       // Get shipping address
       let shippingAddress = null
       if (order.shipping_address_id) {
@@ -235,31 +231,29 @@ export async function cancelOrder(orderId: number) {
           shippingAddress = {}
         }
       }
-
+  
       if (shippingAddress) {
         // Send cancellation email to customer
         try {
-          console.log(`[v0] Sending cancellation email to ${customer.email}`);
           const emailHtml = generateCancellationConfirmationEmail(order, customer, orderItems)
           await sendEmail({
             to: customer.email,
             subject: `Order #${order.order_number} Cancelled by Admin`,
             html: emailHtml
           })
-          console.log(`[v0] Cancellation email sent successfully to ${customer.email}`);
         } catch (emailError) {
           console.error("[v0] Failed to send cancellation email to customer:", emailError)
         }
-        
+            
         // Send cancellation notification to admins
         try {
           // Get active admin emails
           const adminEmailsResult: any = await sql`
             SELECT email FROM admin_emails WHERE is_active = true
           `
-          
+              
           const adminEmails = adminEmailsResult.map((row: any) => row.email)
-          
+              
           if (adminEmails.length > 0) {
             const emailHtml = generateAdminCancellationNotificationEmail(order, customer, orderItems)
             await sendEmail({
@@ -267,7 +261,6 @@ export async function cancelOrder(orderId: number) {
               subject: `Order #${order.order_number} Cancelled by Admin - Admin Notification`,
               html: emailHtml
             })
-            console.log(`[v0] Cancellation notification email sent successfully to admins`);
           }
         } catch (adminEmailError) {
           console.error("[v0] Failed to send cancellation notification email to admins:", adminEmailError)
@@ -276,10 +269,10 @@ export async function cancelOrder(orderId: number) {
         console.warn("[v0] No shipping address found for order, skipping cancellation email");
       }
     }
-
+  
     revalidatePath("/admin/orders")
     revalidatePath("/orders")
-
+  
     return { success: true }
   } catch (error) {
     console.error("[v0] Failed to cancel order:", error);

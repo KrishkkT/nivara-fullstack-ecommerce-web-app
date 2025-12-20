@@ -109,14 +109,23 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
   }
   // Handle case where shipping address is stored as JSON
   else if (order.shipping_address) {
-    shippingAddress = {
-      id: 0,
-      address_line1: order.shipping_address.address_line1 || '',
-      address_line2: order.shipping_address.address_line2 || null,
-      city: order.shipping_address.city || '',
-      state: order.shipping_address.state || '',
-      postal_code: order.shipping_address.postal_code || '',
-      country: order.shipping_address.country || 'India'
+    try {
+      const parsedAddress = typeof order.shipping_address === 'string' 
+        ? JSON.parse(order.shipping_address) 
+        : order.shipping_address;
+      
+      shippingAddress = {
+        id: 0,
+        address_line1: parsedAddress.address_line1 || '',
+        address_line2: parsedAddress.address_line2 || null,
+        city: parsedAddress.city || '',
+        state: parsedAddress.state || '',
+        postal_code: parsedAddress.postal_code || '',
+        country: parsedAddress.country || 'India'
+      }
+    } catch (e) {
+      console.warn('Failed to parse shipping address:', e);
+      shippingAddress = null;
     }
   }
 
@@ -190,9 +199,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Status</p>
-                <div className="py-1">
-                  <UpdateOrderStatus orderId={order.id} currentStatus={order.status} />
-                </div>
+                <p className="text-lg capitalize font-medium">{order.status}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Payment Status</p>
@@ -205,7 +212,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           {order.status !== "cancelled" && (order.status === "pending" || order.status === "processing") && (
             <div className="bg-card border rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-4">Order Actions</h2>
-              <CancelOrderButton orderId={order.id} isAdmin={true} />
+              <p className="text-sm text-muted-foreground">Order can be cancelled</p>
             </div>
           )}
 

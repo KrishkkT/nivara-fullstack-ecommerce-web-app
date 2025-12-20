@@ -108,7 +108,7 @@ export default async function CategoriesPage() {
                   </div>
                 </div>
                 <div className="p-6 space-y-4">
-                  <p className="text-muted-foreground leading-relaxed line-clamp-3">{details?.longDescription}</p>
+                  <p className="text-muted-foreground leading-relaxed line-clamp-3">{category.description}</p>
                   <div className="grid grid-cols-2 gap-2">
                     {details?.features.slice(0, 2).map((feature: string, idx: number) => (
                       <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">

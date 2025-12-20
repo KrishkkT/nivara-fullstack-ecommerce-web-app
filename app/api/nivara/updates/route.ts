@@ -7,21 +7,25 @@ import { sql } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 
 // Define the webhook event structure according to Shiprocket specifications
+// Note: Many fields are optional as they may not be present in all webhook events
 interface ShiprocketWebhookEvent {
-  awb: string;
-  shipment_id: number;
+  awb?: string; // Tracking number - may not be present initially
+  shipment_id?: number; // Shiprocket shipment ID - may not be present initially
   order_id: string; // This is your order number (e.g., NIVARA-1766221372643)
-  current_status: string;
-  rider_name?: string;
-  rider_contact?: string;
-  pickup_otp?: string;
-  drop_otp?: string;
+  current_status: string; // Status like 'SHIPPED', 'DELIVERED', etc.
+  rider_name?: string; // May not be available for all shipments
+  rider_contact?: string; // May not be available for all shipments
+  pickup_otp?: string; // Optional pickup OTP
+  drop_otp?: string; // Optional delivery OTP
+  // Additional fields that might be present in some webhook events
+  courier_name?: string;
+  etd?: string; // Estimated delivery date
+  [key: string]: any; // Allow for additional fields that Shiprocket might send
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: ShiprocketWebhookEvent = await request.json()
-    console.log("[v0] Shiprocket webhook received:", JSON.stringify(body, null, 2))
     
     // Handle order status updates
     await handleOrderStatusUpdate(body)
@@ -36,20 +40,19 @@ export async function POST(request: NextRequest) {
 
 async function handleOrderStatusUpdate(data: ShiprocketWebhookEvent) {
   try {
-    console.log(`[v0] Handling order status update for order ${data.order_id}: ${data.current_status}`)
-    
     // Update our database with shipment information and status
+    // We'll update all fields but use null for missing ones
     await sql`
       UPDATE shiprocket_orders 
       SET 
         shipment_id = ${data.shipment_id || null},
         awb_code = ${data.awb || null},
         status = ${data.current_status},
+        courier_name = ${data.courier_name || null},
+        estimated_delivery_date = ${data.etd || null},
         updated_at = NOW()
       WHERE order_id = ${data.order_id}
     `
-    
-    console.log(`[v0] Updated shiprocket_orders record for order ${data.order_id}`)
     
     // If the order has been shipped, send email notification to customer
     const lowerStatus = data.current_status.toLowerCase();
@@ -61,14 +64,12 @@ async function handleOrderStatusUpdate(data: ShiprocketWebhookEvent) {
       await sendShipmentNotification(data)
     }
   } catch (error) {
-    console.error(`[v0] Error handling order status update for order ${data.order_id}:`, error)
+    console.error(`[v0] Error handling order status update for order ${data.order_id}`)
   }
 }
 
 async function sendShipmentNotification(data: ShiprocketWebhookEvent) {
   try {
-    console.log(`[v0] Sending shipment notification for order ${data.order_id}`)
-    
     // Get order details from our database
     const orderResult: any = await sql`
       SELECT o.*, u.full_name, u.email, u.phone
@@ -78,7 +79,6 @@ async function sendShipmentNotification(data: ShiprocketWebhookEvent) {
     `
     
     if (orderResult.length === 0) {
-      console.warn(`[v0] Order not found for Shiprocket order ID: ${data.order_id}`)
       return
     }
     
@@ -97,7 +97,7 @@ async function sendShipmentNotification(data: ShiprocketWebhookEvent) {
       try {
         shippingAddress = JSON.parse(order.shipping_address)
       } catch (e) {
-        console.warn("[v0] Failed to parse shipping address JSON")
+        // Failed to parse shipping address
       }
     }
     
@@ -106,27 +106,41 @@ async function sendShipmentNotification(data: ShiprocketWebhookEvent) {
       SELECT * FROM order_items WHERE order_id = ${order.id}
     `
     
+    // Get shipment details from our database to ensure we have all information
+    const shipmentResult: any = await sql`
+      SELECT *
+      FROM shiprocket_orders
+      WHERE order_id = ${data.order_id}
+    `
+    
+    // Merge webhook data with database shipment data to ensure we have all information
+    const mergedShipmentData = {
+      ...data,
+      ...(shipmentResult.length > 0 ? {
+        courier_name: data.courier_name || shipmentResult[0].courier_name,
+        etd: data.etd || shipmentResult[0].estimated_delivery_date
+      } : {})
+    };
+    
     // Send shipment notification email to customer
     try {
       const emailHtml = generateShipmentNotificationEmail(
         order, 
         orderItems, 
         shippingAddress,
-        data
+        mergedShipmentData
       )
       
-      const emailResult = await sendEmail({
+      await sendEmail({
         to: order.email,
         subject: `Your Order #${order.order_number} Has Been Shipped!`,
         html: emailHtml
       })
-      
-      console.log(`[v0] Shipment notification email sent for order ${order.order_number}:`, emailResult)
     } catch (emailError) {
-      console.error(`[v0] Failed to send shipment notification email for order ${order.order_number}:`, emailError)
+      console.error(`[v0] Failed to send shipment notification email for order ${order.order_number}`)
     }
   } catch (error) {
-    console.error(`[v0] Error sending shipment notification for order ${data.order_id}:`, error)
+    console.error(`[v0] Error sending shipment notification for order ${data.order_id}`)
   }
 }
 
@@ -165,15 +179,54 @@ function generateShipmentNotificationEmail(
   
   // Shipment information
   let shipmentInfoHtml = '';
-  if (shipmentInfo.awb || shipmentInfo.rider_name) {
+  
+  // Collect all available shipment information
+  const shipmentDetails = [];
+  
+  if (shipmentInfo.awb) {
+    shipmentDetails.push(`<li><strong>Tracking Number:</strong> ${shipmentInfo.awb}</li>`);
+  }
+  
+  if (shipmentInfo.courier_name) {
+    shipmentDetails.push(`<li><strong>Courier:</strong> ${shipmentInfo.courier_name}</li>`);
+  }
+  
+  if (shipmentInfo.rider_name) {
+    shipmentDetails.push(`<li><strong>Rider Name:</strong> ${shipmentInfo.rider_name}</li>`);
+  }
+  
+  if (shipmentInfo.rider_contact) {
+    shipmentDetails.push(`<li><strong>Rider Contact:</strong> ${shipmentInfo.rider_contact}</li>`);
+  }
+  
+  if (shipmentInfo.pickup_otp) {
+    shipmentDetails.push(`<li><strong>Pickup OTP:</strong> ${shipmentInfo.pickup_otp}</li>`);
+  }
+  
+  if (shipmentInfo.drop_otp) {
+    shipmentDetails.push(`<li><strong>Delivery OTP:</strong> ${shipmentInfo.drop_otp}</li>`);
+  }
+  
+  if (shipmentInfo.etd) {
+    // Format the estimated delivery date
+    let formattedEtd = shipmentInfo.etd;
+    try {
+      const etdDate = new Date(shipmentInfo.etd);
+      if (!isNaN(etdDate.getTime())) {
+        formattedEtd = etdDate.toLocaleDateString('en-IN');
+      }
+    } catch (e) {
+      // Keep original value if parsing fails
+    }
+    shipmentDetails.push(`<li><strong>Estimated Delivery:</strong> ${formattedEtd}</li>`);
+  }
+  
+  // Only show shipment details section if we have any information
+  if (shipmentDetails.length > 0) {
     shipmentInfoHtml = `
       <p><strong>Shipment Details:</strong></p>
       <ul style="margin: 10px 0; padding-left: 20px;">
-        ${shipmentInfo.awb ? `<li><strong>Tracking Number:</strong> ${shipmentInfo.awb}</li>` : ''}
-        ${shipmentInfo.rider_name ? `<li><strong>Rider Name:</strong> ${shipmentInfo.rider_name}</li>` : ''}
-        ${shipmentInfo.rider_contact ? `<li><strong>Rider Contact:</strong> ${shipmentInfo.rider_contact}</li>` : ''}
-        ${shipmentInfo.pickup_otp ? `<li><strong>Pickup OTP:</strong> ${shipmentInfo.pickup_otp}</li>` : ''}
-        ${shipmentInfo.drop_otp ? `<li><strong>Drop OTP:</strong> ${shipmentInfo.drop_otp}</li>` : ''}
+        ${shipmentDetails.join('\n        ')}
       </ul>
     `;
   }
@@ -199,6 +252,8 @@ function generateShipmentNotificationEmail(
           <li><strong>Order Date:</strong> ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : ''}</li>
           <li><strong>Total Amount:</strong> ₹${order.total_amount ? parseFloat(order.total_amount).toFixed(2) : '0.00'}</li>
           <li><strong>Current Status:</strong> ${shipmentInfo.current_status}</li>
+          ${order.contact_phone ? `<li><strong>Contact Phone:</strong> ${order.contact_phone}</li>` : ''}
+          ${order.contact_email ? `<li><strong>Contact Email:</strong> ${order.contact_email}</li>` : ''}
         </ul>
         
         ${shipmentInfoHtml}

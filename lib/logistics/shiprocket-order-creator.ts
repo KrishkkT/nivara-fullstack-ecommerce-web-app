@@ -26,8 +26,7 @@ interface OrderData {
 // Helper function to automatically create orders in Shiprocket
 export async function createShiprocketOrderAutomatically(orderId: number, orderNumber: string, data: OrderData) {
   try {
-    console.log(`[v0] Starting automatic Shiprocket order creation for order #${orderNumber} (ID: ${orderId})`);
-    console.log(`[v0] Order data:`, JSON.stringify(data, null, 2));
+    // Removed sensitive debugging logs for production
     
     // Get user details for the order
     // If user data is provided in orderData, use it; otherwise fetch from database
@@ -76,8 +75,7 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
       WHERE oi.order_id = ${orderId}
     `;
 
-    // Log for debugging
-    console.log('[v0] Order items result:', JSON.stringify(orderItemsResult, null, 2));
+    // Removed sensitive debugging logs for production
     
     // Transform order items to Shiprocket format
     const shiprocketItems = orderItemsResult.map((item: any, index: number) => ({
@@ -91,8 +89,6 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
       weight: 0.5 // Default weight in kg, you might want to get this from product data
     }));
     
-    console.log('[v0] Shiprocket items:', JSON.stringify(shiprocketItems, null, 2));
-
     // Get pickup location
     let pickupLocation = null;
     try {
@@ -149,9 +145,7 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
       };
       
       // Actually call the serviceability check function
-      console.log("[v0] Checking courier serviceability with data:", JSON.stringify(serviceabilityData, null, 2));
       const serviceabilityResult = await checkCourierServiceability(serviceabilityData);
-      console.log("[v0] Serviceability check result:", JSON.stringify(serviceabilityResult, null, 2));
     } catch (serviceabilityError) {
       console.warn("[v0] Serviceability check failed (continuing with order creation):", serviceabilityError);
     }
@@ -223,9 +217,9 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
         updated_at = NOW()
     `;
 
-    console.log(`[v0] Successfully created Shiprocket order for order #${orderNumber}`);
+    // Successfully created Shiprocket order
   } catch (error) {
-    console.error(`[v0] Error creating Shiprocket order for order #${orderNumber}:`, error);
+    console.error(`[v0] Error creating Shiprocket order for order #${orderNumber}`);
     throw error;
   }
 }
