@@ -48,6 +48,56 @@ export async function POST(request: NextRequest) {
       WHERE id = ${orderId} AND user_id = ${session.userId}
     `
 
+    // Trigger Shiprocket order creation after successful payment
+    try {
+      console.log(`[v0] Triggering Shiprocket order creation for order ID: ${orderId}`);
+      
+      // Get order details for Shiprocket creation
+      const orderDetails: any = await sql`
+        SELECT o.*, u.full_name, u.email, u.phone, a.*
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        LEFT JOIN addresses a ON o.shipping_address_id = a.id
+        WHERE o.id = ${orderId}
+      `;
+      
+      if (orderDetails.length > 0) {
+        const order = orderDetails[0];
+        const orderNumber = order.order_number;
+        
+        console.log(`[v0] Creating Shiprocket order for #${orderNumber}`);
+        
+        // Create a minimal order data object for Shiprocket
+        const orderData = {
+          shippingAddressId: order.shipping_address_id,
+          shippingAddress: order.shipping_address ? JSON.parse(order.shipping_address) : null,
+          paymentMethod: order.payment_type || 'prepaid',
+          totalAmount: parseFloat(order.total_amount),
+          items: [] // We'll populate this below
+        };
+        
+        // Get order items
+        const orderItems: any = await sql`
+          SELECT * FROM order_items WHERE order_id = ${orderId}
+        `;
+        
+        orderData.items = orderItems.map((item: any) => ({
+          productId: item.product_id,
+          quantity: item.quantity,
+          price: parseFloat(item.product_price)
+        }));
+        
+        // Import and call the Shiprocket creation function
+        const { createShiprocketOrderAutomatically } = await import('@/app/actions/orders');
+        await createShiprocketOrderAutomatically(orderId, orderNumber, orderData);
+      } else {
+        console.error(`[v0] Order not found for ID: ${orderId}`);
+      }
+    } catch (shiprocketError) {
+      console.error('[v0] Failed to trigger Shiprocket order creation:', shiprocketError);
+      // Don't fail the payment verification if Shiprocket sync fails
+    }
+
     // Send email notifications to admin emails and customer after successful payment
     try {
       console.log("[v0] Preparing to send email notifications...");

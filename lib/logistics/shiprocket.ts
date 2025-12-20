@@ -199,7 +199,12 @@ export async function createOrder(orderData: any) {
       }
     }
     
+    console.log('[v0] Sending order data to Shiprocket:', JSON.stringify(orderData, null, 2));
+    
     const response = await shiprocketPost("/orders/create/adhoc", orderData);
+    
+    console.log('[v0] Shiprocket order creation response:', JSON.stringify(response, null, 2));
+    
     return response;
   } catch (error: any) {
     console.error("Error creating order:", error);

@@ -462,11 +462,16 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
       weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.units), 0))
     };
 
+    // Log the data being sent to Shiprocket for debugging
+    console.log('[v0] Sending data to Shiprocket:', JSON.stringify(shiprocketOrderData, null, 2));
+    
     // Create the order in Shiprocket
     const orderResult = await createShiprocketOrder(shiprocketOrderData);
     
+    console.log('[v0] Shiprocket response:', JSON.stringify(orderResult, null, 2));
+    
     if (!orderResult || !orderResult.order_id) {
-      throw new Error("Failed to create order in Shiprocket");
+      throw new Error("Failed to create order in Shiprocket: " + JSON.stringify(orderResult));
     }
 
     // Store the order mapping in our database
