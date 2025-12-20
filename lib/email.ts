@@ -257,6 +257,95 @@ export function generateCustomerOrderConfirmationEmail(order: any, customer: any
   `
 }
 
+// Generate HTML email template for shipment notification
+export function generateShipmentNotificationEmail(order: any, items: any[], shippingAddress: any, shipmentInfo: { awb_code?: string; courier_name?: string; etd?: string }): string {
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="font-weight: bold;">${item.product_name}</div>
+        <div>Quantity: ${item.quantity}</div>
+      </td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
+        ₹${(item.product_price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `).join('')
+  
+  // Safely handle shipping address
+  let shippingAddressHtml = '';
+  if (shippingAddress) {
+    shippingAddressHtml = `
+      <p><strong>Shipping Address:</strong></p>
+      <div style="margin: 10px 0; padding: 15px; background-color: #f8f8f8; border-radius: 5px;">
+        <div>${shippingAddress?.address_line1 || ''}</div>
+        ${(shippingAddress?.address_line2 || '') ? `<div>${shippingAddress.address_line2}</div>` : ''}
+        <div>${[shippingAddress?.city || '', shippingAddress?.state || '', shippingAddress?.postal_code || ''].filter(Boolean).join(', ')}</div>
+        <div>${shippingAddress?.country || 'India'}</div>
+      </div>
+    `;
+  }
+  
+  // Shipment information
+  let shipmentInfoHtml = '';
+  if (shipmentInfo.awb_code || shipmentInfo.courier_name) {
+    shipmentInfoHtml = `
+      <p><strong>Shipment Details:</strong></p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        ${shipmentInfo.awb_code ? `<li><strong>Tracking Number:</strong> ${shipmentInfo.awb_code}</li>` : ''}
+        ${shipmentInfo.courier_name ? `<li><strong>Courier:</strong> ${shipmentInfo.courier_name}</li>` : ''}
+        ${shipmentInfo.etd ? `<li><strong>Estimated Delivery:</strong> ${new Date(shipmentInfo.etd).toLocaleDateString('en-IN')}</li>` : ''}
+      </ul>
+    `;
+  }
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Your Order Has Been Shipped!</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #B29789;">Your Order Has Been Shipped!</h1>
+        
+        <p>Dear Customer,</p>
+        
+        <p>Great news! Your order has been shipped and is on its way to you.</p>
+        
+        <p><strong>Order Details:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Order Number:</strong> ${order.order_number || ''}</li>
+          <li><strong>Order Date:</strong> ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : ''}</li>
+          <li><strong>Total Amount:</strong> ₹${order.total_amount ? parseFloat(order.total_amount).toFixed(2) : '0.00'}</li>
+        </ul>
+        
+        ${shipmentInfoHtml}
+        
+        <p><strong>Items Shipped:</strong></p>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+          <thead>
+            <tr style="background-color: #f8f8f8;">
+              <th style="padding: 10px; text-align: left;">Item</th>
+              <th style="padding: 10px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        
+        ${shippingAddressHtml}
+        
+        <p>You can track your shipment using the tracking number above. You should receive your order soon.</p>
+        
+        <p>Thank you for shopping with us!</p>
+      </div>
+    </body>
+    </html>
+  `
+}
+
 // Generate HTML email template for shipping confirmation
 export function generateShippingConfirmationEmail(order: any, customer: any, items: any[], shippingAddress: any): string {
   const itemsHtml = items.map(item => `

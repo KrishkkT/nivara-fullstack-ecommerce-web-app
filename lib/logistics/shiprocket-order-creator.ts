@@ -98,8 +98,6 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
     try {
       const pickupLocations = await getPickupLocations();
       
-      console.log('[v0] Raw pickup locations response:', JSON.stringify(pickupLocations, null, 2));
-      
       // Handle different response structures
       let locationsData = [];
       if (pickupLocations && pickupLocations.data) {
@@ -125,14 +123,11 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
         }
       }
       
-      console.log('[v0] Processed locations data:', JSON.stringify(locationsData, null, 2));
-      
       // Use primary pickup location or first available
       const primaryLocation = locationsData.find((loc: any) => loc.is_primary_location || loc.primary) || locationsData[0];
       if (primaryLocation) {
         // Based on the error data, we should use the pickup_location field
         pickupLocation = primaryLocation.pickup_location || primaryLocation.name || primaryLocation.id;
-        console.log('[v0] Selected pickup location:', pickupLocation);
       }
     } catch (pickupError) {
       console.warn("Failed to fetch pickup locations for Shiprocket order:", pickupError);
@@ -163,7 +158,6 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
 
     // Prepare order data for Shiprocket (following the exact API specification)
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log('[v0] Using order date:', currentDate);
     
     // Format customer name properly
     const fullNameParts = (user.full_name || '').split(' ');
@@ -200,9 +194,6 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
       weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.units), 0)).toString() // Ensure it's a string
     };
 
-    // Log the data being sent to Shiprocket for debugging
-    console.log('[v0] Sending data to Shiprocket:', JSON.stringify(shiprocketOrderData, null, 2));
-    
     // Validate required fields before sending
     if (!shiprocketOrderData.pickup_location) {
       throw new Error("pickup_location is required");
@@ -214,8 +205,6 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
     
     // Create the order in Shiprocket
     const orderResult = await createShiprocketOrder(shiprocketOrderData);
-    
-    console.log('[v0] Shiprocket response:', JSON.stringify(orderResult, null, 2));
     
     if (!orderResult || !orderResult.order_id) {
       throw new Error("Failed to create order in Shiprocket: " + JSON.stringify(orderResult));

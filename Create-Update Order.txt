@@ -12,10 +12,310 @@
      
      
      Table
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          order_id     YES     string     The order id you want to specify to the order. Max char: 50. (Avoid passing character values as this contradicts some other API calls).     224477 or 224-477          order_date     YES     string     The date of order creation in yyyy-mm-dd format. Time is additional.     2019-07-24 11:11          pickup_location     YES     string     The name of the pickup location added in your Shiprocket account. This cannot be a new location.     Jammu          channel_id     NO     integer     Mention this in case you need to assign the order to a particular channel. Default is 'Custom'.     27022          comment     NO     string     Option to add 'From' field to the shipment. To do this, enter the name in the following format: 'Reseller: [name]'.     Reseller: Divine          reseller_name     NO     string     The 'from' name if you want to print. Use 'Reseller: [name]'     Reseller: Divine          company_name     NO     string     Name of the company.     Amazon          billing_customer_name     YES     string     First name of the billed customer.     John          billing_last_name     NO     string     Last name of the billed customer.     Doe          billing_address     YES     string     address details of the billed customer.     Civil line, House 20          billing_address_2     NO     string     Further address details of the billed customer.     Near Hokage House          billing_city     YES     string     Billing address city. Max char: 30.     New Delhi          billing_pincode     YES     integer     Pincode of the billing address.     110002          billing_state     YES     string     Billing address state.     Delhi          billing_country     YES     string     Billing address country.     India          billing_email     YES     string     Email address of the billed customer.     John@doe.com          billing_phone     YES     integer     The phone number of the billing customer.     9856321472          billing_alternate_phone     NO     integer     Alternate phone number of the billing customer.     8604690454          shipping_is_billing     YES     boolean     Whether the shipping address is the same as billing address. 1 or 'true' for yes and 0 or 'false' for no.     true          shipping_customer_name     CONDITIONAL YES     string     Name of the customer the order is shipped to. Required in case billing is not same as shipping.     Jane          shipping_last_name     NO     string     Last name of the shipping customer.     Doe          shipping_address     CONDITIONAL YES     string     Address of the Shipping customer. Required in case billing is not same as shipping.     Lane number 69          shipping_address_2     NO     string     Further address details of shipping customer.     Andheri          billing_isd_code     NO     string     ISD code of the billing address.     +91          shipping_city     CONDITIONAL YES     string     Shipping address city.     Mumbai          shipping_pincode     CONDITIONAL YES     integer     Shipping address pincode.     200912          shipping_country     CONDITIONAL YES     string     Shipping address country.     India          shipping_state     CONDITIONAL YES     string     Shipping address state.     Maharashtra          shipping_email     NO     string     Email of the shipping customer.     Jane@doe.com          shipping_phone     CONDITIONAL YES     integer     Phone no. of the shipping customer.               longitude     NO     float     Destination (Shipping address) Longitude.     69.0747          latitude     NO     float     Destination (Shipping address) Latitude     22.4064          order_items     YES     /     List of items and their relevant fields in the form of Array.     /          name     YES     string     Name of the product.     Jeans          sku     YES     string     The sku id of the product.     cbs123          units     YES     integer     No of units that are to be shipped.     10          selling_price     YES     integer     The selling price per unit in Rupee. Inclusive of GST.     900          discount     NO     integer     The discount amount in Rupee. Inclusive of tax.     10          tax     NO     integer     The tax percentage on the item.     5          hsn     NO     integer     Harmonised System Nomenclature code. Used to determine the category of taxation the goods fall under.     44122          payment_method     YES     string     The method of payment. Can be either COD (Cash on delivery) Or Prepaid.     COD          shipping_charges     NO     integer     Shipping charges if any in Rupee.     5          giftwrap_charges     NO     integer     Giftwrap charges if any in Rupee.     5          transaction_charges     NO     integer     Transaction charges if any in Rupee.     5          total_discount     NO     integer     The total discount amount in Rupee.     15          sub_total     YES     integer     Calculated sub total amount in Rupee after deductions.     9010          length     YES     float     The length of the item in cms. Must be more than 0.5.     10          breadth     YES     float     The breadth of the item in cms. Must be more than 0.5.     10          height     YES     float     The height of the item in cms. Must be more than 0.5.     10          weight     YES     float     The weight of the item in kgs. Must be more than 0.     2.5          ewaybill_no     NO     string     Details relating to the shipment of goods. .     K92373490          customer_gstin     NO     string     Goods and Services Tax Identification Number.     29ABCDE1234F2Z5          invoice_number     NO     string                    order_type     NO     string     Key to differentiate between Essentials or Non Essentials Shipments. Order type can only be ESSENTIALS or NON ESSENTIALS. Please note it is case sensitive and blank values are allowed.     ESSENTIALS          checkout_shipping_method     NO     string     Only for SRF users.     a. SR_RUSH: SDD, NDD
+     PARAMS
+     REQUIRED
+     DATA TYPE
+     DESCRIPTION
+     EXAMPLE
+          order_id
+     YES
+     string
+     The order id you want to specify to the order. Max char: 50. (Avoid passing character values as this contradicts some other API calls).
+     224477 or 224-477
+          order_date
+     YES
+     string
+     The date of order creation in yyyy-mm-dd format. Time is additional.
+     2019-07-24 11:11
+          pickup_location
+     YES
+     string
+     The name of the pickup location added in your Shiprocket account. This cannot be a new location.
+     Jammu
+          channel_id
+     NO
+     integer
+     Mention this in case you need to assign the order to a particular channel. Default is 'Custom'.
+     27022
+          comment
+     NO
+     string
+     Option to add 'From' field to the shipment. To do this, enter the name in the following format: 'Reseller: [name]'.
+     Reseller: Divine
+          reseller_name
+     NO
+     string
+     The 'from' name if you want to print. Use 'Reseller: [name]'
+     Reseller: Divine
+          company_name
+     NO
+     string
+     Name of the company.
+     Amazon
+          billing_customer_name
+     YES
+     string
+     First name of the billed customer.
+     John
+          billing_last_name
+     NO
+     string
+     Last name of the billed customer.
+     Doe
+          billing_address
+     YES
+     string
+     address details of the billed customer.
+     Civil line, House 20
+          billing_address_2
+     NO
+     string
+     Further address details of the billed customer.
+     Near Hokage House
+          billing_city
+     YES
+     string
+     Billing address city. Max char: 30.
+     New Delhi
+          billing_pincode
+     YES
+     integer
+     Pincode of the billing address.
+     110002
+          billing_state
+     YES
+     string
+     Billing address state.
+     Delhi
+          billing_country
+     YES
+     string
+     Billing address country.
+     India
+          billing_email
+     YES
+     string
+     Email address of the billed customer.
+     John@doe.com
+          billing_phone
+     YES
+     integer
+     The phone number of the billing customer.
+     9856321472
+          billing_alternate_phone
+     NO
+     integer
+     Alternate phone number of the billing customer.
+     8604690454
+          shipping_is_billing
+     YES
+     boolean
+     Whether the shipping address is the same as billing address. 1 or 'true' for yes and 0 or 'false' for no.
+     true
+          shipping_customer_name
+     CONDITIONAL YES
+     string
+     Name of the customer the order is shipped to. Required in case billing is not same as shipping.
+     Jane
+          shipping_last_name
+     NO
+     string
+     Last name of the shipping customer.
+     Doe
+          shipping_address
+     CONDITIONAL YES
+     string
+     Address of the Shipping customer. Required in case billing is not same as shipping.
+     Lane number 69
+          shipping_address_2
+     NO
+     string
+     Further address details of shipping customer.
+     Andheri
+          billing_isd_code
+     NO
+     string
+     ISD code of the billing address.
+     +91
+          shipping_city
+     CONDITIONAL YES
+     string
+     Shipping address city.
+     Mumbai
+          shipping_pincode
+     CONDITIONAL YES
+     integer
+     Shipping address pincode.
+     200912
+          shipping_country
+     CONDITIONAL YES
+     string
+     Shipping address country.
+     India
+          shipping_state
+     CONDITIONAL YES
+     string
+     Shipping address state.
+     Maharashtra
+          shipping_email
+     NO
+     string
+     Email of the shipping customer.
+     Jane@doe.com
+          shipping_phone
+     CONDITIONAL YES
+     integer
+     Phone no. of the shipping customer.
+     
+          longitude
+     NO
+     float
+     Destination (Shipping address) Longitude.
+     69.0747
+          latitude
+     NO
+     float
+     Destination (Shipping address) Latitude
+     22.4064
+          order_items
+     YES
+     /
+     List of items and their relevant fields in the form of Array.
+     /
+          name
+     YES
+     string
+     Name of the product.
+     Jeans
+          sku
+     YES
+     string
+     The sku id of the product.
+     cbs123
+          units
+     YES
+     integer
+     No of units that are to be shipped.
+     10
+          selling_price
+     YES
+     integer
+     The selling price per unit in Rupee. Inclusive of GST.
+     900
+          discount
+     NO
+     integer
+     The discount amount in Rupee. Inclusive of tax.
+     10
+          tax
+     NO
+     integer
+     The tax percentage on the item.
+     5
+          hsn
+     NO
+     integer
+     Harmonised System Nomenclature code. Used to determine the category of taxation the goods fall under.
+     44122
+          payment_method
+     YES
+     string
+     The method of payment. Can be either COD (Cash on delivery) Or Prepaid.
+     COD
+          shipping_charges
+     NO
+     integer
+     Shipping charges if any in Rupee.
+     5
+          giftwrap_charges
+     NO
+     integer
+     Giftwrap charges if any in Rupee.
+     5
+          transaction_charges
+     NO
+     integer
+     Transaction charges if any in Rupee.
+     5
+          total_discount
+     NO
+     integer
+     The total discount amount in Rupee.
+     15
+          sub_total
+     YES
+     integer
+     Calculated sub total amount in Rupee after deductions.
+     9010
+          length
+     YES
+     float
+     The length of the item in cms. Must be more than 0.5.
+     10
+          breadth
+     YES
+     float
+     The breadth of the item in cms. Must be more than 0.5.
+     10
+          height
+     YES
+     float
+     The height of the item in cms. Must be more than 0.5.
+     10
+          weight
+     YES
+     float
+     The weight of the item in kgs. Must be more than 0.
+     2.5
+          ewaybill_no
+     NO
+     string
+     Details relating to the shipment of goods. .
+     K92373490
+          customer_gstin
+     NO
+     string
+     Goods and Services Tax Identification Number.
+     29ABCDE1234F2Z5
+          invoice_number
+     NO
+     string
+     
+     
+          order_type
+     NO
+     string
+     Key to differentiate between Essentials or Non Essentials Shipments. Order type can only be ESSENTIALS or NON ESSENTIALS. Please note it is case sensitive and blank values are allowed.
+     ESSENTIALS
+          checkout_shipping_method
+     NO
+     string
+     Only for SRF users.
+     a. SR_RUSH: SDD, NDD
 b. SR_STANDARD: Surface Delivery
 c. SR_EXPRESS: Air Delivery
-d. SR_QUICK: 3 hrs delivery          what3words_address     NO     string     What3words is a proprietary geocode system designed to identify any location on the surface of Earth with a resolution of about 3 meters. The system encodes geographic coordinates into three permanently fixed dictionary words.     toddler.geologist.animated          is_insurance_opt     NO     boolean     To secure shipments above the order value of Rs 2500     true          is_document     NO     integer     To create a document order     1 or 0          order_tag     NO     string     To add tags to your orders     abc, xyz          
+d. SR_QUICK: 3 hrs delivery
+          what3words_address
+     NO
+     string
+     What3words is a proprietary geocode system designed to identify any location on the surface of Earth with a resolution of about 3 meters. The system encodes geographic coordinates into three permanently fixed dictionary words.
+     toddler.geologist.animated
+          is_insurance_opt
+     NO
+     boolean
+     To secure shipments above the order value of Rs 2500
+     true
+          is_document
+     NO
+     integer
+     To create a document order
+     1 or 0
+          order_tag
+     NO
+     string
+     To add tags to your orders
+     abc, xyz
+          
      HEADERS
      Content-Type
      application/json
@@ -76,100 +376,23 @@ d. SR_QUICK: 3 hrs delivery          what3words_address     NO     string   
          "invoice_number":"",
          "order_type":""
      }
-     
-     
-     
-     POSTUpdate Customer Delivery Address
-     https://apiv2.shiprocket.in/v1/external/orders/address/update
-     You can update the customer's name and delivery address through this API by passing the Shiprocket order id and the necessary customer details.
-     Table
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          order_id     YES     integer     The Shiprocket order_id specified to the order.     16178831          shipping_customer_name     YES     string     The name of the customer.     John Doe          shipping_phone     YES     integer     Phone number of the customer.     9988998899          shipping_address     YES     string     Primary address of the customer.     House no 123          shipping_address_2     NO     string     Further address details of the customer.     Beside CM house          shipping_city     YES     string     Shipping city name.     Pune          shipping_state     YES     string     Shipping state name.     Maharashtra          shipping_country     YES     string     Shipping country name.     India          shipping_pincode     YES     integer     Shipping address pincode.     120023          shipping_email     NO     string     Customer's email address.     john@doe.com          billing_alternate_phone     NO     string     The customer alternate phone.     8604690454          
-     HEADERS
-     Content-Type
-     application/json
-     Bodyraw
-     {
-       "order_id": "",
-       "shipping_customer_name": "",
-       "shipping_phone": "",
-       "shipping_address": "",
-       "shipping_address_2": "",
-       "shipping_city": "",
-       "shipping_state": "",
-       "shipping_country": "",
-       "shipping_pincode": "",
-       "shipping_email": "",
-       "billing_alternate_phone": ""
-     }
-     
-     
-     
-     POSTUpdate Order
-     https://apiv2.shiprocket.in/v1/external/orders/update/adhoc
-     Use this API to update your orders. You have to pass all the required params at the minimum to create a quick custom order. You can add additional parameters as per your preference.
-     You can update only the order_items details before assigning the AWB (before Ready to Ship status). You can only update these key-value pairs i.e., increase/decrease the quantity, update tax/discount, add/remove product items. We've also enabled changing the nature of the order from a non-document to a document. You jus t need to pass the is_document key with the value of 1 in the payload.
-     HEADERS
-     Content-Type
-     application/json
-     Bodyraw
-     {
-       "order_id": "4TestOrderOct28",
-       "order_date": "2024-10-28",
-       "pickup_location": "23659_7026",
-       "channel_id": "",
-       "comment": "Reseller: M/s Goku",
-       "billing_customer_name": "Naruto",
-       "billing_last_name": "Uzumaki",
-       "billing_address": "House 221B, Leaf Village",
-       "billing_address_2": "Near Hokage House",
-       "billing_city": "New Delhi",
-       "billing_pincode": "110002",
-       "billing_state": "Delhi",
-       "billing_country": "India",
-       "billing_email": "naruto@uzumaki.com",
-       "billing_phone": "9876543210",
-       "shipping_is_billing": true,
-       "shipping_customer_name": "",
-       "shipping_last_name": "",
-       "shipping_address": "",
-       "shipping_address_2": "",
-       "shipping_city": "",
-       "shipping_pincode": "",
-       "shipping_country": "",
-       "shipping_state": "",
-       "shipping_email": "",
-       "shipping_phone": "",
-       "is_document":"0",
-       "order_items": [
-         {
-           "name": "Agreement",
-           "sku": "chakra123",
-           "units": 1,
-           "selling_price": "900",
-           "discount": "",
-           "tax": "",
-           "hsn": 441122
-         }
-       ],
-       "payment_method": "Prepaid",
-       "shipping_charges": 0,
-       "giftwrap_charges": 0,
-       "transaction_charges": 0,
-       "total_discount": 0,
-       "sub_total": 9000,
-       "length": 10,
-       "breadth": 15,
-       "height": 20,
-       "weight": 2.5
-     }
-     
-     
+          
      
      POSTCancel an Order
      https://apiv2.shiprocket.in/v1/external/orders/cancel
      Use this API to cancel a created order. Multiple order_ids can be passed together as an array to cancel them simultaneously.
      Parameters:
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          ids     YES     integer     The Shiprocket order id/ids of the orders that need to be canceled.     16178831          HEADERS
+     PARAMS
+     REQUIRED
+     DATA TYPE
+     DESCRIPTION
+     EXAMPLE
+          ids
+     YES
+     integer
+     The Shiprocket order id/ids of the orders that need to be canceled.
+     16178831
+          HEADERS
      Content-Type
      application/json
      Bodyraw

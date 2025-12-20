@@ -1,97 +1,0 @@
-     Orders
-     These APIs can be used to get details about your created orders, as well as manage them, which include fetching orders from your channel, syncing their status, and exporting them to a CSV file.
-     Filters:
-     The 'filter' values are mentioned below. Use these to filter your data:
-     Table
-     filter_by     filter     description          payment_method                    ->     cod     cash on delivery orders          ->     Prepaid     for prepaid orders          channel_order_id                    ->     123     Your order id          status                    ->     1     New          ->     2     Invoiced          ->     3     Ready To Ship          ->     4     Pickup Scheduled          ->     5     Canceled          ->     6     Shipped          ->     7     Delivered          ->     8     ePayment Failed          ->     9     Returned          ->     10     Unmapped          ->     11     Unfulfillable          ->     12     Pickup Queue          ->     13     Pickup Rescheduled          ->     14     Pickup Error// Created when there is an error on the pickup schedule          ->     15     RTO Initiated          ->     16     RTO Delivered          ->     17     RTO Acknowledged          ->     18     Cancellation Requested          ->     19     Out for Delivery          ->     20     In Transit          ->     21     Return Pending          ->     22     Return Initiated          ->     23     Return Pickup Queued          ->     24     Return Pickup Error          ->     25     Return In Transit          ->     26     Return Delivered          ->     27     Return Cancelled          ->     28     Return Pickup Generated          ->     29     Return Cancellation Requested          ->     30     Return Pickup Cancelled          ->     31     Return Pickup Rescheduled          ->     32     Return Picked Up          ->     33     Lost          ->     34     Out For Pickup          ->     35     Pickup Exception          ->     36     Undelivered          ->     37     Delivery Delayed          ->     38     Partial Delivered          ->     39     Destroyed          ->     40     Damaged          ->     41     Fulfilled          ->     42     Archived          ->     43     Reached Destination Hub          ->     44     Misrouted          ->     45     RTO_OFD          ->     46     RTO_NDR          ->     47     Return Out For Pickup          ->     48     Return Out For Delivery          ->     49     Return Pickup Exception          ->     50     Return Undelivered          ->     51     Picked Up          ->     52     Self Fulfilled          ->     53     Disposed Off          ->     54     Canceled before Dispatched          ->     55     RTO In-Transit          ->     57     QC Failed          ->     58     Reached Warehouse          ->     59     Custom Cleared          ->     60     In Flight          ->     61     Handover to Courier          ->     62     Booked          ->     64     In Transit Overseas          ->     65     Connection Aligned          ->     66     Reached Overseas Warehouse          ->     67     Custom Cleared Overseas          ->     68     RETURN ACKNOWLEGED          ->     69     Box Packing          ->     70     Pickup Booked          ->     71     DARKSTORE SCHEDULED          ->     72     Allocation in Progress          ->     81     PROCESSED AT WAREHOUSE          ->     73     FC Allocated          ->     74     Picklist Generated          ->     75     Ready to Pack          ->     76     Packed          ->     80     FC MANIFEST GENERATED          ->     82     PACKED EXCEPTION          ->     83     HANDOVER EXCEPTION          ->     87     RTO_LOCK          ->     88     UNTRACEABLE          ->     89     ISSUE_RELATED_TO_THE_RECIPIENT          ->     90     REACHED_BACK_AT_SELLER_CITY          
-     GETGet all Orders
-     https://apiv2.shiprocket.in/v1/external/orders
-     This API call will display a list of all created and available orders in your Shiprocket account. The product and shipment details are displayed as sub-arrays within each order detail.
-     You can also sort and filter the data according to your needs by passing the optional parameters. Not passing anything will display the data in the default format.
-     You can also fetch the data based on the order update date. PFB the validations:
-     1. if updated_to => passed and updated_from not passed =>, error will come => Please send update_from date along with update_to date
-     2. if updated_from => passed and updated_to => paased => and from-to > 30 then error => Difference between updated_from and update_to date should not be greater than 30 days.
-     3. if updated_From < 30 then error => Updated_from date should not be less than 30 days from current date
-     
-     Table
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          page     NO     integer     The page number to display.     5          per_page     NO     integer     The number of entries per page.     5          sort     NO     string     Sort conditions: ASC or DESC     ASC          sort_by     NO     string     The Field to sort by: id or status     id          to     NO     string     The end date.     2018-07-24          from     NO     string     The start date.     2019-07-24          filter_by     NO     string     Field to filter by.     status, payment_method, delivery_country, channel_order_id          filter     NO     string     Value of the field               search     NO     string     Search for AWB or by Channel order_id (order id specified by you).     224477          pickup_location     NO     string     Search Orders on the basis of pickup location.     xyz          channel_id     NO     integer     Channel ID Returned in Get Integrated Channels API     123          fbs     NO     integer     Use this filter if you want to view and filter the SRF orders     0 or 1          HEADERS
-     Content-Type
-     application/json
-     Authorization
-     
-     
-     GETGet Specific Order Details
-     https://apiv2.shiprocket.in/v1/external/orders/show
-     Get the order and shipment details of a particular order through this API by passing the Shiprocket order_id in the endpoint URL itself — type in your order_id in place of {id}.
-     No other body parameters are required.
-     Note:
-     For SRF orders, you'll receive an extra parameter viz., fulfillment_status. This key will have four values:
-* Ready to Pack, 
-* Packed
-* Added to Picklist
-* Picked up
-     Path:
-     EXAMPLE          https://apiv2.shiprocket.in/v1/external/orders/show/16167171          HEADERS
-     Content-Type
-     application/json
-     Authorization
-     Bearer {token}
-     
-     
-     GETCheck Courier Serviceability
-     https://apiv2.shiprocket.in/v1/external/courier/serviceability/
-     Use this API to check the availability of couriers between the pickup and delivery postal codes.
-Further details like the estimated time of delivery, the rates along with the ids are also shown.
-     Note:
-* One of either the 'order_id' or 'cod' and 'weight' is required. If you specify the order id, the cod and weight fields are not required and vice versa.
-* You can add further fields to add the shipment details and filter the search.
-     
-     Table
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          pickup_postcode     YES     integer     The shipment id of the order you want to create the AWB of.     16016920          delivery_postcode     YES     integer     The courier id of the courier service you want to select. The default courier is selected in case no id is specified.     10          order_id     CONDITIONAL YES     integer     Use this to change the courier of a shipment. Value: reassign Note that this can be done only once in 24 hours.     reassign          cod     CONDITIONAL YES     boolean     1 for Cash on Delivery and 0 for Prepaid orders.     1          weight     CONDITIONAL YES     string     The weight of shipment in kgs.     2          length     NO     integer     The length of the shipment in cms.     15          breadth     NO     integer     The breadth of the shipment in cms.     10          height     NO     integer     The height of the shipment in cms.     5          declared_value     NO     integer     The price of the order shipment rupee.     50          mode     NO     string     The mode of travel. Either: Surface or Air     Air          is_return     YES     integer     Whether the order is return order or not. 1 in case of Yes and 0 for No     1          qc_check     NO     integer     Filter out QC couriers from the serviceability list     1          HEADERS
-     Content-Type
-     application/json
-     GETGet Tracking through AWB
-     https://apiv2.shiprocket.in/v1/external/courier/track/awb/{awb_code}
-     Get the tracking details of your shipment by entering the AWB code of the same in the endpoint URL itself. No other body parameters are required to access this API.
-     The response is displayed in JSON format.
-     Path:
-     EXAMPLE          https://apiv2.shiprocket.in/v1/external/courier/track/awb/788830567028          HEADERS
-     Content-Type
-     application/json
-     
-     
-     GETGet Tracking through Shipment ID
-     https://apiv2.shiprocket.in/v1/external/courier/track/shipment/{shipment_id}
-     Get the tracking details of your shipment by entering the shipment_id of the same in the endpoint URL. No other body parameters are required to access this API.
-     The response is displayed in JSON format.
-     Path:
-     EXAMPLE          https://apiv2.shiprocket.in/v1/external/courier/track/shipment/16104408          HEADERS
-     Content-Type
-     application/json
-     
-     
-     GETGet Tracking Data through Order ID
-     https://apiv2.shiprocket.in/v1/external/courier/track?order_id=123&channel_id=12345
-     Get the tracking details of your shipment by entering the Order ID of the same in the endpoint URL itself. If you have the same order ID in more than one channel, then use the param channel_id.
-     The response is displayed in JSON format.
-     Parameters:
-     PARAMS     REQUIRED     DATA TYPE     DESCRIPTION     EXAMPLE          order_id     YES     string     The order ID/number of your store.     NO-123          channel_id     NO     integer     Channel ID corresponding to the store     12345          Path:
-     EXAMPLE          https://apiv2.shiprocket.in/v1/external/courier/track?order_id=123&channel_id=12345          HEADERS
-     Authorization
-     Bearer {token}
-     PARAMS
-     order_id
-     123
-     channel_id
-     12345
-     
-     
-     Account
-     GETGet Wallet Balance
-     https://apiv2.shiprocket.in/v1/external/account/details/wallet-balance
-     Use this API to get the Wallet balance details of your Shiprocket account. No parameters are required to access this API.
-     HEADERS
-     Content-Type
-     application/json
-     
-     

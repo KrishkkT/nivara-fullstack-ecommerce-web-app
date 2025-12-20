@@ -11,7 +11,12 @@ import {
   CheckCircle, 
   Clock, 
   XCircle,
-  RefreshCw
+  RefreshCw,
+  MapPin,
+  Tag,
+  Calendar,
+  TrendingUp,
+  AlertCircle
 } from "lucide-react";
 
 interface ShiprocketOrder {
@@ -26,12 +31,23 @@ interface ShiprocketOrder {
   local_order_number: string;
   customer_name: string;
   total_amount: number;
+  // Add tracking information
+  tracking_url?: string;
+  // Add shipment details
+  shipment_status?: string;
+  estimated_delivery_date?: string;
 }
 
 export function LogisticsDashboard() {
   const [orders, setOrders] = useState<ShiprocketOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    shippedOrders: 0,
+    deliveredOrders: 0
+  });
 
   const fetchOrders = async () => {
     try {
@@ -41,6 +57,29 @@ export function LogisticsDashboard() {
       
       if (response.ok) {
         setOrders(data.orders || []);
+        
+        // Calculate stats
+        const ordersList = data.orders || [];
+        const totalOrders = ordersList.length;
+        const pendingOrders = ordersList.filter((o: any) => 
+          !o.status.toLowerCase().includes('shipped') && 
+          !o.status.toLowerCase().includes('delivered') &&
+          !o.status.toLowerCase().includes('cancel')
+        ).length;
+        const shippedOrders = ordersList.filter((o: any) => 
+          o.status.toLowerCase().includes('shipped') ||
+          o.status.toLowerCase().includes('picked')
+        ).length;
+        const deliveredOrders = ordersList.filter((o: any) => 
+          o.status.toLowerCase().includes('delivered')
+        ).length;
+        
+        setStats({
+          totalOrders,
+          pendingOrders,
+          shippedOrders,
+          deliveredOrders
+        });
       } else {
         throw new Error(data.error || "Failed to fetch orders");
       }
@@ -131,6 +170,55 @@ export function LogisticsDashboard() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <Package className="h-8 w-8 text-blue-500" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Total Orders</p>
+                  <p className="text-2xl font-bold">{stats.totalOrders}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 text-yellow-500" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Pending</p>
+                  <p className="text-2xl font-bold">{stats.pendingOrders}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <Truck className="h-8 w-8 text-green-500" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Shipped</p>
+                  <p className="text-2xl font-bold">{stats.shippedOrders}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-purple-500" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Delivered</p>
+                  <p className="text-2xl font-bold">{stats.deliveredOrders}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </CardContent>
+      <CardContent>
         {orders.length === 0 ? (
           <div className="text-center py-8">
             <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
@@ -149,21 +237,45 @@ export function LogisticsDashboard() {
                   <p className="text-sm text-gray-500 mt-1">
                     Customer: {order.customer_name} • ₹{order.total_amount.toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Shiprocket ID: {order.shiprocket_order_id} • Created: {new Date(order.created_at).toLocaleDateString()}
-                  </p>
-                  {order.awb_code && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      AWB: {order.awb_code}
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    <span className="text-xs text-gray-400 flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </span>
+                    {order.shiprocket_order_id && (
+                      <span className="text-xs text-gray-400 flex items-center">
+                        <Tag className="w-3 h-3 mr-1" />
+                        SR: {order.shiprocket_order_id}
+                      </span>
+                    )}
+                    {order.awb_code && (
+                      <span className="text-xs text-blue-600 flex items-center">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        AWB: {order.awb_code}
+                      </span>
+                    )}
+                  </div>
+                  {order.shipment_status && (
+                    <p className="text-xs mt-1">
+                      Shipment: <span className="font-medium">{order.shipment_status}</span>
+                      {order.estimated_delivery_date && (
+                        <> • Est. Delivery: {new Date(order.estimated_delivery_date).toLocaleDateString()}</>
+                      )}
                     </p>
                   )}
                 </div>
                 <div className="flex gap-2 mt-2 sm:mt-0">
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`/admin/orders/${order.order_id}`} target="_blank">
-                      View Details
-                    </a>
-                  </Button>
+                  {order.awb_code && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a 
+                        href={`https://app.shiprocket.in/shipment/tracking/${order.awb_code}`} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Track
+                      </a>
+                    </Button>
+                  )}
                   {order.shiprocket_order_id && (
                     <Button variant="outline" size="sm" asChild>
                       <a 
