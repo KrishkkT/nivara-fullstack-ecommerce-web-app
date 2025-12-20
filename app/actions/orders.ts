@@ -29,6 +29,8 @@ export async function createOrder(data: OrderData) {
     if (!session) {
       return { error: "Please sign in to place an order" }
     }
+    
+    console.log(`[v0] User authenticated: ${session.userId}`);
 
     // Generate order number
     const orderNumber = `NIVARA-${Date.now()}`
@@ -49,8 +51,8 @@ export async function createOrder(data: OrderData) {
         ${session.userId},
         ${orderNumber},
         ${data.totalAmount},
-        'pending',
-        'awaiting_payment',
+        'processing',
+        'paid',
         ${data.paymentMethod},
         ${data.shippingAddressId ? null : JSON.stringify(data.shippingAddress)},
         ${data.shippingAddressId || null}
@@ -303,6 +305,9 @@ export async function cancelOrder(orderId: number) {
 // Helper function to automatically create orders in Shiprocket
 async function createShiprocketOrderAutomatically(orderId: number, orderNumber: string, data: OrderData) {
   try {
+    console.log(`[v0] Starting automatic Shiprocket order creation for order #${orderNumber} (ID: ${orderId})`);
+    console.log(`[v0] Order data:`, JSON.stringify(data, null, 2));
+    
     // Get user details for the order
     const userResult: any = await sql`
       SELECT u.full_name, u.email, u.phone, a.*
@@ -351,8 +356,8 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
     const shiprocketItems = orderItemsResult.map((item: any, index: number) => ({
       name: item.product_name,
       sku: `ORDER-${orderId}-ITEM-${index + 1}`, // Generate unique SKU if not available
-      quantity: item.quantity,
-      price: parseFloat(item.product_price),
+      units: item.quantity,
+      selling_price: parseFloat(item.product_price),
       discount: 0, // No discount by default
       tax: 0, // No tax by default
       hsn: "", // HSN code can be added if available

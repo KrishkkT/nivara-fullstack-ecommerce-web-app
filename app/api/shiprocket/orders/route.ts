@@ -77,19 +77,19 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    // Check courier serviceability before creating order
-    const serviceabilityData = {
-      pickup_postcode: data.pickup_postcode || "110001", // Default to Delhi pincode
-      delivery_postcode: data.billing_pincode,
-      weight: data.order_items.reduce((sum: number, item: any) => sum + ((item.weight || 0.5) * (item.units || 1)), 0),
-      cod: data.payment_method === "cod"
-    };
-
+    // Check courier serviceability before creating order (optional step)
     try {
+      const serviceabilityData = {
+        pickup_postcode: data.pickup_postcode || "110001", // Default to Delhi pincode
+        delivery_postcode: data.billing_pincode,
+        weight: data.order_items.reduce((sum: number, item: any) => sum + ((item.weight || 0.5) * (item.units || 1)), 0),
+        cod: data.payment_method === "cod" ? true : false
+      };
+      
       const serviceability = await checkCourierServiceability(serviceabilityData);
       console.log("Serviceability check result:", serviceability);
     } catch (serviceabilityError) {
-      console.warn("Serviceability check failed:", serviceabilityError);
+      console.warn("Serviceability check failed (continuing with order creation):", serviceabilityError);
       // Continue with order creation even if serviceability check fails
     }
 
