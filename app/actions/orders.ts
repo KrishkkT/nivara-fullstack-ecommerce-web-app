@@ -430,8 +430,8 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
       order_items: shiprocketItems.map(item => ({
         name: item.name,
         sku: item.sku,
-        price: Math.round(item.price),
-        quantity: item.quantity,
+        selling_price: Math.round(item.price),
+        units: item.quantity,
         hsn: item.hsn || ''
       })),
       payment_method: data.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
@@ -439,7 +439,7 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
       length: 15,
       breadth: 10,
       height: 5,
-      weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.quantity), 0))
+      weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.units), 0))
     };
 
     // Create the order in Shiprocket

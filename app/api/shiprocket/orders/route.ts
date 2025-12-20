@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     const serviceabilityData = {
       pickup_postcode: data.pickup_postcode || "110001", // Default to Delhi pincode
       delivery_postcode: data.billing_pincode,
-      weight: data.order_items.reduce((sum: number, item: any) => sum + (item.weight || 0.5), 0),
+      weight: data.order_items.reduce((sum: number, item: any) => sum + ((item.weight || 0.5) * (item.units || 1)), 0),
       cod: data.payment_method === "cod"
     };
 
@@ -117,8 +117,8 @@ export async function POST(request: Request) {
     orderData.order_items = data.order_items.map((item: any, index: number) => ({
       name: item.name || `Item ${index + 1}`,
       sku: item.sku || `API-ITEM-${Date.now()}-${index + 1}`,
-      quantity: item.units ? parseInt(item.units) : 1,
-      price: item.selling_price ? parseFloat(item.selling_price) : 0,
+      units: item.units ? parseInt(item.units) : 1,
+      selling_price: item.selling_price ? parseFloat(item.selling_price) : 0,
       discount: item.discount ? parseFloat(item.discount) : 0,
       tax: item.tax ? parseFloat(item.tax) : 0,
       hsn: item.hsn || ""
