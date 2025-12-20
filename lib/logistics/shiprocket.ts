@@ -172,11 +172,11 @@ export async function createOrder(orderData: any) {
       // Generate defaults for missing fields
       if (!item.name) item.name = "Unnamed Product";
       if (!item.sku) item.sku = `GEN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      if (item.units === undefined || item.units === null) item.units = 1;
-      if (item.selling_price === undefined || item.selling_price === null) item.selling_price = 0;
+      if (item.quantity === undefined || item.quantity === null) item.quantity = 1;
+      if (item.price === undefined || item.price === null) item.price = 0;
       
       // Validate that we have valid values
-      const itemRequiredFields = ['name', 'sku', 'units', 'selling_price'];
+      const itemRequiredFields = ['name', 'sku', 'quantity', 'price'];
       for (const field of itemRequiredFields) {
         if (item[field] === undefined || item[field] === null || item[field] === '') {
           throw new Error(`Missing required field in order_items: ${field}`);

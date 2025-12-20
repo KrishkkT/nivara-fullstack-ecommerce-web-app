@@ -27,6 +27,7 @@ interface PickupLocation {
 
 export function ShiprocketShipmentCreation() {
   const [orderId, setOrderId] = useState("");
+  const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupLocations, setPickupLocations] = useState<PickupLocation[]>([]);
   const [billingCustomerName, setBillingCustomerName] = useState("");
@@ -150,6 +151,7 @@ export function ShiprocketShipmentCreation() {
       // Prepare order data according to Shiprocket requirements
       const orderData = {
         order_id: orderId,
+        order_date: orderDate, // Include order date
         pickup_location: pickupLocationName, // Send the name of the pickup location
         billing_customer_name: billingCustomerName,
         billing_last_name: "",
@@ -243,6 +245,18 @@ export function ShiprocketShipmentCreation() {
                   type="text"
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="order-date">Order Date *</Label>
+                <Input
+                  id="order-date"
+                  type="date"
+                  value={orderDate}
+                  onChange={(e) => setOrderDate(e.target.value)}
                   required
                   disabled={loading}
                 />

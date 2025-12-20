@@ -117,8 +117,8 @@ export async function POST(request: Request) {
     orderData.order_items = data.order_items.map((item: any, index: number) => ({
       name: item.name || `Item ${index + 1}`,
       sku: item.sku || `API-ITEM-${Date.now()}-${index + 1}`,
-      units: item.units ? parseInt(item.units) : 1,
-      selling_price: item.selling_price ? parseFloat(item.selling_price) : 0,
+      quantity: item.units ? parseInt(item.units) : 1,
+      price: item.selling_price ? parseFloat(item.selling_price) : 0,
       discount: item.discount ? parseFloat(item.discount) : 0,
       tax: item.tax ? parseFloat(item.tax) : 0,
       hsn: item.hsn || ""

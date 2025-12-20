@@ -22,6 +22,8 @@ interface OrderData {
 
 export async function createOrder(data: OrderData) {
   try {
+    console.log("[v0] Creating order with data:", JSON.stringify(data, null, 2));
+    
     const session = await getSession()
 
     if (!session) {
@@ -30,6 +32,7 @@ export async function createOrder(data: OrderData) {
 
     // Generate order number
     const orderNumber = `NIVARA-${Date.now()}`
+    console.log(`[v0] Generated order number: ${orderNumber}`);
 
     const order: any = await sql`
       INSERT INTO orders (
@@ -56,6 +59,7 @@ export async function createOrder(data: OrderData) {
     `
 
     const orderId = order[0].id
+    console.log(`[v0] Created order in database with ID: ${orderId}`);
 
     // Insert order items
     for (const item of data.items) {
@@ -157,6 +161,7 @@ export async function createOrder(data: OrderData) {
     }
 
     // Automatically create order in Shiprocket
+    console.log(`[v0] Attempting to create Shiprocket order for order #${orderNumber} (ID: ${orderId})`);
     try {
       await createShiprocketOrderAutomatically(orderId, orderNumber, data);
     } catch (shiprocketError) {
@@ -339,17 +344,22 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
       WHERE oi.order_id = ${orderId}
     `;
 
+    // Log for debugging
+    console.log('[v0] Order items result:', JSON.stringify(orderItemsResult, null, 2));
+    
     // Transform order items to Shiprocket format
     const shiprocketItems = orderItemsResult.map((item: any, index: number) => ({
       name: item.product_name,
       sku: `ORDER-${orderId}-ITEM-${index + 1}`, // Generate unique SKU if not available
-      units: item.quantity,
-      selling_price: parseFloat(item.product_price),
+      quantity: item.quantity,
+      price: parseFloat(item.product_price),
       discount: 0, // No discount by default
       tax: 0, // No tax by default
       hsn: "", // HSN code can be added if available
       weight: 0.5 // Default weight in kg, you might want to get this from product data
     }));
+    
+    console.log('[v0] Shiprocket items:', JSON.stringify(shiprocketItems, null, 2));
 
     // Get pickup location
     let pickupLocation = null;
@@ -397,33 +407,39 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
     // Prepare order data for Shiprocket (following the exact API specification)
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
+    // Format customer name properly
+    const fullNameParts = user.full_name.split(' ');
+    const firstName = fullNameParts[0] || user.full_name;
+    const lastName = fullNameParts.slice(1).join(' ') || '';
+    
     const shiprocketOrderData = {
       order_id: orderNumber,
       order_date: currentDate,
       pickup_location: pickupLocation,
-      billing_customer_name: user.full_name.split(' ')[0] || user.full_name, // First name only
-      billing_last_name: user.full_name.split(' ').slice(1).join(' ') || "", // Last name
+      billing_customer_name: firstName,
+      billing_last_name: lastName,
       billing_address: shippingAddress.address_line1,
-      billing_address_2: shippingAddress.address_line2 || "",
+      billing_address_2: shippingAddress.address_line2 || '',
       billing_city: shippingAddress.city,
-      billing_pincode: parseInt(shippingAddress.postal_code),
       billing_state: shippingAddress.state,
-      billing_country: shippingAddress.country || "India",
+      billing_country: shippingAddress.country || 'India',
+      billing_pincode: shippingAddress.postal_code.toString(),
       billing_email: user.email,
-      billing_phone: parseInt(user.phone.replace(/[^0-9]/g, '')), // Remove non-numeric characters
-      billing_alternate_phone: "",
+      billing_phone: user.phone.toString(),
       shipping_is_billing: true,
-      order_items: shiprocketItems,
+      order_items: shiprocketItems.map(item => ({
+        name: item.name,
+        sku: item.sku,
+        price: Math.round(item.price),
+        quantity: item.quantity,
+        hsn: item.hsn || ''
+      })),
       payment_method: data.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
-      sub_total: Math.round(data.totalAmount), // Integer value as required
-      length: 15, // Default dimensions in cm
+      sub_total: Math.round(data.totalAmount),
+      length: 15,
       breadth: 10,
       height: 5,
-      weight: Math.max(0.1, shiprocketItems.reduce((sum: number, item: any) => sum + (item.weight * item.units), 0)), // Minimum 0.1 kg
-      shipping_charges: 0,
-      giftwrap_charges: 0,
-      transaction_charges: 0,
-      total_discount: 0
+      weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.quantity), 0))
     };
 
     // Create the order in Shiprocket
