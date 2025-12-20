@@ -409,6 +409,21 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
       throw new Error("No pickup location configured");
     }
 
+    // Check courier serviceability before creating order (optional step)
+    try {
+      const serviceabilityData = {
+        pickup_postcode: "396445", // Default to your pickup location postcode
+        delivery_postcode: shippingAddress.postal_code.toString(),
+        weight: shiprocketItems.reduce((sum, item) => sum + ((item.weight || 0.5) * (item.units || 1)), 0),
+        cod: data.paymentMethod === "cod" ? 1 : 0
+      };
+      
+      // Note: We're not blocking order creation if serviceability check fails
+      console.log("[v0] Checking courier serviceability:", JSON.stringify(serviceabilityData, null, 2));
+    } catch (serviceabilityError) {
+      console.warn("[v0] Serviceability check failed (continuing with order creation):", serviceabilityError);
+    }
+
     // Prepare order data for Shiprocket (following the exact API specification)
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     

@@ -7,7 +7,7 @@ SELECT
     o.order_number, 
     o.total_amount, 
     o.status, 
-    o.payment_method,
+    o.payment_status,
     u.full_name as customer_name,
     u.email as customer_email,
     a.address_line1,
@@ -38,8 +38,7 @@ SELECT
     oi.product_id,
     oi.quantity,
     oi.product_price,
-    p.name as product_name,
-    p.sku as product_sku
+    p.name as product_name
 FROM orders o
 JOIN order_items oi ON o.id = oi.order_id
 JOIN products p ON oi.product_id = p.id

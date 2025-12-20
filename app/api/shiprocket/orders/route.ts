@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         pickup_postcode: data.pickup_postcode || "110001", // Default to Delhi pincode
         delivery_postcode: data.billing_pincode,
         weight: data.order_items.reduce((sum: number, item: any) => sum + ((item.weight || 0.5) * (item.units || 1)), 0),
-        cod: data.payment_method === "cod" ? true : false
+        cod: data.payment_method === "cod" ? 1 : 0
       };
       
       const serviceability = await checkCourierServiceability(serviceabilityData);

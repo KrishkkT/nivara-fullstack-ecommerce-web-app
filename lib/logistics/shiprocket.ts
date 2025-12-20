@@ -234,7 +234,18 @@ export async function checkCourierServiceability(data: {
       throw new Error("Either order_id or both cod and weight are required");
     }
     
-    const response = await shiprocketGet("/courier/serviceability?" + new URLSearchParams(data as any).toString());
+    // Convert boolean values to integers for Shiprocket API
+    const queryParams: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (key === 'cod') {
+        // Shiprocket expects 0 or 1 for COD, not true/false
+        queryParams[key] = value === true ? 1 : value === false ? 0 : value;
+      } else {
+        queryParams[key] = value;
+      }
+    }
+    
+    const response = await shiprocketGet("/courier/serviceability?" + new URLSearchParams(queryParams).toString());
     return response;
   } catch (error: any) {
     console.error("Error checking courier serviceability:", error);

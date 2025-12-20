@@ -37,8 +37,7 @@ SELECT
     oi.product_id,
     oi.quantity,
     oi.product_price,
-    p.name as product_name,
-    p.sku as product_sku
+    p.name as product_name
 FROM orders o
 JOIN order_items oi ON o.id = oi.order_id
 JOIN products p ON oi.product_id = p.id
@@ -69,8 +68,7 @@ SELECT
     oi.product_id,
     oi.quantity,
     oi.product_price,
-    p.name as product_name,
-    p.sku as product_sku
+    p.name as product_name
 FROM orders o
 JOIN order_items oi ON o.id = oi.order_id
 JOIN products p ON oi.product_id = p.id
