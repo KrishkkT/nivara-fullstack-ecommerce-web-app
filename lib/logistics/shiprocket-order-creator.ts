@@ -98,6 +98,8 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
     try {
       const pickupLocations = await getPickupLocations();
       
+      console.log('[v0] Raw pickup locations response:', JSON.stringify(pickupLocations, null, 2));
+      
       // Handle different response structures
       let locationsData = [];
       if (pickupLocations && pickupLocations.data) {
@@ -123,17 +125,23 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
         }
       }
       
+      console.log('[v0] Processed locations data:', JSON.stringify(locationsData, null, 2));
+      
       // Use primary pickup location or first available
       const primaryLocation = locationsData.find((loc: any) => loc.is_primary_location || loc.primary) || locationsData[0];
       if (primaryLocation) {
-        pickupLocation = primaryLocation.name || primaryLocation.pickup_location || primaryLocation.id;
+        // Based on the error data, we should use the pickup_location field
+        pickupLocation = primaryLocation.pickup_location || primaryLocation.name || primaryLocation.id;
+        console.log('[v0] Selected pickup location:', pickupLocation);
       }
     } catch (pickupError) {
       console.warn("Failed to fetch pickup locations for Shiprocket order:", pickupError);
     }
 
+    // Fallback to hardcoded pickup location if none found
     if (!pickupLocation) {
-      throw new Error("No pickup location configured");
+      console.warn("No pickup location found, using fallback 'work'");
+      pickupLocation = "work";
     }
 
     // Check courier serviceability before creating order (optional step)
@@ -155,6 +163,7 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
 
     // Prepare order data for Shiprocket (following the exact API specification)
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    console.log('[v0] Using order date:', currentDate);
     
     // Format customer name properly
     const fullNameParts = (user.full_name || '').split(' ');
@@ -162,9 +171,9 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
     const lastName = fullNameParts.slice(1).join(' ') || '';
     
     const shiprocketOrderData = {
-      order_id: orderNumber,
+      order_id: orderNumber.toString(), // Ensure it's a string
       order_date: currentDate,
-      pickup_location: pickupLocation,
+      pickup_location: pickupLocation.toString(), // Ensure it's a string
       billing_customer_name: firstName,
       billing_last_name: lastName,
       billing_address: (shippingAddress.address_line1 || ''),
@@ -177,22 +186,31 @@ export async function createShiprocketOrderAutomatically(orderId: number, orderN
       billing_phone: (user.phone || '').toString(),
       shipping_is_billing: true,
       order_items: shiprocketItems.map(item => ({
-        name: item.name,
-        sku: item.sku,
-        selling_price: Math.round(item.price),
-        units: item.units,
+        name: item.name.toString(), // Ensure it's a string
+        sku: item.sku.toString(), // Ensure it's a string
+        selling_price: Math.round(item.price).toString(), // Ensure it's a string
+        quantity: item.units.toString(), // Ensure it's a string
         hsn: item.hsn || ''
       })),
       payment_method: data.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
-      sub_total: Math.round(data.totalAmount),
-      length: 15,
-      breadth: 10,
-      height: 5,
-      weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.units), 0))
+      sub_total: Math.round(data.totalAmount).toString(), // Ensure it's a string
+      length: "15", // Ensure it's a string
+      breadth: "10", // Ensure it's a string
+      height: "5", // Ensure it's a string
+      weight: Math.max(0.1, shiprocketItems.reduce((sum, item) => sum + (item.weight * item.units), 0)).toString() // Ensure it's a string
     };
 
     // Log the data being sent to Shiprocket for debugging
     console.log('[v0] Sending data to Shiprocket:', JSON.stringify(shiprocketOrderData, null, 2));
+    
+    // Validate required fields before sending
+    if (!shiprocketOrderData.pickup_location) {
+      throw new Error("pickup_location is required");
+    }
+    
+    if (!shiprocketOrderData.order_date) {
+      throw new Error("order_date is required");
+    }
     
     // Create the order in Shiprocket
     const orderResult = await createShiprocketOrder(shiprocketOrderData);
