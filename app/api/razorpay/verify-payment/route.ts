@@ -3,6 +3,7 @@ import { createHmac } from "crypto"
 import { sql } from "@/lib/db"
 import { getSession } from "@/lib/session"
 import { sendEmail, generateOrderNotificationEmail, generateCustomerOrderConfirmationEmail } from "@/lib/email"
+import { createShiprocketOrderAutomatically } from "@/lib/logistics/shiprocket-order-creator"
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,24 +53,76 @@ export async function POST(request: NextRequest) {
     try {
       console.log(`[v0] Triggering Shiprocket order creation for order ID: ${orderId}`);
       
-      // Make a direct API call to our own endpoint
-      // This avoids import issues in serverless environments
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/shiprocket/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ orderId })
-      });
+      // Get order details for Shiprocket creation
+      const orderDetails: any = await sql`
+        SELECT o.*, u.full_name, u.email, u.phone
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        WHERE o.id = ${orderId}
+      `;
       
-      if (response.ok) {
-        console.log(`[v0] Successfully triggered Shiprocket order creation for order ID: ${orderId}`);
+      if (orderDetails.length > 0) {
+        const order = orderDetails[0];
+        const orderNumber = order.order_number;
+        
+        console.log(`[v0] Creating Shiprocket order for #${orderNumber}`);
+        
+        // Get shipping address
+        let shippingAddress = null;
+        
+        // First try to get from shipping_address_id
+        if (order.shipping_address_id) {
+          const addressResult: any = await sql`
+            SELECT * FROM addresses WHERE id = ${order.shipping_address_id}
+          `;
+          
+          if (addressResult.length > 0) {
+            shippingAddress = addressResult[0];
+          }
+        }
+        
+        // If not found, try to parse from shipping_address JSON field
+        if (!shippingAddress && order.shipping_address) {
+          try {
+            shippingAddress = JSON.parse(order.shipping_address);
+          } catch (e) {
+            console.warn('[v0] Failed to parse shipping_address JSON:', e);
+          }
+        }
+        
+        // Create order data object
+        const orderData = {
+          shippingAddressId: order.shipping_address_id,
+          shippingAddress: shippingAddress,
+          paymentMethod: order.payment_type || 'prepaid',
+          totalAmount: parseFloat(order.total_amount),
+          user: {
+            full_name: order.full_name,
+            email: order.email,
+            phone: order.phone
+          },
+          items: []
+        };
+        
+        // Get order items
+        const orderItems: any = await sql`
+          SELECT * FROM order_items WHERE order_id = ${orderId}
+        `;
+        
+        orderData.items = orderItems.map((item: any) => ({
+          productId: item.product_id,
+          quantity: item.quantity,
+          price: parseFloat(item.product_price)
+        }));
+        
+        // Create Shiprocket order directly
+        await createShiprocketOrderAutomatically(orderId, orderNumber, orderData);
+        console.log(`[v0] Successfully created Shiprocket order for order #${orderNumber}`);
       } else {
-        const errorText = await response.text();
-        console.error(`[v0] Failed to trigger Shiprocket order creation for order ID: ${orderId}. Response:`, errorText);
+        console.error(`[v0] Order not found for ID: ${orderId}`);
       }
     } catch (shiprocketError) {
-      console.error('[v0] Failed to trigger Shiprocket order creation:', shiprocketError);
+      console.error('[v0] Failed to create Shiprocket order:', shiprocketError);
       // Don't fail the payment verification if Shiprocket sync fails
     }
 

@@ -3,8 +3,8 @@
 // Body: { orderId: number }
 
 import { type NextRequest, NextResponse } from "next/server"
-import { createShiprocketOrderAutomatically } from "@/app/actions/orders"
 import { sql } from "@/lib/db"
+import { createShiprocketOrderAutomatically } from "@/lib/logistics/shiprocket-order-creator"
 
 export async function POST(request: NextRequest) {
   try {
