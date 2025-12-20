@@ -331,17 +331,18 @@ async function createShiprocketOrderAutomatically(orderId: number, orderNumber: 
     }
 
     // Get order items with product details
+    // Note: Not all systems have SKU column, so we'll generate one if needed
     const orderItemsResult: any = await sql`
-      SELECT oi.*, p.name as product_name, p.sku as product_sku
+      SELECT oi.*, p.name as product_name
       FROM order_items oi
       JOIN products p ON oi.product_id = p.id
       WHERE oi.order_id = ${orderId}
     `;
 
     // Transform order items to Shiprocket format
-    const shiprocketItems = orderItemsResult.map((item: any) => ({
+    const shiprocketItems = orderItemsResult.map((item: any, index: number) => ({
       name: item.product_name,
-      sku: item.product_sku || `SKU-${item.product_id}`,
+      sku: `ORDER-${orderId}-ITEM-${index + 1}`, // Generate unique SKU if not available
       units: item.quantity,
       selling_price: parseFloat(item.product_price),
       discount: 0, // No discount by default

@@ -169,6 +169,13 @@ export async function createOrder(orderData: any) {
     
     // Validate each item has required fields
     for (const item of orderData.order_items) {
+      // Generate defaults for missing fields
+      if (!item.name) item.name = "Unnamed Product";
+      if (!item.sku) item.sku = `GEN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      if (item.units === undefined || item.units === null) item.units = 1;
+      if (item.selling_price === undefined || item.selling_price === null) item.selling_price = 0;
+      
+      // Validate that we have valid values
       const itemRequiredFields = ['name', 'sku', 'units', 'selling_price'];
       for (const field of itemRequiredFields) {
         if (item[field] === undefined || item[field] === null || item[field] === '') {

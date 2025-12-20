@@ -10,6 +10,7 @@ import {
   ShiprocketOrderDetails,
   ShiprocketTrackingEvents
 } from "@/components/admin/shiprocket-components"
+import { LogisticsDashboard } from "@/components/admin/logistics-dashboard"
 
 export default async function AdminLogisticsPage() {
   const cookieStore = await cookies()
@@ -42,6 +43,10 @@ export default async function AdminLogisticsPage() {
           </div>
         </div>
 
+        <div className="mb-6">
+          <LogisticsDashboard />
+        </div>
+        
         <div className="grid gap-6 md:grid-cols-2">
           <ShiprocketShipmentCreation />
           <ShiprocketPickupManagement />
