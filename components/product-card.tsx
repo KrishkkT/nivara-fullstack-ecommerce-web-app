@@ -25,6 +25,7 @@ interface Product {
   image_url: string
   category_name: string
   category_slug: string
+  is_sold_out: boolean
 }
 
 export function ProductCard({ product, index }: { product: Product; index: number }) {
@@ -46,6 +47,16 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
   async function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
+
+    // Check if product is sold out
+    if (product.is_sold_out) {
+      toast({
+        title: "Product Unavailable",
+        description: "This product is currently sold out",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsAddingToCart(true)
 
@@ -151,6 +162,11 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
               {discount}% OFF
             </div>
           )}
+          {product.is_sold_out && (
+            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 bg-destructive text-destructive-foreground text-xs font-semibold px-3 py-1.5 rounded-full shadow-md backdrop-blur-sm">
+              SOLD OUT
+            </div>
+          )}
           <button
             onClick={handleToggleWishlist}
             disabled={isTogglingWishlist}
@@ -206,10 +222,10 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
             size="sm"
             className="flex-1 h-9 text-sm shadow-md hover:shadow-lg transition-all"
             onClick={handleAddToCart}
-            disabled={isAddingToCart}
+            disabled={isAddingToCart || product.is_sold_out}
           >
             <ShoppingCart className="mr-1.5 h-4 w-4" />
-            {isAddingToCart ? "Adding..." : "Add to Cart"}
+            {isAddingToCart ? "Adding..." : product.is_sold_out ? "Sold Out" : "Add to Cart"}
           </Button>
         </div>
       </div>

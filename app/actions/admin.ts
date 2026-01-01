@@ -353,7 +353,8 @@ export async function addProduct(data: any) {
             metal_purity, 
             design_number, 
             is_featured, 
-            is_active
+            is_active,
+            is_sold_out
           )
           VALUES (
             ${data.name},
@@ -367,7 +368,8 @@ export async function addProduct(data: any) {
             ${data.metalPurity || null},
             ${data.designNumber || null},
             ${data.isFeatured},
-            ${data.isActive}
+            ${data.isActive},
+            ${data.isSoldOut || false}
           )
           RETURNING id
         `
@@ -454,6 +456,7 @@ export async function updateProduct(productId: number, data: any) {
         design_number = ${data.designNumber || null},
         is_featured = ${data.isFeatured},
         is_active = ${data.isActive},
+        is_sold_out = ${data.isSoldOut || false},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${productId}
     `

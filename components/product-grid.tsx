@@ -10,6 +10,7 @@ interface Product {
   image_url: string
   category_name: string
   category_slug: string
+  is_sold_out: boolean
 }
 
 export function ProductGrid({ products }: { products: Product[] }) {

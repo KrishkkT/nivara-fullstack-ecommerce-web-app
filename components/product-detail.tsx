@@ -27,6 +27,7 @@ interface Product {
   category_slug: string
   is_featured?: boolean
   is_active?: boolean
+  is_sold_out: boolean
 }
 
 export function ProductDetail({
@@ -85,6 +86,16 @@ export function ProductDetail({
   }
 
   async function handleAddToCart() {
+    // Check if product is sold out
+    if (product.is_sold_out) {
+      toast({
+        title: "Product Unavailable",
+        description: "This product is currently sold out",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
     const result = await addToCart(product.id)
     setLoading(false)
@@ -187,6 +198,11 @@ export function ProductDetail({
             {discount > 0 && (
               <div className="absolute top-6 right-6 bg-gradient-to-br from-destructive to-destructive/80 text-white text-base font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm">
                 Save {discount}%
+              </div>
+            )}
+            {product.is_sold_out && (
+              <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-destructive text-destructive-foreground text-base font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm">
+                SOLD OUT
               </div>
             )}
             <div className="absolute top-6 left-6 bg-gradient-to-br from-primary/90 to-secondary/90 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm flex items-center gap-2">
@@ -307,10 +323,10 @@ export function ProductDetail({
               size="lg"
               className="flex-1 h-14 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
               onClick={handleAddToCart}
-              disabled={loading}
+              disabled={loading || product.is_sold_out}
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
-              {loading ? "Adding..." : "Add to Cart"}
+              {loading ? "Adding..." : product.is_sold_out ? "Sold Out" : "Add to Cart"}
             </Button>
             <Button
               size="lg"

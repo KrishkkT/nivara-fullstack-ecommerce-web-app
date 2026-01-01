@@ -22,6 +22,7 @@ interface Product {
   category_id: number
   metal_purity?: string
   design_number?: string
+  is_sold_out?: boolean
 }
 
 interface ProductFormProps {
@@ -130,6 +131,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const price = formData.get("price") as string;
     const metalPurity = formData.get("metal_purity") as string;
     const designNumber = formData.get("design_number") as string;
+    const isSoldOut = formData.get("is_sold_out") === "on";
 
     // Form validation
     if (!productName?.trim()) {
@@ -191,7 +193,8 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
       designNumber: designNumber?.trim() || null,
       compareAtPrice: null, // Set to null instead of empty string
       isFeatured: false,
-      isActive: true
+      isActive: true,
+      isSoldOut: isSoldOut
     }
 
     try {
@@ -351,6 +354,21 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         <div className="space-y-2">
           <Label htmlFor="design_number">Design Number</Label>
           <Input id="design_number" name="design_number" placeholder="DN-001" defaultValue={product?.design_number} />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 pt-4">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="is_sold_out"
+            name="is_sold_out"
+            defaultChecked={product?.is_sold_out || false}
+            className="h-4 w-4 rounded border-input bg-background"
+          />
+          <Label htmlFor="is_sold_out" className="text-sm font-medium">
+            Mark as Sold Out
+          </Label>
         </div>
       </div>
 
