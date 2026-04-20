@@ -6,7 +6,7 @@ import { verifyAuth } from "@/lib/session"
 import { sql } from "@/lib/db"
 
 // Add to cart action
-export async function addToCart(productId: number) {
+export async function addToCart(productId: number, quantity: number = 1) {
   "use server"
 
   const cookieStore = await cookies()
@@ -51,14 +51,14 @@ export async function addToCart(productId: number) {
       // Update quantity if item already exists
       await sql`
         UPDATE cart_items 
-        SET quantity = ${existingCartItem[0].quantity + 1}, updated_at = CURRENT_TIMESTAMP
+        SET quantity = ${existingCartItem[0].quantity + quantity}, updated_at = CURRENT_TIMESTAMP
         WHERE id = ${existingCartItem[0].id}
       `
     } else {
       // Add new item to cart
       await sql`
         INSERT INTO cart_items (user_id, product_id, quantity)
-        VALUES (${user.id}, ${productId}, 1)
+        VALUES (${user.id}, ${productId}, ${quantity})
       `
     }
 

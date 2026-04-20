@@ -60,15 +60,12 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
 
     setIsAddingToCart(true)
 
-    let lastResult = null
-    for (let i = 0; i < quantity; i++) {
-      lastResult = await addToCart(product.id)
-    }
+    const result = await addToCart(product.id, quantity)
 
     setIsAddingToCart(false)
 
-    if (lastResult?.error) {
-      if (lastResult.error === "Please sign in to add items to cart") {
+    if (result?.error) {
+      if (result.error === "Please sign in to add items to cart") {
         toast({
           title: "Sign in required",
           description: "Please sign in to add items to your cart",
@@ -78,7 +75,7 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
       } else {
         toast({
           title: "Error",
-          description: lastResult.error,
+          description: result.error,
           variant: "destructive",
         })
       }

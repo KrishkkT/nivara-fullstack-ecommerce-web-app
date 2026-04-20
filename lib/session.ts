@@ -91,6 +91,7 @@ export async function getSession() {
     console.log("Valid session found")
     return {
       userId: sessionData.userId,
+      id: sessionData.userId,
       email: sessionData.email,
       fullName: sessionData.fullName,
       role: sessionData.role,
@@ -128,6 +129,7 @@ export async function verifyAuth(token: string) {
     console.log("Token verified successfully")
     return {
       userId: sessionData.userId,
+      id: sessionData.userId,
       email: sessionData.email,
       fullName: sessionData.fullName,
       role: sessionData.role,
