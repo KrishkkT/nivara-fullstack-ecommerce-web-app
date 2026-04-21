@@ -67,7 +67,7 @@ export async function addToCart(productId: number, quantity: number = 1) {
     return { success: true }
   } catch (error) {
     console.error("[v0] Add to cart error:", error)
-    return { error: "Failed to add item to cart" }
+    return { error: "Failed to add as item already in Cart" }
   }
 }
 
